@@ -53,7 +53,6 @@ hook.Add("PlayerAmmoChanged", "CASE_PlayerAmmoChanged", function (ply, ammoID, o
     end
 
     if newCount == count then
-        print("tee hee")
         return
     end
 

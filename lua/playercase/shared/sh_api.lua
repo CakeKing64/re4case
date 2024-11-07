@@ -110,44 +110,72 @@ function CaseInventory:AddItemToInventory(ply, itemId, count, sync)
         local newItem = {
             ItemID=itemId,
             Count=math.min(max, rem),
-            Rotation=0,
-            X=0,
-            Y=0
+            Rotation=1,
+            X=1,
+            Y=1
         }
+        local newItemId = -1
 
         if CASE_INVENTORY_DEBUG then
             newItem.Name = self.ItemRegister[itemId].Name
         end
 
-        -- TODO: Check to see if the item will actually fit in the inventory
         local foundSpace = false
+        local placedItem = false
         local k = 1
+
+        -- Check to see if there are any empty ids
         while k != #ply.CaseInv.Items do
             local v = ply.CaseInv.Items[k]
             if v == nil then
-                ply.CaseInv.Items[k] = newItem
+                newItemId = k
                 foundSpace = true 
                 break
             end
             k = k + 1
         end
 
+        -- None found, place at the end of the item list
         if not foundSpace then
-            table.insert(ply.CaseInv.Items, newItem)
+            newItemId = #ply.CaseInv.Items + 1
         end
 
+        -- Find a spot to place the new item in the loadout
+        for r=1,2 do -- Even attempt both rotations
+            newItem.Rotation = r
+            for y=1,ply.CaseInv.Size[2] do
+                for x=1,ply.CaseInv.Size[1] do
+                    newItem.X = x
+                    newItem.Y = y
+                    if CaseInventory:PlaceItem(ply, newItemId, newItem) then
+                        placedItem = true
+                        break
+                    end
+                end
+                    if placedItem then -- for y
+                        break
+                    end
+                end
+            if placedItem then -- for r
+                break
+            end
+        end
+
+       
+
+        if not placedItem then
+            return false, rem
+        end
+
+        ply.CaseInv.Items[newItemId] = newItem
+
+        --PrintTable(ply.CaseInv.Items)
         rem = rem - newItem.Count
-        
-
-
-
     end
 
     if sync then
         CaseInventory:Sync(ply)
     end
-
-    PrintTable(ply.CaseInv)
     return true, rem
 end
 
@@ -174,7 +202,6 @@ function CaseInventory:RemoveItem(ply, id, count)
     for k, v in pairs(ply.CaseInv.Items) do
         if v.ItemID == id then
             local toTake = math.min(v.Count, rem)
-            print(toTake)
             v.Count = v.Count - toTake
             rem = rem - toTake
 
@@ -255,15 +282,83 @@ function CaseInventory:SyncAmmo(ply)
         ply:SetAmmo(v, k)
     end
 
+    CaseInventory:Sync(ply)
+
 end
+
+
+-- Place items in the loadout array (or attempt to at least)
+function CaseInventory:PlaceItem(ply, invId, info)
+    local itemInfo = CaseInventory.ItemRegister[info.ItemID]
+    local w = itemInfo.Size.W
+    local h = itemInfo.Size.H
+
+    if info.Rotation % 2 == 0 then
+        local _w, _h = w, h
+        w = _h
+        h = _w
+    end
+
+    -- If the item doesn't even fit in the bounds why even bother checking
+    if info.X + (w-1) > ply.CaseInv.Size[1] or info.Y + (h-1) > ply.CaseInv.Size[2] then
+        return false 
+    end
+
+    for x = info.X, info.X + w-1 do
+        for y = info.Y, info.Y + h-1 do
+            if ply.CaseInv.Loadout[x][y] != 0 then
+                return false
+            end
+        end
+    end
+    
+    --print(string.format("Item Size: %i, %i", w, h))
+    for x = info.X, info.X + w-1 do
+        for y = info.Y, info.Y + h-1 do
+            ply.CaseInv.Loadout[x][y] = invId
+        end
+    end
+
+    return true
+end
+
+function CaseInventory:MoveItem(ply, id, x, y, rotation)
+    if CLIENT then -- Request to move the item to this location
+        
+    end
+end
+
+function CaseInventory:ClearLoadout(ply)
+    for x=1,ply.CaseInv.Size[1] do
+        ply.CaseInv.Loadout[x] = {}
+        for y=1,ply.CaseInv.Size[2] do
+            ply.CaseInv.Loadout[x][y] = 0
+        end
+    end
+end
+
 
 -- Sync the player inventory over the network
 function CaseInventory:Sync(ply)
-    -- Start by trimming the player inventory to save space
-    PrintTable(ply.CaseInv)
+    -- If any items were removed we have to place them back :)
+    self:ClearLoadout(ply)
+
+    for k, v in pairs(ply.CaseInv.Items) do
+        if not CaseInventory:PlaceItem(ply, k, v) then -- This probably means the case shrunk
+            
+        end
+    end
+
+    CaseInventory:DebugPrintLoadout(ply)
 end
 
-
-function CaseInventory:GetPlayerInventory(plr)
-    return plr:GetTable()["CaseInv"]["Items"]
+function CaseInventory:DebugPrintLoadout(ply)
+    local s = ""
+    for y=1,ply.CaseInv.Size[2] do
+        for x=1,ply.CaseInv.Size[1] do
+            s = s .. string.format("[%i]", ply.CaseInv.Loadout[x][y])
+        end
+        s = s .. "\n"
+    end
+    print(s)
 end

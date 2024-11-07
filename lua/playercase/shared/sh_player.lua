@@ -1,17 +1,18 @@
-hook.Add("PlayerSpawn", "CASE_PlayerSpawn", function(plr, _)
-    plr.CaseInv = {} -- Reset case
-    plr.CaseInv.Size = {6,10}
-    plr.CaseInv.Items = {}
-    plr.CaseInv.Loadout = {}
-    plr.CaseInv.UseCommand = 0
-    plr.CaseInvUse = 0 -- Only thing that doesn't need to persist over saves
+hook.Add("PlayerSpawn", "CASE_PlayerSpawn", function(plr, trans)
 
-    --[[
-    plr:SetVar("CaseInv", {
-        Size={6,10},
-        Items={},
-        Loadout={}
-    })
-    ]]--
+    if not trans or plr.CaseInv == nil then
+        plr.CaseInv = {} -- Reset case
+        plr.CaseInv.Size = {10,6}
+        plr.CaseInv.Items = {}
+        plr.CaseInv.Loadout = {}
+        plr.CaseInv.UseCommand = 0
+
+        for x=1,plr.CaseInv.Size[1] do
+            plr.CaseInv.Loadout[x] = {}
+            for y=1,plr.CaseInv.Size[2] do
+                plr.CaseInv.Loadout[x][y] = 0
+            end
+        end
+    end
 end)
 
