@@ -1,51 +1,62 @@
 AddCSLuaFile()
 
 CASE_INVENTORY = true
+CASE_INVENTORY_STACK = 32
 CASE_INVENTORY_DEBUG = true
 
+
 CaseInventory = {}
+CaseInventory.ItemRegister = {}
 
-local serverLua = {
-    "server/sv_item_interact.lua",
-    "server/sv_player_spawn.lua",
-    "server/sv_net.lua",
-    "server/sv_functions.lua"
+local server = {
+    "server/sv_player.lua"
 }
 
-local clientLua = {
-    "client/cl_item_interact.lua",
-    "client/cl_net.lua"
+local client = {
+    "client/cl_player.lua"
 }
 
-local sharedLua = {
-    "shared/sh_player.lua"
+local shared = {
+    "shared/sh_player.lua",
+    "shared/sh_api.lua",
+    "shared/sh_items.lua"
 }
 
-local function _include(table)
-    for _, v in pairs(table) do
-        include("caseinventory/" .. v)
+
+local function _client(files)
+
+    for _, v in pairs(files) do
+        if CLIENT then
+            include("playercase/" .. v)
+        end
+
+        if SERVER then
+            AddCSLuaFile("playercase/" .. v)
+        end
+
+        if CASE_INVENTORY_DEBUG then
+            print("Adding client file " .. v)
+        end
     end
 end
 
-local function _cslua(table)
-    for _, v in pairs(table) do
-        AddCSLuaFile("caseinventory/" .. v)
+local function _server(files)
+    for _, v in pairs(files) do
+        if SERVER then
+            include("playercase/" .. v)
+        end
+
+
+        if CASE_INVENTORY_DEBUG then
+            print("Adding server file " .. v)
+        end
     end
 end
 
 
-if SERVER then
-    _include(serverLua)
-    _include(sharedLua)
 
-    CaseInventory:SetupNetworkStrings()
-end
+_server(server)
+_server(shared)
 
-_cslua(clientLua)
-_cslua(sharedLua)
-
-
-if CLIENT then
-    _include(clientLua)
-    _include(sharedLua)
-end
+_client(client)
+_client(shared)
