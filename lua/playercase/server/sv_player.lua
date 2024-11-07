@@ -3,6 +3,13 @@ hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent 
 
     if ply.CaseInv.UseCommand == 1 and lookTarget == ent then
         ply.CaseInv.UseCommand = 2
+
+        local id = CaseInventory:GetItemID(ent:GetClass())
+        
+        if id ~= -1 then
+            return true
+        end
+
         if CaseInventory:PickupItem(ply, ent:GetClass(), 1) then
             return true
         end
@@ -33,11 +40,32 @@ hook.Add( "StartCommand", "CASE_StartCommand", function( ply, cmd)
 end)
 
 hook.Add("PlayerAmmoChanged", "CASE_PlayerAmmoChanged", function (ply, ammoID, oldCount, newCount)
+    -- Check to see if the newCount is equal to the total ammo in the inventory for that ammo type
+    -- If so don't do anything
+    local count = 0
+
+    for k, v in pairs(ply.CaseInv.Items) do
+        local info = CaseInventory.ItemRegister[v.ItemID]
+
+        if info.AmmoID == ammoID then
+            count = count + v.Count
+        end
+    end
+
+    if newCount == count then
+        print("tee hee")
+        return
+    end
+
     if newCount > oldCount then
-        PrintTable(CaseInventory.ItemRegister[CaseInventory:GetItemFromAmmo(ammoID)])
+        if not CaseInventory:PickupAmmo(ply, ammoID, newCount - oldCount) then
+            
+        end
     end
 
     if newCount < oldCount then
-        print("reloaded")
+        local itemId = CaseInventory:GetItemFromAmmo(ammoID)
+
+        CaseInventory:RemoveItem(ply, itemId, oldCount - newCount)
     end
 end)
