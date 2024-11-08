@@ -13,11 +13,13 @@ local server = {
 }
 
 local client = {
-    "client/cl_player.lua"
+    "client/cl_player.lua",
+    --"client/vgui/cl_gui.lua",
+    --"client/vgui/cl_invpanel.lua",
+    "client/cl_network.lua"
 }
 
 local shared = {
-    "shared/sh_player.lua",
     "shared/sh_api.lua",
     "shared/sh_items.lua"
 }
@@ -60,3 +62,7 @@ _server(shared)
 
 _client(client)
 _client(shared)
+
+if SERVER then
+    util.AddNetworkString("CaseSync")
+end

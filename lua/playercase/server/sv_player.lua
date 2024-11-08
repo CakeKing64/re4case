@@ -68,3 +68,17 @@ hook.Add("PlayerAmmoChanged", "CASE_PlayerAmmoChanged", function (ply, ammoID, o
         CaseInventory:RemoveItem(ply, itemId, oldCount - newCount)
     end
 end)
+
+hook.Add("PlayerSpawn", "CASE_PlayerSpawn", function(plr, trans)
+    
+    if not trans or plr.CaseInv == nil then
+        plr.CaseInv = {} -- Reset case
+        plr.CaseInv.Size = {10,6}
+        plr.CaseInv.Items = {}
+        plr.CaseInv.Loadout = {}
+        plr.CaseInv.UseCommand = 0
+
+        CaseInventory:ClearLoadout(plr)
+        CaseInventory:Sync(plr)
+    end
+end)

@@ -40,10 +40,6 @@ function CaseAmmo(ammoID, sizeW, sizeH, maxSize)
     return CaseItem("case_ammo_" .. ammoID, sizeW, sizeH, maxSize, CASE_ITEM_AMMO, nil, ammoID)
 end
 
-function CaseAmmoCrate()
-    
-end
-
 -- Maybe move these to a different file?
 
 
@@ -65,7 +61,7 @@ local itemsGMOD = {
     CaseAmmo(game.GetAmmoID("RPG_Round"), 4, 1, 3),
     CaseAmmo(game.GetAmmoID("SMG1_Grenade"), 2, 1, 5),
     CaseAmmo(game.GetAmmoID("AlyxGun"), 2, 1, 90),
-    
+
     -- I have NO idea if any mods will use these or not
     -- (They're used by the combine)
     CaseAmmo(game.GetAmmoID("SniperRound"), 2, 1, 10),

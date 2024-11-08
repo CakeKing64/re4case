@@ -122,22 +122,22 @@ function CaseInventory:AddItemToInventory(ply, itemId, count, sync)
 
         local foundSpace = false
         local placedItem = false
+        local itemSize = CaseInventory:ItemSize(ply)
         local k = 1
 
         -- Check to see if there are any empty ids
-        while k != #ply.CaseInv.Items do
+        for k = 1, itemSize do
             local v = ply.CaseInv.Items[k]
             if v == nil then
                 newItemId = k
                 foundSpace = true 
                 break
             end
-            k = k + 1
         end
 
         -- None found, place at the end of the item list
         if not foundSpace then
-            newItemId = #ply.CaseInv.Items + 1
+            newItemId = itemSize + 1
         end
 
         -- Find a spot to place the new item in the loadout
@@ -180,13 +180,23 @@ function CaseInventory:AddItemToInventory(ply, itemId, count, sync)
 end
 
 
--- Returns the count of an item in inventory
+-- Returns the amount of an item in inventory
 function CaseInventory:ItemCount(ply, id)
     local count = 0
     for k, v in pairs(ply.CaseInv.Items) do
         if v.ItemID == id then
             count = count + v.Count
         end
+    end
+    return count
+end
+
+
+-- Returns what would kinda just be #ply.CaseInv.Items, but that doesn't work properly :(
+function CaseInventory:ItemSize(ply)
+    local count = 0
+    for _, _ in pairs(ply.CaseInv.Items) do
+        count = count + 1
     end
     return count
 end
@@ -215,7 +225,9 @@ function CaseInventory:RemoveItem(ply, id, count)
         end
     end
 
-    CaseInventory:Sync(ply)
+    if SERVER then
+        CaseInventory:Sync(ply)
+    end
     return rem != count, rem
 end
 
@@ -290,6 +302,10 @@ end
 -- Place items in the loadout array (or attempt to at least)
 function CaseInventory:PlaceItem(ply, invId, info)
     local itemInfo = CaseInventory.ItemRegister[info.ItemID]
+
+    if itemInfo == nil then
+        print(info.ItemID)
+    end
     local w = itemInfo.Size.W
     local h = itemInfo.Size.H
 
@@ -312,7 +328,6 @@ function CaseInventory:PlaceItem(ply, invId, info)
         end
     end
     
-    --print(string.format("Item Size: %i, %i", w, h))
     for x = info.X, info.X + w-1 do
         for y = info.Y, info.Y + h-1 do
             ply.CaseInv.Loadout[x][y] = invId
@@ -329,6 +344,7 @@ function CaseInventory:MoveItem(ply, id, x, y, rotation)
 end
 
 function CaseInventory:ClearLoadout(ply)
+    ply.CaseInv.Loadout = {}
     for x=1,ply.CaseInv.Size[1] do
         ply.CaseInv.Loadout[x] = {}
         for y=1,ply.CaseInv.Size[2] do
@@ -337,6 +353,20 @@ function CaseInventory:ClearLoadout(ply)
     end
 end
 
+
+-- Packet structure :)
+--[[
+    uint8 SizeX
+    uint8 SizeY
+    uint16 ItemCount
+    for ItemCount
+        uint16   index
+        uint16   itemID
+        uint32   count
+        uint2    rotation
+        uint8    X
+        uint8    Y
+]]--
 
 -- Sync the player inventory over the network
 function CaseInventory:Sync(ply)
@@ -349,7 +379,27 @@ function CaseInventory:Sync(ply)
         end
     end
 
-    CaseInventory:DebugPrintLoadout(ply)
+    
+
+    net.Start("CaseSync")
+        net.WriteUInt(ply.CaseInv.Size[1], 8)   -- SizeX
+        net.WriteUInt(ply.CaseInv.Size[2], 8)   -- SizeY
+
+        net.WriteUInt(CaseInventory:ItemSize(ply), 16) -- ItemCount
+        for k, v in pairs(ply.CaseInv.Items) do
+            net.WriteUInt(k, 16)            -- Index
+            net.WriteUInt(v.ItemID, 16)     -- ItemID
+            net.WriteUInt(v.Count, 32)      -- Count
+            net.WriteUInt(v.Rotation, 2)    -- Rotation
+            net.WriteUInt(v.X, 8)   -- X
+            net.WriteUInt(v.Y, 8)   -- Y
+        end
+        
+    net.Send(ply)
+    
+    PrintTable(ply.CaseInv.Items)
+    print("sent ", CaseInventory:ItemSize(ply), items)
+    --CaseInventory:DebugPrintLoadout(ply.CaseInv.Items)
 end
 
 function CaseInventory:DebugPrintLoadout(ply)
@@ -361,4 +411,5 @@ function CaseInventory:DebugPrintLoadout(ply)
         s = s .. "\n"
     end
     print(s)
+    return s
 end
