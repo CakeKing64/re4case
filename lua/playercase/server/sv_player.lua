@@ -79,6 +79,7 @@ hook.Add("PlayerSpawn", "CASE_PlayerSpawn", function(plr, trans)
         plr.CaseInv.UseCommand = 0
 
         CaseInventory:ClearLoadout(plr)
-        CaseInventory:Sync(plr)
+
     end
+    CaseInventory:Sync(plr)
 end)

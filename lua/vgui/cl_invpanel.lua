@@ -1,9 +1,5 @@
 local invpanel = {}
 invpanel.Player = nil
-invpanel.RenderTarget = GetRenderTargetEx( "ExampleMaskRT", 512,512, RT_SIZE_OFFSCREEN,
-MATERIAL_RT_DEPTH_SHARED --[[IMPORTANT]], 0, 0, IMAGE_FORMAT_RGBA8888 )
-
-local ourMat = Material( "models/shadertest/shader5" )
 
 function invpanel:DrawGrid(w, h)
     local screenW, screenH = _CaseUIGetScaledSize()
@@ -11,7 +7,7 @@ function invpanel:DrawGrid(w, h)
     local player = LocalPlayer()
     local baseX, baseY = __CASE_UI_BORDER * scaleW, __CASE_UI_BORDER * scaleH
 
-    surface.SetDrawColor(Color(255, 255, 255))
+    surface.SetDrawColor(Color(255, 255, 255, 20))
 
     -- Vert Lines
     for x = 0, player.CaseInv.Size[1] do
@@ -38,43 +34,94 @@ function invpanel:DrawGrid(w, h)
     end
 end
 
-function invpanel:DrawItem(itemID, gridX, gridY, gridW, gridH, rot)
+-- Some of this shamelessly stolen from 
+-- https://github.com/Facepunch/garrysmod/blob/master/garrysmod/lua/vgui/dmodelpanel.lua
+-- https://github.com/louiefox/tetris-inventory/blob/master/lua/vgui/tetris_inv_main.lua
+function invpanel:DrawItem(itemID, gridX, gridY, gridW, gridH, rot, count)
     local screenW, screenH = _CaseUIGetScaledSize()
     local scaleW, scaleH = _CaseUIGetScaledDiff()
     local player = LocalPlayer()
     local posX, posY = self:LocalToScreen(self:GetPos())
+    local itemInfo = CaseInventory.ItemRegister[itemID]
+    local renderInfo = itemInfo.RenderInfo
+    local model = ClientsideModel(renderInfo.Model)
+    local baseX, baseY = __CASE_UI_BORDER*scaleW, (__CASE_UI_BORDER*scaleH)
+    local isRotated = rot % 2 == 0
+
 
     local _x, _y, _w, _h = 
         posX + (__CASE_UI_BORDER*scaleW) + (__CASE_UI_CELL_SIZE * (gridX-1) * scaleW),
-        posY+ (__CASE_UI_BORDER*scaleW) + (__CASE_UI_CELL_SIZE * (gridY-1) * scaleW),
+        posY+ (__CASE_UI_BORDER*scaleH) + (__CASE_UI_CELL_SIZE * (gridY-1) * scaleH),
         __CASE_UI_CELL_SIZE * gridW * scaleW,
         __CASE_UI_CELL_SIZE * gridH * scaleH
 
-    if rot % 2 == 0 then
+    local _ogW, _ogH = _w, _h
+    local _scale = renderInfo.Scale or gridW
+
+    if isRotated then
         local tw = _w
         _w = _h
         _h = tw
+
     end
 
-    cam.Start({
-        x=_x,
-        y=_y,
-        w=_w,
-        h=_h,
-        type="3D",
-        origin=Vector(-10,0,0),
-        angles=Vector(0,0,0),
-        fov=70
-    })
 
-    local model = ClientsideModel(itemID)
+    surface.SetDrawColor(Color(0,0,0, 200))
+    surface.DrawRect(
+        baseX + (__CASE_UI_CELL_SIZE * (gridX-1) * scaleW) + (5 * scaleW),
+        baseY + (__CASE_UI_CELL_SIZE * (gridY-1) * scaleH) + (5 * scaleH),
+        _w - (5 * scaleW),
+        _h - (5 * scaleH)
+     )
+     surface.SetDrawColor(Color(0,0,0, 255))
+
+
     if IsValid(model) then
-        model:SetPos(Vector(0, 0, 0))
-        model:SetAngles(Angle(0, RealTime() * 50 % 360, 0))
+        local min, max = model:GetRenderBounds()
+
+        local function getOffset( val )
+            return math.abs( min[val] )-(max[val]-min[val])/2
+        end
+        
+        -- If the x width of the model is larger rotate it 90 degrees
+        local xDiff, yDiff = max[1]-min[1], max[2]-min[2]
+
+        if( xDiff > yDiff ) then
+            model:SetPos( Vector( getOffset( 2 ), getOffset( 1 ), getOffset( 3 ) ) )
+            model:SetAngles( Angle( 0, 90, 0 ) )
+        else
+            model:SetPos( Vector( getOffset( 1 ), getOffset( 2 ), getOffset( 3 ) ) )
+        end
+
+
+        local modelWidth = math.max( xDiff, yDiff )
+        cam.Start({
+            x=_x,
+            y=_y,
+            w=_w,
+            h=_h,
+            type="3D",
+            angles = Angle( 0,0, (isRotated and -90 or 0) ),
+            --angles= Angle(0, 0, -90),
+            origin = Vector( -modelWidth*4/(_scale or gridW), 0, 0 ),
+            fov=70,
+            aspect=_w/_h
+        })
+    
+
+
         model:DrawModel()
         model:Remove()
+        cam.End3D()
     end
-    cam.End3D()
+
+    if (itemInfo.ItemType != CASE_ITEM_WEAPON) then
+        draw.DrawText(tostring(count), "DermaDefault",
+        baseX + (__CASE_UI_CELL_SIZE * (gridX+gridW-1) * scaleW) - (5 * scaleW),
+        baseY + (__CASE_UI_CELL_SIZE * (gridY+gridH-1) * scaleH) - (10 * scaleH),
+        Color(255, 255, 255),TEXT_ALIGN_RIGHT)
+    end
+
 end
 
 function invpanel:Init()
@@ -90,10 +137,12 @@ function invpanel:Paint(w, h)
     surface.DrawRect(0, 0, w, h)
     self:DrawGrid(w, h)
 
+    render.SuppressEngineLighting( true )
     for k, v in pairs(player.CaseInv.Items) do
         local info = CaseInventory.ItemRegister[v.ItemID]
-        self:DrawItem("models/props_interiors/BathTub01a.mdl", v.X, v.Y, info.Size.W, info.Size.H, v.Rotation)
+        self:DrawItem(v.ItemID, v.X, v.Y, info.Size.W, info.Size.H, v.Rotation, v.Count)
     end
+    render.SuppressEngineLighting( false )
 end
 
 vgui.Register("CaseInvPanel", invpanel, "DPanel")
