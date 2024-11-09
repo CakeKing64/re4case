@@ -1,5 +1,6 @@
 local invpanel = {}
 invpanel.Player = nil
+local ratio = 16/9
 
 function invpanel:DrawGrid(w, h)
     local screenW, screenH = _CaseUIGetScaledSize()
@@ -66,12 +67,12 @@ function invpanel:DrawItem(itemID, gridX, gridY, gridW, gridH, rot, count)
     end
 
 
-    surface.SetDrawColor(Color(0,0,0, 200))
+    surface.SetDrawColor(Color(25,25,25, 200))
     surface.DrawRect(
         baseX + (__CASE_UI_CELL_SIZE * (gridX-1) * scaleW) + (5 * scaleW),
         baseY + (__CASE_UI_CELL_SIZE * (gridY-1) * scaleH) + (5 * scaleH),
-        _w - (5 * scaleW),
-        _h - (5 * scaleH)
+        _w - (7.5 * scaleW),
+        _h - (7.5 * scaleH)
      )
      surface.SetDrawColor(Color(0,0,0, 255))
 
@@ -91,21 +92,23 @@ function invpanel:DrawItem(itemID, gridX, gridY, gridW, gridH, rot, count)
             model:SetAngles( Angle( 0, 90, 0 ) )
         else
             model:SetPos( Vector( getOffset( 1 ), getOffset( 2 ), getOffset( 3 ) ) )
+            model:SetAngles( Angle( 0, 0, 90 ) )
         end
 
+        --render.SetScissorRect( _x, _y, _x+_w, _y+_h, true ) -- Enable the rect
 
         local modelWidth = math.max( xDiff, yDiff )
         cam.Start({
-            x=_x,
-            y=_y,
-            w=_w,
-            h=_h,
+            x=(_x - 1280/2) + _w/2,
+            y=(_y - 720/2) + _h/2,
+            w=1280,
+            h=720,
             type="3D",
-            angles = Angle( 0,0, (isRotated and -90 or 0) ),
+            angles = Angle(0, 0, 0),
             --angles= Angle(0, 0, -90),
-            origin = Vector( -modelWidth*4/(_scale or gridW), 0, 0 ),
+            origin = Vector(-modelWidth*4/(_scale or 1), 0, 0 ),
             fov=70,
-            aspect=_w/_h
+            aspect=ratio -- tee hee
         })
     
 
@@ -113,6 +116,8 @@ function invpanel:DrawItem(itemID, gridX, gridY, gridW, gridH, rot, count)
         model:DrawModel()
         model:Remove()
         cam.End3D()
+
+        --render.SetScissorRect( 0, 0, 0, 0, false ) -- Disable after you are done
     end
 
     if (itemInfo.ItemType != CASE_ITEM_WEAPON) then

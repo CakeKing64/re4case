@@ -69,10 +69,10 @@ local itemsGMOD = {
     CaseAmmo(game.GetAmmoID("AR2"), 2, 1, 60),
     CaseAmmo(game.GetAmmoID("AR2AltFire"), 1, 2, 3),
     CaseAmmo(game.GetAmmoID("Pistol"),CaseRenderInfo("models/Items/BoxSRounds.mdl", 3), 2, 1, 50),
-    CaseAmmo(game.GetAmmoID("SMG1"),CaseRenderInfo("models/Items/BoxMRounds.mdl", 3), 2, 1, 90),
+    CaseAmmo(game.GetAmmoID("SMG1"),CaseRenderInfo("models/Items/BoxMRounds.mdl", 0.42), 2, 1, 90),
     CaseAmmo(game.GetAmmoID("357"),CaseRenderInfo("models/Items/356ammo.mdl"), 2, 1, 6),
-    CaseAmmo(game.GetAmmoID("XBowBolt"), CaseRenderInfo("models/Items/CrossbowRounds.mdl"), 4, 1, 20),
-    CaseAmmo(game.GetAmmoID("Buckshot"), CaseRenderInfo("models/Items/BoxBuckshot.mdl"), 2, 1, 25),
+    CaseAmmo(game.GetAmmoID("XBowBolt"), CaseRenderInfo("models/Items/CrossbowRounds.mdl", 1.3), 4, 1, 20),
+    CaseAmmo(game.GetAmmoID("Buckshot"), CaseRenderInfo("models/Items/BoxBuckshot.mdl", 0.25), 2, 1, 25),
     CaseAmmo(game.GetAmmoID("RPG_Round"), 4, 1, 3),
     CaseAmmo(game.GetAmmoID("SMG1_Grenade"),CaseRenderInfo("models/Items/AR2_Grenade.mdl", 3), 2, 1, 5),
     CaseAmmo(game.GetAmmoID("AlyxGun"), 2, 1, 90),
@@ -85,8 +85,8 @@ local itemsGMOD = {
     -- Melee + Other
     CaseWeapon("weapon_crowbar",CaseRenderInfo("models/weapons/w_crowbar.mdl", 4.4), 2, 3),
     CaseWeapon("weapon_stunstick", 2, 3),
-    CaseWeapon("weapon_physcannon",CaseRenderInfo("models/weapons/w_physics.mdl", 4.4), 5, 2),
-    CaseWeapon("weapon_crossbow",CaseRenderInfo("models/weapons/w_crossbow.mdl", 4.5), 5, 3),
+    CaseWeapon("weapon_physcannon",CaseRenderInfo("models/weapons/w_physics.mdl", 1.5), 5, 2),
+    CaseWeapon("weapon_crossbow",CaseRenderInfo("models/weapons/w_crossbow.mdl", 1.7), 5, 3),
     CaseWeapon("weapon_rpg", 8, 2),
     CaseWeapon("gmod_tool", 3, 2),
 
@@ -96,17 +96,17 @@ local itemsGMOD = {
     CaseGrenade("weapon_slam", 1, 2, 3, game.GetAmmoID("slam")),
 
     -- Pistol
-    CaseWeapon("weapon_357",CaseRenderInfo("models/weapons/w_357.mdl", 6), 3, 2),
-    CaseWeapon("weapon_pistol",CaseRenderInfo("models/weapons/w_pistol.mdl", 4), 3, 2),
+    CaseWeapon("weapon_357",CaseRenderInfo("models/weapons/w_357.mdl", 2), 3, 2),
+    CaseWeapon("weapon_pistol",CaseRenderInfo("models/weapons/w_pistol.mdl", 1), 3, 2),
 
 
     -- Shotgun
-    CaseWeapon("weapon_shotgun",CaseRenderInfo("models/weapons/w_shotgun.mdl", 4.5), 8, 2),
+    CaseWeapon("weapon_shotgun",CaseRenderInfo("models/weapons/w_shotgun.mdl", 2), 8, 2),
     CaseWeapon("weapon_annabelle", 8, 2), -- tee hee
 
 
     -- Auto
-    CaseWeapon("weapon_smg1",CaseRenderInfo("models/weapons/w_smg1.mdl", 4.5), 3, 2),
+    CaseWeapon("weapon_smg1",CaseRenderInfo("models/weapons/w_smg1.mdl", 1), 3, 2),
     CaseWeapon("weapon_ar2", 5, 2),
     CaseWeapon("weapon_alyxgun", 3, 2), -- tee hee 2
 
