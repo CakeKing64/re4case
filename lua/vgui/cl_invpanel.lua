@@ -5,6 +5,10 @@ invpanel.SlotRect = {
 }
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6622fca (sthufff)
 local itemColors = {
     Color(250, 61, 61, 255), -- Empty **SHOULD** only be visible on guns >:(
     Color(247, 237, 227, 255), -- Somewhere inbetween

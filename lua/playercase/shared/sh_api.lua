@@ -396,6 +396,10 @@ function CaseInventory:CheckLocation(loadoutTable, x, y, w, h, ignore)
     return true
 end
 
+function CaseInventory:MergeItem(arguments)
+    
+end
+
 function CaseInventory:ClearLoadout(ply)
     ply.CaseInv.Loadout = {}
     for x=1,ply.CaseInv.Size[1] do

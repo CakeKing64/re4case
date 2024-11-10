@@ -1,6 +1,13 @@
 local ogWidth, ogHeight = 1920, 1080 -- not my screen size, hopefully that makes it better for testing????
 __CASE_UI_CELL_SIZE = 64 -- #define
 __CASE_UI_BORDER = 32
+CaseGUI = {
+    TempLoadout = {},
+    HeldItem = {    
+        InvID=-1,
+        Rotation=0
+    }
+}
 
 local function _setupcasegui()
     return {
