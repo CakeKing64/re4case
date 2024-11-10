@@ -343,6 +343,10 @@ function CaseInventory:MoveItem(ply, id, x, y, rotation)
     end
 end
 
+function CaseInventory:SwapItem(arguments)
+    
+end
+
 function CaseInventory:ClearLoadout(ply)
     ply.CaseInv.Loadout = {}
     for x=1,ply.CaseInv.Size[1] do

@@ -1,5 +1,16 @@
 local invpanel = {}
 invpanel.Player = nil
+
+--[[
+    Making this not a part of invpanel
+    just incase i want a seperate inventory
+    for managment
+]]--
+local heldItem = {
+    ID=-1,
+    Rotation=0
+}
+
 local ratio = 16/9
 
 function invpanel:DrawGrid(w, h)
@@ -84,17 +95,40 @@ function invpanel:DrawItem(itemID, gridX, gridY, gridW, gridH, rot, count)
             return math.abs( min[val] )-(max[val]-min[val])/2
         end
         
+        --[[ Gotta remind myself :)
+        X -> Forward/Back
+        Y -> Left/Right
+        Z -> Up/Down
+        ]]--
+
         -- If the x width of the model is larger rotate it 90 degrees
         local xDiff, yDiff = max[1]-min[1], max[2]-min[2]
-
-        if( xDiff > yDiff ) then
-            model:SetPos( Vector( getOffset( 2 ), getOffset( 1 ), getOffset( 3 ) ) )
-            model:SetAngles( Angle( 0, 90, 0 ) )
+        local _renderRotate = isRotated
+        if renderInfo.Rotate then
+            _renderRotate = not _renderRotate
+        end
+        -- Yandare dev ass code
+        if not _renderRotate then
+            if( xDiff > yDiff ) then
+                model:SetPos( Vector( getOffset( 2 ), getOffset( 1 ), getOffset( 3 ) ) )
+                model:SetAngles( Angle( 0, 90, 0 ) )
+            else
+                model:SetPos( Vector( getOffset( 1 ), getOffset( 2 ), getOffset( 3 ) ) )
+                model:SetAngles( Angle( 0, 0, 0 ) )
+            end
         else
-            model:SetPos( Vector( getOffset( 1 ), getOffset( 2 ), getOffset( 3 ) ) )
-            model:SetAngles( Angle( 0, 0, 90 ) )
+            if( xDiff > yDiff ) then
+                model:SetPos( Vector( getOffset( 2 ), getOffset( 3 ),  -getOffset( 1 )) )
+                model:SetAngles( Angle( 90, 90, 0 ) )
+            else
+                model:SetPos( Vector(getOffset( 1 ), -getOffset( 3 ), getOffset( 2 )))
+                model:SetAngles( Angle( 0, 0, 90 ) )
+            end
         end
 
+
+
+        
         --render.SetScissorRect( _x, _y, _x+_w, _y+_h, true ) -- Enable the rect
 
         local modelWidth = math.max( xDiff, yDiff )
@@ -105,7 +139,6 @@ function invpanel:DrawItem(itemID, gridX, gridY, gridW, gridH, rot, count)
             h=720,
             type="3D",
             angles = Angle(0, 0, 0),
-            --angles= Angle(0, 0, -90),
             origin = Vector(-modelWidth*4/(_scale or 1), 0, 0 ),
             fov=70,
             aspect=ratio -- tee hee
@@ -122,8 +155,8 @@ function invpanel:DrawItem(itemID, gridX, gridY, gridW, gridH, rot, count)
 
     if (itemInfo.ItemType != CASE_ITEM_WEAPON) then
         draw.DrawText(tostring(count), "DermaDefault",
-        baseX + (__CASE_UI_CELL_SIZE * (gridX+gridW-1) * scaleW) - (5 * scaleW),
-        baseY + (__CASE_UI_CELL_SIZE * (gridY+gridH-1) * scaleH) - (10 * scaleH),
+        baseX + (__CASE_UI_CELL_SIZE * (gridX-1) * scaleW) + _w - (5 * scaleW),
+        baseY + (__CASE_UI_CELL_SIZE * (gridY-1) * scaleH) + _h - (10 * scaleH),
         Color(255, 255, 255),TEXT_ALIGN_RIGHT)
     end
 
