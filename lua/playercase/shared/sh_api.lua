@@ -319,16 +319,13 @@ function CaseInventory:PlaceItem(loadoutTable, invId, info, caseRect)
     end
 
     -- If the item doesn't even fit in the bounds why even bother checking
-    if info.X + (w-1) > caseRect[3] or info.Y + (h-1) > caseRect[4] then
+    if info.X + (w-1) > caseRect[3] or info.Y + (h-1) > caseRect[4]
+        or info.X < caseRect[1] or info.Y < caseRect[2] then
         return false 
     end
 
-    for x = info.X, info.X + w-1 do
-        for y = info.Y, info.Y + h-1 do
-            if loadoutTable[x][y] != 0 then
-                return false
-            end
-        end
+    if not self:CheckLocation(loadoutTable, info.X, info.Y, w, h) then
+        return false
     end
     
     for x = info.X, info.X + w-1 do
@@ -340,18 +337,63 @@ function CaseInventory:PlaceItem(loadoutTable, invId, info, caseRect)
     return true
 end
 
+-- Move an item and swap it with something else if possible
 function CaseInventory:MoveItem(ply, id, x, y, rotation)
-    if CLIENT then -- Request to move the item to this location
-        
+    local item = ply.CaseInv.Items[id]
+    local info = CaseInventory.ItemRegister[item.ItemID]
+    local w = info.Size.W
+    local h = info.Size.H
+
+    if rotation % 2 == 0 then
+        local _w, _h = w, h
+        w = _h
+        h = _w
+    end
+
+    -- See if we encounter any items on our trip
+    local foundItem = 0
+    for _x = x, x + w-1 do
+        for _y = y, y + h-1 do
+            if ply.CaseInv.Loadout[_x][_y] != 0 then
+                if foundItem != 0 then
+                    return false -- We can only swap one item :( (i'm lazy)
+                end
+
+                foundItem = ply.CaseInv.Loadout[_x][_y]
+            end
+        end
+    end
+    item.X = x
+    item.Y = y
+    if self:CheckLocation(ply.CaseInv.Loadout, x, y, w, h, {0, foundItem}) then
+        self:PlaceItem(ply.CaseInv.Loadout, id, info, {1,1, 255, 255})
     end
 end
 
-function CaseInventory:SwapItem(arguments)
-    
+function CaseInventory:MergeItem(arguments)
+
 end
 
-function CaseInventory:MergeItem(arguments)
+function CaseInventory:CheckLocation(loadoutTable, x, y, w, h, ignore)
+    ignore = ignore or {0} -- Items to ignore, useful for moving stuff
     
+    -- *salutes* rip performance
+    for _x = x, x + w-1 do
+        for _y = y, y + h-1 do
+            local found = false
+            for k, v in pairs(ignore) do
+                if loadoutTable[_x][_y] == v then
+                    found = true 
+                    break
+                end
+            end
+            if not found then
+                return false
+            end
+        end
+    end
+
+    return true
 end
 
 function CaseInventory:ClearLoadout(ply)

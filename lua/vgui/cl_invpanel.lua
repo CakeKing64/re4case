@@ -5,7 +5,6 @@ invpanel.SlotRect = {
 }
 
 
-
 local itemColors = {
     Color(250, 61, 61, 255), -- Empty **SHOULD** only be visible on guns >:(
     Color(247, 237, 227, 255), -- Somewhere inbetween
@@ -128,9 +127,9 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, rot, count
 
 
 
-    if invId == CaseGUI.HeldItem.ItemID then
-        surface.SetDrawColor(Color(140, 0, 255, 128))
-    elseif invId == self:GetMouseItem() then
+    if invId == CaseGUI.HeldItem.InvID then
+        surface.SetDrawColor(Color(128, 128, 128, 128))
+    elseif CaseGUI.HeldItem.InvID == -1 and invId == self:GetMouseItem() then
         surface.SetDrawColor(Color(128, 128, 128, 128))
     else
         surface.SetDrawColor(Color(25,25,25, 200))
@@ -269,10 +268,36 @@ function invpanel:OnRemove()
 end
 
 function invpanel:OnMousePressed(keyCode)
-    local itm = self:GetMouseItem()
-    if itm != 0 then
-        CaseGUI.HeldItem.ItemID = itm
+
+
+    if CaseGUI.HeldItem.InvID != -1 then
+        if keyCode == MOUSE_LEFT then
+            local msX, msY = self:GetMouseSlot()
+            if CaseInventory:MoveItem(LocalPlayer(), CaseGUI.HeldItem.InvID, msX, msY, 1) then
+                print(":)")
+            end
+        end
+
+        if keyCode == MOUSE_RIGHT then -- Reset item location
+            self.Player.CaseInv.Items[CaseGUI.HeldItem.InvID] = CaseGUI.HeldItem.OldInfo
+            CaseGUI.HeldItem.InvID = -1
+        end
     end
+
+    
+    if CaseGUI.HeldItem.InvID == -1 then
+        if keyCode == MOUSE_LEFT then
+            local itm = self:GetMouseItem()
+            if itm != 0 then
+                CaseGUI.HeldItem.InvID = itm
+                CaseGUI.HeldItem.OldInfo = self.Player.CaseInv.Items[CaseGUI.HeldItem.InvID]
+            end
+        end
+
+    end
+
+
+
 end
 
 function invpanel:Think()
@@ -292,7 +317,20 @@ function invpanel:Paint(w, h)
     render.SuppressEngineLighting( true )
     for k, v in pairs(player.CaseInv.Items) do
         local info = CaseInventory.ItemRegister[v.ItemID]
-        self:DrawItem(v.ItemID, k, v.X, v.Y, info.Size.W, info.Size.H, v.Rotation, v.Count)
+        local held = (k == CaseGUI.HeldItem.InvID)
+
+        if held then -- Draw at mouse position if held :)
+            continue -- draw later so it can be over the top of everything
+        else
+            self:DrawItem(v.ItemID, k, v.X, v.Y, info.Size.W, info.Size.H, v.Rotation, v.Count)
+        end
+    end
+
+    if CaseGUI.HeldItem.InvID != -1 then
+        local v = player.CaseInv.Items[CaseGUI.HeldItem.InvID]
+        local info = CaseInventory.ItemRegister[v.ItemID]
+        local mx, my = self:GetMouseSlot()
+        self:DrawItem(v.ItemID, CaseGUI.HeldItem.InvID, mx or v.X, my or v.Y, info.Size.W, info.Size.H, v.Rotation, v.Count)
     end
     render.SuppressEngineLighting( false )
 

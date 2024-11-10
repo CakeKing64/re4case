@@ -1,13 +1,19 @@
 local ogWidth, ogHeight = 1920, 1080 -- not my screen size, hopefully that makes it better for testing????
 __CASE_UI_CELL_SIZE = 64 -- #define
 __CASE_UI_BORDER = 32
-CaseGUI = {
-    TempLoadout = {},
-    HeldItem = {    
-        InvID=-1,
-        Rotation=0
+
+local function _setupcasegui()
+    return {
+        TempLoadout = {},
+        HeldItem = {    
+            InvID=-1,
+            Rotation=0,
+            OldInfo={} -- Store info to reset the pos & rot of an item
+        },
+        ModifiedItems={}
     }
-}
+end
+CaseGUI = _setupcasegui()
 
 -- The bane of GUI progammers world wide
 -- Different hardware configurations
@@ -29,10 +35,18 @@ function _CaseUIGetCell(arguments)
     
 end
 
+local PANEL = {}
+
+function PANEL:OnRemove()
+    CaseGUI = _setupcasegui()
+end
+
+vgui.Register("CaseInvFrame", PANEL, "DFrame")
+
 -- thank u chat gee pea tei
 local function OpenBasicPanel()
     local xxy = CaseInventory:DebugPrintLoadout(LocalPlayer())
-    local window = vgui.Create("DFrame")
+    local window = vgui.Create("CaseInvFrame")
     local screenW, screenH = _CaseUIGetScaledSize()
     local scaleW, scaleH = _CaseUIGetScaledDiff()
     local player = LocalPlayer()
