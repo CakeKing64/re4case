@@ -69,6 +69,7 @@ hook.Add("PlayerAmmoChanged", "CASE_PlayerAmmoChanged", function (ply, ammoID, o
     end
 end)
 
+
 hook.Add("PlayerSpawn", "CASE_PlayerSpawn", function(plr, trans)
     
     if not trans or plr.CaseInv == nil then

@@ -147,7 +147,9 @@ function CaseInventory:AddItemToInventory(ply, itemId, count, sync)
                 for x=1,ply.CaseInv.Size[1] do
                     newItem.X = x
                     newItem.Y = y
-                    if CaseInventory:PlaceItem(ply, newItemId, newItem) then
+                    if CaseInventory:PlaceItem(ply.CaseInv.Loadout, newItemId, newItem, {
+                        1, 1, ply.CaseInv.Size[1], ply.CaseInv.Size[2],
+                    }) then
                         placedItem = true
                         break
                     end
@@ -300,8 +302,9 @@ end
 
 
 -- Place items in the loadout array (or attempt to at least)
-function CaseInventory:PlaceItem(ply, invId, info)
+function CaseInventory:PlaceItem(loadoutTable, invId, info, caseRect)
     local itemInfo = CaseInventory.ItemRegister[info.ItemID]
+    
 
     if itemInfo == nil then
         print(info.ItemID)
@@ -316,13 +319,13 @@ function CaseInventory:PlaceItem(ply, invId, info)
     end
 
     -- If the item doesn't even fit in the bounds why even bother checking
-    if info.X + (w-1) > ply.CaseInv.Size[1] or info.Y + (h-1) > ply.CaseInv.Size[2] then
+    if info.X + (w-1) > caseRect[3] or info.Y + (h-1) > caseRect[4] then
         return false 
     end
 
     for x = info.X, info.X + w-1 do
         for y = info.Y, info.Y + h-1 do
-            if ply.CaseInv.Loadout[x][y] != 0 then
+            if loadoutTable[x][y] != 0 then
                 return false
             end
         end
@@ -330,7 +333,7 @@ function CaseInventory:PlaceItem(ply, invId, info)
     
     for x = info.X, info.X + w-1 do
         for y = info.Y, info.Y + h-1 do
-            ply.CaseInv.Loadout[x][y] = invId
+            loadoutTable[x][y] = invId
         end
     end
 
@@ -344,6 +347,10 @@ function CaseInventory:MoveItem(ply, id, x, y, rotation)
 end
 
 function CaseInventory:SwapItem(arguments)
+    
+end
+
+function CaseInventory:MergeItem(arguments)
     
 end
 
@@ -378,7 +385,9 @@ function CaseInventory:Sync(ply)
     self:ClearLoadout(ply)
 
     for k, v in pairs(ply.CaseInv.Items) do
-        if not CaseInventory:PlaceItem(ply, k, v) then -- This probably means the case shrunk
+        if not CaseInventory:PlaceItem(ply.CaseInv.Loadout, k, v, {
+            1, 1, ply.CaseInv.Size[1], ply.CaseInv.Size[2],
+        }) then -- This probably means the case shrunk
             
         end
     end

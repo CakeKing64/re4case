@@ -1,6 +1,13 @@
 local ogWidth, ogHeight = 1920, 1080 -- not my screen size, hopefully that makes it better for testing????
 __CASE_UI_CELL_SIZE = 64 -- #define
 __CASE_UI_BORDER = 32
+CaseGUI = {
+    TempLoadout = {},
+    HeldItem = {    
+        InvID=-1,
+        Rotation=0
+    }
+}
 
 -- The bane of GUI progammers world wide
 -- Different hardware configurations
@@ -31,8 +38,8 @@ local function OpenBasicPanel()
     local player = LocalPlayer()
 
     window:SetSize(
-        (player.CaseInv.Size[1] * __CASE_UI_CELL_SIZE * scaleW) + (__CASE_UI_BORDER * 2 * scaleW),
-        (player.CaseInv.Size[2] * __CASE_UI_CELL_SIZE * scaleH) + (__CASE_UI_BORDER * 2 * scaleH)
+        (player.CaseInv.Size[3] * __CASE_UI_CELL_SIZE * scaleW) + (__CASE_UI_BORDER * 2 * scaleW),
+        (player.CaseInv.Size[4] * __CASE_UI_CELL_SIZE * scaleH) + (__CASE_UI_BORDER * 2 * scaleH)
     )
 
     window:Center()
@@ -43,9 +50,13 @@ local function OpenBasicPanel()
 
     local inventory = vgui.Create("CaseInvPanel", window)
     inventory:SetSize(
-        (player.CaseInv.Size[1] * __CASE_UI_CELL_SIZE * scaleW) + (__CASE_UI_BORDER * 2 * scaleW),
-        (player.CaseInv.Size[2] * __CASE_UI_CELL_SIZE * scaleH) + (__CASE_UI_BORDER * 2 * scaleH)
+        (player.CaseInv.Size[3] * __CASE_UI_CELL_SIZE * scaleW) + (__CASE_UI_BORDER * 2 * scaleW),
+        (player.CaseInv.Size[4] * __CASE_UI_CELL_SIZE * scaleH) + (__CASE_UI_BORDER * 2 * scaleH)
     )
+    inventory.SlotRect = {
+        1, 1,
+        player.CaseInv.Size[3], player.CaseInv.Size[4]
+    }
     inventory.Player = player
 
 
