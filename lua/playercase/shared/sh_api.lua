@@ -1,3 +1,7 @@
+---Converts a source/lua weapon into a usable item in the inventory
+---@param ply table
+---@param wpn table
+---@return boolean added Was the weapon added to the inventory of the player?
 function CaseInventory:PickupWeapon(ply, wpn)
     if not wpn:IsWeapon() and not wpn:IsScripted() then
         return false
@@ -31,11 +35,20 @@ function CaseInventory:PickupWeapon(ply, wpn)
     return true
 end
 
-function CaseInventory:PickupItem(ply, itmName, count)
-    CaseInventory:AddItemToInventory(ply, itmName, count)
+---TODO
+---@param ply table
+---@param itmId integer
+---@param count integer
+function CaseInventory:PickupItem(ply, itmId, count)
+    CaseInventory:AddItemToInventory(ply, itmId, count)
     return true
 end
 
+---Converts source ammo into a usable item in the inventory
+---@param ply table
+---@param ammoID integer
+---@param count integer
+---@return boolean
 function CaseInventory:PickupAmmo(ply, ammoID, count)
     if ammoID == -1 then
         return false
@@ -62,13 +75,17 @@ function CaseInventory:PickupAmmo(ply, ammoID, count)
 end
 
 
--- Don't use this one directly :)
--- Returns true/false and the remaining amount of items from count not added to the inventory
+---Don't use this one directly :)<br>
+---Tries to find a suitable spot to place an item in the inventory
+---@param ply table
+---@param itemId integer
+---@param count integer
+---@param sync boolean?
+---@return boolean itemAdded, integer remainingItems Any items added?, Items remaining
 function CaseInventory:AddItemToInventory(ply, itemId, count, sync)
     if CLIENT then
         return false, 0
     end
-    local found = false
     local valid = false
     local rem = count
     local max = 0
@@ -147,9 +164,7 @@ function CaseInventory:AddItemToInventory(ply, itemId, count, sync)
                 for x=1,ply.CaseInv.Size[1] do
                     newItem.X = x
                     newItem.Y = y
-                    if CaseInventory:PlaceItem(ply.CaseInv.Loadout, newItemId, newItem, {
-                        1, 1, ply.CaseInv.Size[1], ply.CaseInv.Size[2],
-                    }) then
+                    if CaseInventory:PlaceItem(ply.CaseInv.Loadout, newItemId, newItem, self:GetPlayerCaseRect(ply, false)) then
                         placedItem = true
                         break
                     end
@@ -182,7 +197,10 @@ function CaseInventory:AddItemToInventory(ply, itemId, count, sync)
 end
 
 
--- Returns the amount of an item in inventory
+---Returns the total count of all items of a certain type
+---@param ply table
+---@param id integer
+---@return integer
 function CaseInventory:ItemCount(ply, id)
     local count = 0
     for k, v in pairs(ply.CaseInv.Items) do
@@ -194,7 +212,9 @@ function CaseInventory:ItemCount(ply, id)
 end
 
 
--- Returns what would kinda just be #ply.CaseInv.Items, but that doesn't work properly :(
+---Returns what would kinda just be #ply.CaseInv.Items, but that doesn't work properly :(
+---@param ply table
+---@return integer
 function CaseInventory:ItemSize(ply)
     local count = 0
     for _, _ in pairs(ply.CaseInv.Items) do
@@ -203,10 +223,14 @@ function CaseInventory:ItemSize(ply)
     return count
 end
 
--- Returns true/false if any items were removed and the remaining count
+
+---Removes X amount of items of a certain itemId
+---@param ply table
+---@param id integer
+---@param count integer
+---@return boolean allRemoved, integer remaining Were all items removed and if not the remaining count
 function CaseInventory:RemoveItem(ply, id, count)
     local rem = count
-    local toRemove = {}
     if rem == nil then
         rem = 1
     end
@@ -230,9 +254,12 @@ function CaseInventory:RemoveItem(ply, id, count)
     if SERVER then
         CaseInventory:Sync(ply)
     end
-    return rem != count, rem
+    return rem ~= count, rem
 end
 
+---Returns the itemID based off name
+---@param name string
+---@return integer -1 On not found
 function CaseInventory:GetItemID(name)
     for k, v in pairs(self.ItemRegister) do
         if v.Name == name then
@@ -242,10 +269,16 @@ function CaseInventory:GetItemID(name)
     return -1
 end
 
+---Returns true/false if an item is registered
+---@param name string
+---@return boolean
 function CaseInventory:IsValid(name)
-    return self:GetItemID(name) != -1
+    return self:GetItemID(name) ~= -1
 end
 
+---Fetches and itemID based off source ammoID
+---@param ammoID integer
+---@return integer -1 On not found
 function CaseInventory:GetItemFromAmmo(ammoID)
     for k, v in pairs(self.ItemRegister) do
         if v.AmmoID == ammoID then
@@ -256,6 +289,8 @@ function CaseInventory:GetItemFromAmmo(ammoID)
 end
 
 -- See sh_items.lua on how to make the info table
+---@param info table
+---@return boolean 
 function CaseInventory:RegisterItem(info)
     local exists = false
     for k, v in pairs(self.ItemRegister) do
@@ -276,7 +311,8 @@ function CaseInventory:RegisterItem(info)
     return true
 end
 
-
+---Used to make sure the ammo in the player's inventory is the same in the case
+---@param ply table
 function CaseInventory:SyncAmmo(ply)
     local ammoCount = {}
     --ply:RemoveAllAmmo() -- no excess ammo :)
@@ -284,7 +320,7 @@ function CaseInventory:SyncAmmo(ply)
     for k, v in pairs(ply.CaseInv.Items) do
         local info = self.ItemRegister[v.ItemID]
 
-        if info.AmmoID != -1 then
+        if info.AmmoID ~= -1 then
             if ammoCount[info.AmmoID] == nil then
                 ammoCount[info.AmmoID] = 0
             end
@@ -300,14 +336,19 @@ function CaseInventory:SyncAmmo(ply)
 
 end
 
-
--- Place items in the loadout array (or attempt to at least)
+---Place items in the loadout array (or attempt to at least)
+---Seperate to the player for reasons:tm:
+---@param loadoutTable table
+---@param invId integer
+---@param info table
+---@param caseRect table
+---@return boolean itemPlaced Could the item be placed in the inventory?
 function CaseInventory:PlaceItem(loadoutTable, invId, info, caseRect)
     local itemInfo = CaseInventory.ItemRegister[info.ItemID]
     
 
     if itemInfo == nil then
-        print(info.ItemID)
+        return false
     end
     local w = itemInfo.Size.W
     local h = itemInfo.Size.H
@@ -354,8 +395,8 @@ function CaseInventory:MoveItem(ply, id, x, y, rotation)
     local foundItem = 0
     for _x = x, x + w-1 do
         for _y = y, y + h-1 do
-            if ply.CaseInv.Loadout[_x][_y] != 0 then
-                if foundItem != 0 then
+            if ply.CaseInv.Loadout[_x][_y] ~= 0 then
+                if foundItem ~= 0 then
                     return false -- We can only swap one item :( (i'm lazy)
                 end
 
@@ -396,10 +437,26 @@ function CaseInventory:CheckLocation(loadoutTable, x, y, w, h, ignore)
     return true
 end
 
-function CaseInventory:MergeItem(arguments)
-    
+function CaseInventory:GetPlayerCaseRect(ply, alt)
+    if SERVER then -- This only really matters on the client
+        return {
+            1, 1,
+            ply.CaseInv.Size[1],
+            ply.CaseInv.Size[2]
+        }
+    end
+
+    if not alt then
+        return {
+            1, 1,
+            ply.CaseInv.Size[3],
+            ply.CaseInv.Size[4]
+        }
+    end
 end
 
+---Resets the loadout table for a player
+---@param ply table
 function CaseInventory:ClearLoadout(ply)
     ply.CaseInv.Loadout = {}
     for x=1,ply.CaseInv.Size[1] do
@@ -408,6 +465,10 @@ function CaseInventory:ClearLoadout(ply)
             ply.CaseInv.Loadout[x][y] = 0
         end
     end
+end
+
+function CaseInventory:GenerateInventory()
+    
 end
 
 
@@ -425,7 +486,8 @@ end
         uint8    Y
 ]]--
 
--- Sync the player inventory over the network
+---Sync the player inventory over the network
+---@param ply table
 function CaseInventory:Sync(ply)
     -- If any items were removed we have to place them back :)
     self:ClearLoadout(ply)
@@ -457,7 +519,7 @@ function CaseInventory:Sync(ply)
     net.Send(ply)
     
     PrintTable(ply.CaseInv.Items)
-    print("sent ", CaseInventory:ItemSize(ply), items)
+    print("sent ", CaseInventory:ItemSize(ply), "items")
     --CaseInventory:DebugPrintLoadout(ply.CaseInv.Items)
 end
 

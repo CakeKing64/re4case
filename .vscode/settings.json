@@ -1,0 +1,23 @@
+{
+    "Lua.diagnostics.globals": [
+        "Color",
+        "continue",
+        "LocalPlayer",
+        "net",
+        "PrintTable",
+        "hook",
+        "IsValid",
+        "game",
+        "Vector",
+        "CLIENT",
+        "include",
+        "AddCSLuaFile",
+        "SERVER",
+        "util",
+        "halo",
+        "IN_USE",
+        "vgui",
+        "concommand",
+        "ScrH"
+    ]
+}

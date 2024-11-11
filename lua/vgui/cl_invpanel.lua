@@ -5,10 +5,6 @@ invpanel.SlotRect = {
 }
 
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 6622fca (sthufff)
 local itemColors = {
     Color(250, 61, 61, 255), -- Empty **SHOULD** only be visible on guns >:(
     Color(247, 237, 227, 255), -- Somewhere inbetween
@@ -98,9 +94,17 @@ function invpanel:DrawGrid(w, h)
     end
 end
 
--- Some of this shamelessly stolen from 
--- https://github.com/Facepunch/garrysmod/blob/master/garrysmod/lua/vgui/dmodelpanel.lua
--- https://github.com/louiefox/tetris-inventory/blob/master/lua/vgui/tetris_inv_main.lua
+--- Some of this shamelessly stolen from<br>
+--- https://github.com/Facepunch/garrysmod/blob/master/garrysmod/lua/vgui/dmodelpanel.lua
+--- https://github.com/louiefox/tetris-inventory/blob/master/lua/vgui/tetris_inv_main.lua
+---@param itemID integer
+---@param invId integer
+---@param gridX integer
+---@param gridY integer
+---@param gridW integer
+---@param gridH integer
+---@param rot integer
+---@param count integer
 function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, rot, count )
     local screenW, screenH = _CaseUIGetScaledSize()
     local scaleW, scaleH = _CaseUIGetScaledDiff()
@@ -230,7 +234,7 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, rot, count
                 _count = wpn:Clip2()
             end
 
-            if _count <= 0 then -- Melee weapon or something gravgun like?
+            if _maxClip <= 0 then -- Melee weapon or something gravgun like?
                 _countStatus = 4
             elseif _count == _maxClip then
                 _countStatus = 3
@@ -254,7 +258,7 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, rot, count
         _count = count 
     end
 
-    if _countStatus != 4 then
+    if _countStatus ~= 4 then
     draw.DrawText(tostring(_count), "Trebuchet24",
         baseX + (__CASE_UI_CELL_SIZE * (gridX-1) * scaleW) + _w - (7 * scaleW),
         baseY + (__CASE_UI_CELL_SIZE * (gridY-1) * scaleH) + _h - (20 * scaleH),
@@ -274,7 +278,7 @@ end
 function invpanel:OnMousePressed(keyCode)
 
 
-    if CaseGUI.HeldItem.InvID != -1 then
+    if CaseGUI.HeldItem.InvID ~= -1 then
         if keyCode == MOUSE_LEFT then
             local msX, msY = self:GetMouseSlot()
             if CaseInventory:MoveItem(LocalPlayer(), CaseGUI.HeldItem.InvID, msX, msY, 1) then
@@ -292,7 +296,7 @@ function invpanel:OnMousePressed(keyCode)
     if CaseGUI.HeldItem.InvID == -1 then
         if keyCode == MOUSE_LEFT then
             local itm = self:GetMouseItem()
-            if itm != 0 then
+            if itm ~= 0 then
                 CaseGUI.HeldItem.InvID = itm
                 CaseGUI.HeldItem.OldInfo = self.Player.CaseInv.Items[CaseGUI.HeldItem.InvID]
             end
@@ -330,7 +334,7 @@ function invpanel:Paint(w, h)
         end
     end
 
-    if CaseGUI.HeldItem.InvID != -1 then
+    if CaseGUI.HeldItem.InvID ~= -1 then
         local v = player.CaseInv.Items[CaseGUI.HeldItem.InvID]
         local info = CaseInventory.ItemRegister[v.ItemID]
         local mx, my = self:GetMouseSlot()

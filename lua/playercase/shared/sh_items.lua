@@ -5,7 +5,14 @@ CASE_ITEM_GLOW_ONLY     = 3 -- Only used to show that ammo can be obtained
 CASE_ITEM_AMMO          = 4
 CASE_ITEM_AMMO_SPECIAL  = 5 -- Used for the caseammo entity to store any type of ammo
 
-
+---@param name string
+---@param sizeW number
+---@param sizeH number
+---@param maxSize number
+---@param itemType number
+---@param onUse function?
+---@param ammoID number
+---@param renderInfo table
 function CaseItem(name, sizeW, sizeH, maxSize, itemType, onUse, ammoID, renderInfo)
     return {
         Name=name,
@@ -26,6 +33,10 @@ function CaseItem(name, sizeW, sizeH, maxSize, itemType, onUse, ammoID, renderIn
     }
 end
 
+---@param model string
+---@param scale number?
+---@param rotate boolean?
+---@param vecOffset table?
 function CaseRenderInfo(model, scale, rotate, vecOffset)
     return {
         Model = model or "",
