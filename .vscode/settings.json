@@ -18,6 +18,16 @@
         "IN_USE",
         "vgui",
         "concommand",
-        "ScrH"
+        "ScrH",
+        "cam",
+        "Angle",
+        "render",
+        "surface",
+        "ClientsideModel",
+        "gui",
+        "draw",
+        "TEXT_ALIGN_RIGHT",
+        "MOUSE_RIGHT",
+        "MOUSE_LEFT"
     ]
 }

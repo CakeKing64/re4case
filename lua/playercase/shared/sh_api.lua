@@ -9,11 +9,11 @@ function CaseInventory:PickupWeapon(ply, wpn)
 
     local wpnId = CaseInventory:GetItemID(wpn:GetClass())
     local info = CaseInventory.ItemRegister[wpnId]
-    local count = CaseInventory:ItemCount(ply, wpnId)
+    local count = CaseInventory:ItemCount(ply.CaseInv, wpnId)
 
     -- Do a count check here just for grenades :)
     if count == 0 or info.ItemType == CASE_ITEM_GRENADE then
-        if not CaseInventory:AddItemToInventory(ply, wpnId, 1) then
+        if not CaseInventory:AddItemToInventory(ply.CaseInv, wpnId, 1) then
             return false
         end
     end
@@ -40,7 +40,7 @@ end
 ---@param itmId integer
 ---@param count integer
 function CaseInventory:PickupItem(ply, itmId, count)
-    CaseInventory:AddItemToInventory(ply, itmId, count)
+    CaseInventory:AddItemToInventory(ply.CaseInv, itmId, count)
     return true
 end
 
@@ -63,7 +63,7 @@ function CaseInventory:PickupAmmo(ply, ammoID, count)
     end
 
     while res and rem > 0 do
-        res, rem = self:AddItemToInventory(ply, id, rem, false) -- Hold off on syncing for now
+        res, rem = self:AddItemToInventory(ply.CaseInv, id, rem, false) -- Hold off on syncing for now
     end
 
     -- TODO: Drop any unused ammo on the ground
@@ -77,12 +77,12 @@ end
 
 ---Don't use this one directly :)<br>
 ---Tries to find a suitable spot to place an item in the inventory
----@param ply table
+---@param inv table
 ---@param itemId integer
 ---@param count integer
 ---@param sync boolean?
 ---@return boolean itemAdded, integer remainingItems Any items added?, Items remaining
-function CaseInventory:AddItemToInventory(ply, itemId, count, sync)
+function CaseInventory:AddItemToInventory(inv, itemId, count, sync)
     if CLIENT then
         return false, 0
     end
@@ -107,10 +107,8 @@ function CaseInventory:AddItemToInventory(ply, itemId, count, sync)
 
     
     -- Check to see if we already have an instance of this item
-    for k, v in pairs(ply.CaseInv.Items) do
+    for k, v in pairs(inv.Items) do
         if v.ItemID == itemId then
-            -- TODO: Replace for a check to get the max stack size of an item
-            -- Default will be 32 for non-weapons
             if v.Count < max then
                 local toAdd = math.min(max - v.Count, rem)
                 v.Count = v.Count + toAdd
@@ -139,12 +137,12 @@ function CaseInventory:AddItemToInventory(ply, itemId, count, sync)
 
         local foundSpace = false
         local placedItem = false
-        local itemSize = CaseInventory:ItemSize(ply)
+        local itemSize = CaseInventory:ItemSize(inv)
         local k = 1
 
         -- Check to see if there are any empty ids
         for k = 1, itemSize do
-            local v = ply.CaseInv.Items[k]
+            local v = inv.Items[k]
             if v == nil then
                 newItemId = k
                 foundSpace = true 
@@ -160,11 +158,11 @@ function CaseInventory:AddItemToInventory(ply, itemId, count, sync)
         -- Find a spot to place the new item in the loadout
         for r=1,2 do -- Even attempt both rotations
             newItem.Rotation = r
-            for y=1,ply.CaseInv.Size[2] do
-                for x=1,ply.CaseInv.Size[1] do
+            for y=1, inv.Size[2] do
+                for x=1, inv.Size[1] do
                     newItem.X = x
                     newItem.Y = y
-                    if CaseInventory:PlaceItem(ply.CaseInv.Loadout, newItemId, newItem, self:GetPlayerCaseRect(ply, false)) then
+                    if CaseInventory:PlaceItem(inv, newItemId, newItem) then
                         placedItem = true
                         break
                     end
@@ -184,26 +182,26 @@ function CaseInventory:AddItemToInventory(ply, itemId, count, sync)
             return false, rem
         end
 
-        ply.CaseInv.Items[newItemId] = newItem
+        inv.Items[newItemId] = newItem
 
         --PrintTable(ply.CaseInv.Items)
         rem = rem - newItem.Count
     end
 
-    if sync then
-        CaseInventory:Sync(ply)
+    if sync and inv.Player ~= nil then
+        CaseInventory:Sync(inv.Player)
     end
     return true, rem
 end
 
 
 ---Returns the total count of all items of a certain type
----@param ply table
+---@param inv table
 ---@param id integer
 ---@return integer
-function CaseInventory:ItemCount(ply, id)
+function CaseInventory:ItemCount(inv, id)
     local count = 0
-    for k, v in pairs(ply.CaseInv.Items) do
+    for k, v in pairs(inv.Items) do
         if v.ItemID == id then
             count = count + v.Count
         end
@@ -213,11 +211,11 @@ end
 
 
 ---Returns what would kinda just be #ply.CaseInv.Items, but that doesn't work properly :(
----@param ply table
+---@param inv table
 ---@return integer
-function CaseInventory:ItemSize(ply)
+function CaseInventory:ItemSize(inv)
     local count = 0
-    for _, _ in pairs(ply.CaseInv.Items) do
+    for _, _ in pairs(inv.Items) do
         count = count + 1
     end
     return count
@@ -225,24 +223,24 @@ end
 
 
 ---Removes X amount of items of a certain itemId
----@param ply table
+---@param inv table
 ---@param id integer
 ---@param count integer
 ---@return boolean allRemoved, integer remaining Were all items removed and if not the remaining count
-function CaseInventory:RemoveItem(ply, id, count)
+function CaseInventory:RemoveItem(inv, id, count)
     local rem = count
     if rem == nil then
         rem = 1
     end
 
-    for k, v in pairs(ply.CaseInv.Items) do
+    for k, v in pairs(inv.Items) do
         if v.ItemID == id then
             local toTake = math.min(v.Count, rem)
             v.Count = v.Count - toTake
             rem = rem - toTake
 
             if v.Count == 0 then
-                ply.CaseInv.Items[k] = nil
+                inv.Items[k] = nil
             end
 
             if rem == 0 then
@@ -251,8 +249,8 @@ function CaseInventory:RemoveItem(ply, id, count)
         end
     end
 
-    if SERVER then
-        CaseInventory:Sync(ply)
+    if SERVER and inv.Player ~= nil then
+        CaseInventory:Sync(inv.Player)
     end
     return rem ~= count, rem
 end
@@ -338,12 +336,11 @@ end
 
 ---Place items in the loadout array (or attempt to at least)
 ---Seperate to the player for reasons:tm:
----@param loadoutTable table
+---@param inv table
 ---@param invId integer
 ---@param info table
----@param caseRect table
 ---@return boolean itemPlaced Could the item be placed in the inventory?
-function CaseInventory:PlaceItem(loadoutTable, invId, info, caseRect)
+function CaseInventory:PlaceItem(inv, invId, info)
     local itemInfo = CaseInventory.ItemRegister[info.ItemID]
     
 
@@ -360,18 +357,18 @@ function CaseInventory:PlaceItem(loadoutTable, invId, info, caseRect)
     end
 
     -- If the item doesn't even fit in the bounds why even bother checking
-    if info.X + (w-1) > caseRect[3] or info.Y + (h-1) > caseRect[4]
-        or info.X < caseRect[1] or info.Y < caseRect[2] then
+    if info.X + (w-1) > inv.Size[1] or info.Y + (h-1) > inv.Size[2]
+        or info.X < 1 or info.Y < 1 then
         return false 
     end
 
-    if not self:CheckLocation(loadoutTable, info.X, info.Y, w, h) then
+    if not self:CheckLocation(inv.Loadout, info.X, info.Y, w, h) then
         return false
     end
     
     for x = info.X, info.X + w-1 do
         for y = info.Y, info.Y + h-1 do
-            loadoutTable[x][y] = invId
+            inv.Loadout[x][y] = invId
         end
     end
 
@@ -379,7 +376,15 @@ function CaseInventory:PlaceItem(loadoutTable, invId, info, caseRect)
 end
 
 -- Move an item and swap it with something else if possible
-function CaseInventory:MoveItem(ply, id, x, y, rotation)
+---comment
+---@param src table Source inventory
+---@param srcId integer Source invId
+---@param tgt table Target inventory
+---@param tgtX integer Target X Cell
+---@param tgtY integer Target Y Cell
+---@param tgtRot integer Target rotation
+---@return boolean success Was the item moved?
+function CaseInventory:MoveItem(src, srcId, tgt, tgtX, tgtY, tgtRot)
     local item = ply.CaseInv.Items[id]
     local info = CaseInventory.ItemRegister[item.ItemID]
     local w = info.Size.W
@@ -437,38 +442,34 @@ function CaseInventory:CheckLocation(loadoutTable, x, y, w, h, ignore)
     return true
 end
 
-function CaseInventory:GetPlayerCaseRect(ply, alt)
-    if SERVER then -- This only really matters on the client
-        return {
-            1, 1,
-            ply.CaseInv.Size[1],
-            ply.CaseInv.Size[2]
-        }
-    end
-
-    if not alt then
-        return {
-            1, 1,
-            ply.CaseInv.Size[3],
-            ply.CaseInv.Size[4]
-        }
-    end
-end
-
 ---Resets the loadout table for a player
----@param ply table
-function CaseInventory:ClearLoadout(ply)
-    ply.CaseInv.Loadout = {}
-    for x=1,ply.CaseInv.Size[1] do
-        ply.CaseInv.Loadout[x] = {}
-        for y=1,ply.CaseInv.Size[2] do
-            ply.CaseInv.Loadout[x][y] = 0
+---@param inv table
+function CaseInventory:ClearLoadout(inv)
+    inv.Loadout = {}
+    for x=1, inv.Size[1] do
+        inv.Loadout[x] = {}
+        for y=1,inv.Size[2] do
+            inv.Loadout[x][y] = 0
         end
     end
 end
 
-function CaseInventory:GenerateInventory()
-    
+---Generates an empty inventory
+---@param width? integer
+---@param height? integer
+---@param player table?
+---@return table
+function CaseInventory:GenerateInventory(width, height, player)
+    local inv = {
+        Size={width or 10, height or 6},
+        Items={},
+        Loadout={},
+        UseCommand=0,
+        Player=player -- could be any entity... maybe
+    }
+
+    CaseInventory:ClearLoadout(inv)
+    return inv
 end
 
 
@@ -490,12 +491,10 @@ end
 ---@param ply table
 function CaseInventory:Sync(ply)
     -- If any items were removed we have to place them back :)
-    self:ClearLoadout(ply)
+    self:ClearLoadout(ply.CaseInv)
 
     for k, v in pairs(ply.CaseInv.Items) do
-        if not CaseInventory:PlaceItem(ply.CaseInv.Loadout, k, v, {
-            1, 1, ply.CaseInv.Size[1], ply.CaseInv.Size[2],
-        }) then -- This probably means the case shrunk
+        if not CaseInventory:PlaceItem(ply.CaseInv, k, v) then -- This probably means the case shrunk
             
         end
     end
@@ -506,7 +505,7 @@ function CaseInventory:Sync(ply)
         net.WriteUInt(ply.CaseInv.Size[1], 8)   -- SizeX
         net.WriteUInt(ply.CaseInv.Size[2], 8)   -- SizeY
 
-        net.WriteUInt(CaseInventory:ItemSize(ply), 16) -- ItemCount
+        net.WriteUInt(CaseInventory:ItemSize(ply.CaseInv), 16) -- ItemCount
         for k, v in pairs(ply.CaseInv.Items) do
             net.WriteUInt(k, 16)            -- Index
             net.WriteUInt(v.ItemID, 16)     -- ItemID
@@ -519,7 +518,7 @@ function CaseInventory:Sync(ply)
     net.Send(ply)
     
     PrintTable(ply.CaseInv.Items)
-    print("sent ", CaseInventory:ItemSize(ply), "items")
+    print("sent ", CaseInventory:ItemSize(ply.CaseInv), "items")
     --CaseInventory:DebugPrintLoadout(ply.CaseInv.Items)
 end
 

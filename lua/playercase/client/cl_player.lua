@@ -9,3 +9,13 @@ hook.Add("PreDrawHalos", "CASE_PreDrawHalos", function ()
         end
     end
 end)
+
+hook.Add("Think", "CASE_Think", function ()
+    if CaseGUI.SortingWindow != nil then
+        CaseGUI.SortingWindow:MoveToFront()
+    end
+end)
+
+hook.Add("PlayerDeath", "CASE_PlayerDeath", function (victim, inflictor, attacker)
+    
+end)

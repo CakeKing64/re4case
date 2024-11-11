@@ -65,22 +65,32 @@ hook.Add("PlayerAmmoChanged", "CASE_PlayerAmmoChanged", function (ply, ammoID, o
     if newCount < oldCount then
         local itemId = CaseInventory:GetItemFromAmmo(ammoID)
 
-        CaseInventory:RemoveItem(ply, itemId, oldCount - newCount)
+        CaseInventory:RemoveItem(ply.CaseInv, itemId, oldCount - newCount)
     end
 end)
 
 
+
 hook.Add("PlayerSpawn", "CASE_PlayerSpawn", function(plr, trans)
-    
     if not trans or plr.CaseInv == nil then
-        plr.CaseInv = {} -- Reset case
-        plr.CaseInv.Size = {10,6}
-        plr.CaseInv.Items = {}
-        plr.CaseInv.Loadout = {}
-        plr.CaseInv.UseCommand = 0
-
-        CaseInventory:ClearLoadout(plr)
-
+        plr.CaseInv = CaseInventory:GenerateInventory(10, 6, plr)
     end
     CaseInventory:Sync(plr)
+end)
+
+
+hook.Add("PlayerDeath", "CASE_PlayerDeath", function (victim, inflictor, attacker)
+    -- TODO Drop all items if a cvar is set
+    if victim:IsPlayer() then
+        victim.CaseInv.Items = {}
+        CaseInventory:ClearLoadout(victim.CaseInv)
+        CaseInventory:Sync(victim)
+    end
+
+end)
+
+hook.Add("PlayerDroppedWeapon", "CASE_PlayerDroppedWeapon", function (owner, wpn)
+    if owner:IsPlayer() then
+        CaseInventory:RemoveItem(owner.CaseInv, CaseInventory:GetItemID(wpn:GetClass()), 1)
+    end
 end)

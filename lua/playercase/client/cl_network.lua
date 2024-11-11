@@ -14,20 +14,8 @@
 ]]--
 net.Receive("CaseSync", function ()
     local ply = LocalPlayer()
-    ply.CaseInv = {} -- Reset case
-    ply.CaseInv.Size = {}
-    ply.CaseInv.Items = {}
-    ply.CaseInv.Loadout = {}
-
-    local _ogSizeX, _ogSizeY = net.ReadUInt(8), net.ReadUInt(8)
-    ply.CaseInv.Size = { -- add some extra space on for managment clientside only
-        _ogSizeX + 6, -- SizeX
-        math.max(_ogSizeY, 9), -- SizeY
-        _ogSizeX,
-        _ogSizeY
-    }
-
-    CaseInventory:ClearLoadout(ply)
+    ply.CaseInv = CaseInventory:GenerateInventory(net.ReadUInt(8), net.ReadUInt(8), LocalPlayer())
+    CaseInventory:ClearLoadout(ply.CaseInv)
 
     
     local itemCount = net.ReadUInt(16)
@@ -44,9 +32,7 @@ net.Receive("CaseSync", function ()
 
         PrintTable(newItem)
         ply.CaseInv.Items[index] = newItem
-        CaseInventory:PlaceItem(ply.CaseInv.Loadout, index, newItem, {
-            1, 1, _ogSizeX, _ogSizeY,
-        })
+        CaseInventory:PlaceItem(ply.CaseInv, index, newItem)
     end
 
 end)

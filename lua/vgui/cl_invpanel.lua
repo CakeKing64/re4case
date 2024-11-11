@@ -1,9 +1,5 @@
 local invpanel = {}
-invpanel.Player = nil
-invpanel.SlotRect = {
-    0, 0, 255, 255
-}
-
+invpanel.InvTarget = nil
 
 local itemColors = {
     Color(250, 61, 61, 255), -- Empty **SHOULD** only be visible on guns >:(
@@ -13,20 +9,19 @@ local itemColors = {
 
 local ratio = 16/9
 
-function invpanel:SlotX()
-    return self.SlotRect[1]
+function invpanel:InvW()
+    return self:Inv().Size[1]
 end
 
-function invpanel:SlotY()
-    return self.SlotRect[2]
+function invpanel:InvH()
+    return self:Inv().Size[2]
 end
 
-function invpanel:SlotW()
-    return self.SlotRect[3] - (self.SlotRect[1]-1)
-end
-
-function invpanel:SlotH()
-    return self.SlotRect[4] - (self.SlotRect[2]-1)
+function invpanel:Inv()
+    if self.InvTarget.Player ~= nil then
+        return self.InvTarget.Player.CaseInv
+    end
+    return self.InvTarget
 end
 
 function invpanel:GetMouseSlot()
@@ -50,44 +45,42 @@ function invpanel:GetMouseItem()
         return 0
     end
 
-    if slotX < self.SlotRect[1] or slotX > self.SlotRect[1] + self.SlotRect[3] or 
-        slotY < self.SlotRect[2] or slotY > self.SlotRect[2] + self.SlotRect[4] then
+    if slotX < 1 or slotX > self:InvW() or 
+        slotY < 1 or slotY > self:InvH() then
             return 0
     end
 
-    return self.Player.CaseInv.Loadout[slotX][slotY]
+    return self:Inv().Loadout[slotX][slotY]
 end
 
 function invpanel:DrawGrid(w, h)
-    local screenW, screenH = _CaseUIGetScaledSize()
     local scaleW, scaleH = _CaseUIGetScaledDiff()
-    local player = LocalPlayer()
     local baseX, baseY = __CASE_UI_BORDER * scaleW, __CASE_UI_BORDER * scaleH
 
     surface.SetDrawColor(Color(255, 255, 255, 20))
     local _x, _y = 0, 0
 
     -- Vert Lines
-    for x = self:SlotX()-1, self:SlotW() do
+    for x = 0, self:InvW() do
         surface.DrawLine(
             -- From
             baseX + __CASE_UI_CELL_SIZE * _x * scaleW,
             baseY,
             -- To
             baseX + __CASE_UI_CELL_SIZE * _x * scaleW,
-            baseY + self:SlotH() * __CASE_UI_CELL_SIZE * scaleH
+            baseY + self:InvH() * __CASE_UI_CELL_SIZE * scaleH
         )
         _x = _x + 1
     end
 
     -- Horiz Lines
-    for y = self:SlotY()-1, self:SlotH() do
+    for y = 0, self:InvH() do
         surface.DrawLine(
             -- From
             baseX,
             baseY + __CASE_UI_CELL_SIZE * _y * scaleH,
             -- To
-            baseX + self:SlotW() * __CASE_UI_CELL_SIZE * scaleW,
+            baseX + self:InvW() * __CASE_UI_CELL_SIZE * scaleW,
             baseY + __CASE_UI_CELL_SIZE * _y * scaleH
         )
         _y = _y + 1
@@ -108,7 +101,7 @@ end
 function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, rot, count )
     local screenW, screenH = _CaseUIGetScaledSize()
     local scaleW, scaleH = _CaseUIGetScaledDiff()
-    local player = LocalPlayer()
+    --local player = LocalPlayer()
     local posX, posY = self:LocalToScreen(self:GetPos())
     local itemInfo = CaseInventory.ItemRegister[itemID]
     local renderInfo = itemInfo.RenderInfo
@@ -221,7 +214,8 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, rot, count
     local _count = 0
     local _countStatus = 0 -- 1 == Empty, 2 = Neither empty or full, 3 = Full, 4 = Don't draw count
 
-    if itemInfo.ItemType == CASE_ITEM_WEAPON then
+    if IsValid(self:Inv().Player) and itemInfo.ItemType == CASE_ITEM_WEAPON then
+        local player = self:Inv().Player
         local wpn = player:GetWeapon(itemInfo.Name)
         if not IsValid(wpn) then
             _count = 0
@@ -276,7 +270,8 @@ function invpanel:OnRemove()
 end
 
 function invpanel:OnMousePressed(keyCode)
-
+    
+    --[[
 
     if CaseGUI.HeldItem.InvID ~= -1 then
         if keyCode == MOUSE_LEFT then
@@ -305,7 +300,7 @@ function invpanel:OnMousePressed(keyCode)
     end
 
 
-
+    ]]--
 end
 
 function invpanel:Think()
@@ -315,7 +310,6 @@ end
 function invpanel:Paint(w, h)
     local screenW, screenH = _CaseUIGetScaledSize()
     local scaleW, scaleH = _CaseUIGetScaledDiff()
-    local player = LocalPlayer()
    
 
     surface.SetDrawColor(Color(42, 41, 37))
@@ -323,7 +317,7 @@ function invpanel:Paint(w, h)
     self:DrawGrid(w, h)
 
     render.SuppressEngineLighting( true )
-    for k, v in pairs(player.CaseInv.Items) do
+    for k, v in pairs(self:Inv().Items) do
         local info = CaseInventory.ItemRegister[v.ItemID]
         local held = (k == CaseGUI.HeldItem.InvID)
 
@@ -335,7 +329,7 @@ function invpanel:Paint(w, h)
     end
 
     if CaseGUI.HeldItem.InvID ~= -1 then
-        local v = player.CaseInv.Items[CaseGUI.HeldItem.InvID]
+        local v = self:Inv().Items[CaseGUI.HeldItem.InvID]
         local info = CaseInventory.ItemRegister[v.ItemID]
         local mx, my = self:GetMouseSlot()
         self:DrawItem(v.ItemID, CaseGUI.HeldItem.InvID, mx or v.X, my or v.Y, info.Size.W, info.Size.H, v.Rotation, v.Count)
