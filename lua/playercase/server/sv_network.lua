@@ -7,7 +7,7 @@
         uint16   index
         uint16   itemID
         uint32   count
-        uint2    rotation
+        uint1    rotation
         uint8    X
         uint8    Y
 ]]--
@@ -34,7 +34,7 @@ net.Receive("CaseSync", function ()
         local newItem = {
             ItemID=net.ReadUInt(16),
             Count=net.ReadUInt(32),
-            Rotation=net.ReadUInt(2),
+            Rotated=net.ReadUInt(2),
             X=net.ReadUInt(8),
             Y=net.ReadUInt(8)
         }

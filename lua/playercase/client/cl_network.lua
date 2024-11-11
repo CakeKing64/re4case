@@ -8,7 +8,7 @@
         uint16   index
         uint16   itemID
         uint32   count
-        uint2    rotation
+        uint1    rotated
         uint8    X
         uint8    Y
 ]]--
@@ -22,15 +22,16 @@ net.Receive("CaseSync", function ()
     print("Recv item count:", itemCount)
     for i=1, itemCount do
         local index = net.ReadUInt(16)
-        local newItem = {
-            ItemID=net.ReadUInt(16),
-            Count=net.ReadUInt(32),
-            Rotation=net.ReadUInt(2),
-            X=net.ReadUInt(8),
-            Y=net.ReadUInt(8)
-        }
+        local newItem = CaseInventory:CreateItemInfo(
+            net.ReadUInt(16),   -- ItemID
+            net.ReadUInt(32),   -- Count
+            net.ReadBool(),     -- Rotated
+            net.ReadUInt(8),    -- X
+            net.ReadUInt(8)     -- Y
 
-        PrintTable(newItem)
+        )
+
+
         ply.CaseInv.Items[index] = newItem
         CaseInventory:PlaceItem(ply.CaseInv, index, newItem)
     end

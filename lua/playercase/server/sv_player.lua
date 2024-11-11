@@ -73,7 +73,7 @@ end)
 
 hook.Add("PlayerSpawn", "CASE_PlayerSpawn", function(plr, trans)
     if not trans or plr.CaseInv == nil then
-        plr.CaseInv = CaseInventory:GenerateInventory(10, 6, plr)
+        plr.CaseInv = CaseInventory:GenerateInventory(15, 8, plr)
     end
     CaseInventory:Sync(plr)
 end)

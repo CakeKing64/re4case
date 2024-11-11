@@ -24,18 +24,25 @@ function invpanel:Inv()
     return self.InvTarget
 end
 
-function invpanel:GetMouseSlot()
+---@param clamp? boolean Instead of returning nil, clamp to the last grid index
+---@return nil
+---@return nil
+function invpanel:GetMouseSlot(clamp)
     local scaleW, scaleH = _CaseUIGetScaledDiff()
     local posX, posY = self:LocalToScreen(self:GetPos())
     local relX, relY = gui.MouseX() - posX, gui.MouseY() - posY
+    local gridX, gridY = math.floor((relX - __CASE_UI_BORDER*scaleW) / (__CASE_UI_CELL_SIZE * scaleW)) + 1,
+        math.floor((relY - __CASE_UI_BORDER*scaleH) / (__CASE_UI_CELL_SIZE * scaleH)) + 1
 
-    if relX < __CASE_UI_BORDER*scaleW or relY < __CASE_UI_BORDER*scaleH then
+
+    if not clamp and 
+        (gridX < 1 or gridX > self:InvW() or gridY < 0 or gridY > self:InvH()) then
         return nil, nil
     end
     
-
-    return math.floor((relX - __CASE_UI_BORDER*scaleW) / (__CASE_UI_CELL_SIZE * scaleW)) + 1,
-            math.floor((relY - __CASE_UI_BORDER*scaleH) / (__CASE_UI_CELL_SIZE * scaleH)) + 1
+    -- Return clamped
+    return math.Clamp(gridX, 1, self:InvW()),
+            math.Clamp(gridY, 1, self:InvH())
 end
 
 function invpanel:GetMouseItem()
@@ -93,12 +100,12 @@ end
 ---@param itemID integer
 ---@param invId integer
 ---@param gridX integer
----@param gridY integer
+---@param gridY integer griddy heh
 ---@param gridW integer
 ---@param gridH integer
----@param rot integer
+---@param rot boolean
 ---@param count integer
-function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, rot, count )
+function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated, count )
     local screenW, screenH = _CaseUIGetScaledSize()
     local scaleW, scaleH = _CaseUIGetScaledDiff()
     --local player = LocalPlayer()
@@ -107,7 +114,6 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, rot, count
     local renderInfo = itemInfo.RenderInfo
     local model = ClientsideModel(renderInfo.Model)
     local baseX, baseY = __CASE_UI_BORDER*scaleW, (__CASE_UI_BORDER*scaleH)
-    local isRotated = rot % 2 == 0
 
 
     local _x, _y, _w, _h = 
@@ -166,7 +172,7 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, rot, count
         end
         -- Yandare dev ass code
         if not _renderRotate then
-            if( xDiff > yDiff ) then
+            if( xDiff > yDiff or renderInfo.ForceRot == 2) then
                 model:SetPos( Vector( getOffset( 2 ), getOffset( 1 ), getOffset( 3 ) ) )
                 model:SetAngles( Angle( 0, 90, 0 ) )
             else
@@ -174,7 +180,7 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, rot, count
                 model:SetAngles( Angle( 0, 0, 0 ) )
             end
         else
-            if( xDiff > yDiff ) then
+            if( xDiff > yDiff or renderInfo.ForceRot == 2) then
                 model:SetPos( Vector( getOffset( 2 ), getOffset( 3 ),  -getOffset( 1 )) )
                 model:SetAngles( Angle( 90, 90, 0 ) )
             else
@@ -187,13 +193,20 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, rot, count
 
         
         render.SetScissorRect( _x, _y, _x+_w, _y+_h, true )
-
-        local modelWidth = math.max( xDiff, yDiff )
+        local modelWidth = 0
+        if renderInfo.ForceRot == 0 then
+            modelWidth = math.max( xDiff, yDiff )
+        elseif renderInfo.ForceRot == 0 then
+            modelWidth = yDiff
+        else
+            modelWidth = xDiff
+        end
+        
         cam.Start({
-            x=(_x - 1280/2) + _w/2,
-            y=(_y - 720/2) + _h/2,
-            w=1280,
-            h=720,
+            x=(_x - ScrW()/2) + _w/2,
+            y=(_y - ScrH()/2) + _h/2,
+            w=ScrW(),
+            h=ScrH(),
             type="3D",
             angles = Angle(0, 0, 0),
             origin = Vector(-modelWidth*4/(_scale or 1), 0, 0 ),
@@ -270,41 +283,26 @@ function invpanel:OnRemove()
 end
 
 function invpanel:OnMousePressed(keyCode)
-    
-    --[[
-
-    if CaseGUI.HeldItem.InvID ~= -1 then
-        if keyCode == MOUSE_LEFT then
-            local msX, msY = self:GetMouseSlot()
-            if CaseInventory:MoveItem(LocalPlayer(), CaseGUI.HeldItem.InvID, msX, msY, 1) then
-                print(":)")
-            end
-        end
-
-        if keyCode == MOUSE_RIGHT then -- Reset item location
-            self.Player.CaseInv.Items[CaseGUI.HeldItem.InvID] = CaseGUI.HeldItem.OldInfo
-            CaseGUI.HeldItem.InvID = -1
-        end
-    end
-
-    
+    -- No item is held
     if CaseGUI.HeldItem.InvID == -1 then
         if keyCode == MOUSE_LEFT then
             local itm = self:GetMouseItem()
             if itm ~= 0 then
+                CaseGUI.HeldItem.SourceWindow = self
                 CaseGUI.HeldItem.InvID = itm
-                CaseGUI.HeldItem.OldInfo = self.Player.CaseInv.Items[CaseGUI.HeldItem.InvID]
+                CaseGUI.HeldItem.OldInfo = self:Inv().Items[CaseGUI.HeldItem.InvID]
+                CaseGUI.HeldItem.Rotated = self:Inv().Items[CaseGUI.HeldItem.InvID].Rotated
             end
         end
 
     end
 
-
-    ]]--
 end
 
 function invpanel:Think()
-    
+    if self:GetMouseSlot() ~= nil then
+        CaseGUI.HoveredWindow = self
+    end
 end
 
 function invpanel:Paint(w, h)
@@ -319,21 +317,53 @@ function invpanel:Paint(w, h)
     render.SuppressEngineLighting( true )
     for k, v in pairs(self:Inv().Items) do
         local info = CaseInventory.ItemRegister[v.ItemID]
-        local held = (k == CaseGUI.HeldItem.InvID)
+        local held = (k == CaseGUI.HeldItem.InvID and self == CaseGUI.HeldItem.SourceWindow)
 
         if held then -- Draw at mouse position if held :)
             continue -- draw later so it can be over the top of everything
         else
-            self:DrawItem(v.ItemID, k, v.X, v.Y, info.Size.W, info.Size.H, v.Rotation, v.Count)
+            self:DrawItem(v.ItemID, k, v.X, v.Y, info.Size.W, info.Size.H, v.Rotated, v.Count)
         end
     end
 
-    if CaseGUI.HeldItem.InvID ~= -1 then
-        local v = self:Inv().Items[CaseGUI.HeldItem.InvID]
+
+    if CaseGUI.HeldItem.InvID ~= -1 and CaseGUI.HoveredWindow == self then
+        local v = CaseGUI.HeldItem.SourceWindow:Inv().Items[CaseGUI.HeldItem.InvID]
         local info = CaseInventory.ItemRegister[v.ItemID]
-        local mx, my = self:GetMouseSlot()
-        self:DrawItem(v.ItemID, CaseGUI.HeldItem.InvID, mx or v.X, my or v.Y, info.Size.W, info.Size.H, v.Rotation, v.Count)
+        local mx, my = self:GetMouseSlot(true)
+        local itemW, itemH = info.Size.W, info.Size.H
+
+        if itemW > self:Inv().Size[1] then -- If the item doesn't fit horiz force rotate it
+            CaseGUI.HeldItem.Rotated = true
+        end
+
+        if CaseGUI.HeldItem.Rotated then
+            local _w = itemW
+            itemW = itemH
+            itemH = _w
+        end
+        
+        local offsetX, offsetY = 
+                math.Clamp(math.floor(itemW / 2), 0,  math.max(0, itemW-1)),
+                math.Clamp(math.floor(itemH / 2), 0, math.max(0, itemH-1))
+
+        if offsetX > 1 then
+            mx = mx - offsetX
+        end
+
+        if offsetY > 1 then
+            my = my - offsetY
+        end
+        
+        mx = math.Clamp(mx, 1, self:InvW()+1 - itemW)
+        my = math.Clamp(my, 1, self:InvH()+1 - itemH)
+
+        if mx and my then -- Don't draw if model would be out of the grid
+            self:DrawItem(v.ItemID, CaseGUI.HeldItem.InvID, mx or v.X, my or v.Y, info.Size.W, info.Size.H, CaseGUI.HeldItem.Rotated, v.Count)
+        end
     end
+
+
     render.SuppressEngineLighting( false )
 
 

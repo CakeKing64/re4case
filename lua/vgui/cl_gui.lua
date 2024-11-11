@@ -3,17 +3,16 @@ __CASE_UI_CELL_SIZE = 64 -- #define
 __CASE_UI_BORDER = 32
 local function _setupcasegui()
     return {
-        TempLoadout = {},
         HeldItem = {
             InvID=-1,
-            Rotation=0,
+            SourceWindow=nil,
+            Rotated=false,
             OldInfo={} -- Store info to reset the pos & rot of an item
         },
         SortingWindow = nil,
         MainWindow = nil,
-        ModifiedItems={},
-        IsOpen = false,
-        SyncRequest = false
+        HoveredWindow = nil,
+        IsOpen = false
     }
 end
 CaseGUI = _setupcasegui()
@@ -69,16 +68,19 @@ end
 -- thank u chat gee pea tei
 local function OpenBasicPanel()
     local scaleW, scaleH = _CaseUIGetScaledDiff()
+    local mwX, mwY = 0, 0 
     CaseGUI.MainWindow = _createWindow(LocalPlayer().CaseInv, true)
     CaseGUI.MainWindow:Center()
-    
-    CaseGUI.SortingWindow = _createWindow(CaseInventory:GenerateInventory(6, 8))
-    local x, y =  CaseGUI.MainWindow:GetPos()
-    --local w, h = CaseGUI.MainWindow:GetSize()
-    x = x + CaseGUI.MainWindow:GetSize() + (__CASE_UI_BORDER * scaleW)
+    mwX, mwY = CaseGUI.MainWindow:GetPos()
+    mwX = mwX - ((__CASE_UI_BORDER/1.5) * scaleW)
 
-    CaseGUI.SortingWindow:SetPos(x, y)
-    CaseGUI.IsOpen = false
+    -- Nobody will notice it's slightly off center yeah?
+    -- **YOU** won't tell about this right?
+    CaseGUI.MainWindow:SetPos(mwX , mwY)
+    CaseGUI.SortingWindow = _createWindow(CaseInventory:GenerateInventory(6, 8))
+
+    CaseGUI.SortingWindow:SetPos(mwX + CaseGUI.MainWindow:GetSize() + ((__CASE_UI_BORDER/2) * scaleW), mwY)
+    CaseGUI.IsOpen = true
 
     -- Create a DButton (button)
     local button = vgui.Create("DButton", CaseGUI.MainWindow)
@@ -89,6 +91,7 @@ local function OpenBasicPanel()
         CaseGUI.SortingWindow:Close()
         CaseGUI.MainWindow:Close()                -- Closes the frame`
         CaseGUI.SortingWindow = nil
+        CaseGUI.IsOpen = false
     end
 end
 

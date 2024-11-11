@@ -122,13 +122,9 @@ function CaseInventory:AddItemToInventory(inv, itemId, count, sync)
     end
 
     if rem ~= 0 then
-        local newItem = {
-            ItemID=itemId,
-            Count=math.min(max, rem),
-            Rotation=1,
-            X=1,
-            Y=1
-        }
+        local newItem = CaseInventory:CreateItemInfo(
+            itemId, math.min(max, rem), false, 1, 1
+        )
         local newItemId = -1
 
         if CASE_INVENTORY_DEBUG then
@@ -157,7 +153,7 @@ function CaseInventory:AddItemToInventory(inv, itemId, count, sync)
 
         -- Find a spot to place the new item in the loadout
         for r=1,2 do -- Even attempt both rotations
-            newItem.Rotation = r
+            newItem.Rotated = r == 2
             for y=1, inv.Size[2] do
                 for x=1, inv.Size[1] do
                     newItem.X = x
@@ -267,6 +263,22 @@ function CaseInventory:GetItemID(name)
     return -1
 end
 
+---Creates an item info table :)
+---@param itemId integer
+---@param count integer
+---@param rotated boolean
+---@param x integer
+---@param y integer
+---@return table
+function CaseInventory:CreateItemInfo(itemId, count, rotated, x, y)
+    return {
+        ItemID=itemId,
+        Count=count,
+        Rotated=rotated,
+        X=x,
+        Y=y
+    }
+end
 ---Returns true/false if an item is registered
 ---@param name string
 ---@return boolean
@@ -350,7 +362,7 @@ function CaseInventory:PlaceItem(inv, invId, info)
     local w = itemInfo.Size.W
     local h = itemInfo.Size.H
 
-    if info.Rotation % 2 == 0 then
+    if info.Rotated then
         local _w, _h = w, h
         w = _h
         h = _w
@@ -482,7 +494,7 @@ end
         uint16   index
         uint16   itemID
         uint32   count
-        uint2    rotation
+        uint1    rotated
         uint8    X
         uint8    Y
 ]]--
@@ -510,7 +522,7 @@ function CaseInventory:Sync(ply)
             net.WriteUInt(k, 16)            -- Index
             net.WriteUInt(v.ItemID, 16)     -- ItemID
             net.WriteUInt(v.Count, 32)      -- Count
-            net.WriteUInt(v.Rotation, 2)    -- Rotation
+            net.WriteBool(v.Rotated)       -- Rotation
             net.WriteUInt(v.X, 8)   -- X
             net.WriteUInt(v.Y, 8)   -- Y
         end

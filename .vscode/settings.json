@@ -28,6 +28,8 @@
         "draw",
         "TEXT_ALIGN_RIGHT",
         "MOUSE_RIGHT",
-        "MOUSE_LEFT"
+        "MOUSE_LEFT",
+        "ScrW",
+        "input"
     ]
 }
