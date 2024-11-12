@@ -1,6 +1,8 @@
 local invpanel = {}
 invpanel.InvTarget = nil
 
+AccessorFunc(invpanel, "bHasItems", "HasItems")
+
 local itemColors = {
     Color(250, 61, 61, 255), -- Empty **SHOULD** only be visible on guns >:(
     Color(247, 237, 227, 255), -- Somewhere inbetween
@@ -25,8 +27,8 @@ function invpanel:Inv()
 end
 
 ---@param clamp? boolean Instead of returning nil, clamp to the last grid index
----@return nil
----@return nil
+---@return integer?
+---@return integer?
 function invpanel:GetMouseSlot(clamp)
     local scaleW, scaleH = _CaseUIGetScaledDiff()
     local posX, posY = self:LocalToScreen(self:GetPos())
@@ -103,7 +105,7 @@ end
 ---@param gridY integer griddy heh
 ---@param gridW integer
 ---@param gridH integer
----@param rot boolean
+---@param isRotated boolean
 ---@param count integer
 function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated, count )
     local screenW, screenH = _CaseUIGetScaledSize()
@@ -134,7 +136,7 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
 
 
 
-    if invId == CaseGUI.HeldItem.InvID then
+    if invId == CaseGUI.HeldItem.InvID and CaseGUI.HeldItem.SourceWindow == self then
         surface.SetDrawColor(Color(128, 128, 128, 128))
     elseif CaseGUI.HeldItem.InvID == -1 and invId == self:GetMouseItem() then
         surface.SetDrawColor(Color(128, 128, 128, 128))
@@ -283,6 +285,27 @@ function invpanel:OnRemove()
 end
 
 function invpanel:OnMousePressed(keyCode)
+
+    -- An item is held
+    if CaseGUI.HeldItem.InvID ~= -1 then
+        if keyCode == MOUSE_LEFT then
+            local mx, my = self:GetMouseSlot()
+            if mx then
+                if CaseInventory:MoveItem(
+                    CaseGUI.HeldItem.SourceWindow:Inv(),
+                    CaseGUI.HeldItem.InvID,
+                    self:Inv(),
+                    CaseGUI.HeldItem.X,
+                    CaseGUI.HeldItem.Y,
+                    CaseGUI.HeldItem.Rotated
+                ) then
+                    CaseGUI.HeldItem.InvID = -1
+                    return
+                end
+            end
+        end
+    end
+
     -- No item is held
     if CaseGUI.HeldItem.InvID == -1 then
         if keyCode == MOUSE_LEFT then
@@ -297,11 +320,21 @@ function invpanel:OnMousePressed(keyCode)
 
     end
 
+
+
 end
 
 function invpanel:Think()
     if self:GetMouseSlot() ~= nil then
         CaseGUI.HoveredWindow = self
+    end
+    
+    self.bHasItems = false
+    for k, v in pairs(self:Inv().Items) do
+        if v ~= nil then
+            self.bHasItems = true
+            break
+        end
     end
 end
 
@@ -357,6 +390,9 @@ function invpanel:Paint(w, h)
         
         mx = math.Clamp(mx, 1, self:InvW()+1 - itemW)
         my = math.Clamp(my, 1, self:InvH()+1 - itemH)
+
+        CaseGUI.HeldItem.X = mx or v.X
+        CaseGUI.HeldItem.Y = my or v.Y
 
         if mx and my then -- Don't draw if model would be out of the grid
             self:DrawItem(v.ItemID, CaseGUI.HeldItem.InvID, mx or v.X, my or v.Y, info.Size.W, info.Size.H, CaseGUI.HeldItem.Rotated, v.Count)

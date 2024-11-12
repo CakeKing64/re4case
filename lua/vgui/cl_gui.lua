@@ -7,12 +7,17 @@ local function _setupcasegui()
             InvID=-1,
             SourceWindow=nil,
             Rotated=false,
+            X=1,
+            Y=1,
             OldInfo={} -- Store info to reset the pos & rot of an item
         },
         SortingWindow = nil,
         MainWindow = nil,
         HoveredWindow = nil,
-        IsOpen = false
+        IsOpen = false,
+        InvTargets = {
+
+        }
     }
 end
 CaseGUI = _setupcasegui()
@@ -38,7 +43,7 @@ function _CaseUIGetCell(arguments)
 end
 
 
-local function _createWindow(inv, parent)
+local function _createWindow(name, inv, parent)
     local window = vgui.Create("DFrame")
     local screenW, screenH = _CaseUIGetScaledSize()
     local scaleW, scaleH = _CaseUIGetScaledDiff()
@@ -62,6 +67,7 @@ local function _createWindow(inv, parent)
         (inv.Size[2] * __CASE_UI_CELL_SIZE * scaleH) + (__CASE_UI_BORDER * 2 * scaleH)
     )
     inventory.InvTarget = inv
+    CaseGUI.InvTargets[name] = inventory
 
     return window
 end
@@ -69,7 +75,7 @@ end
 local function OpenBasicPanel()
     local scaleW, scaleH = _CaseUIGetScaledDiff()
     local mwX, mwY = 0, 0 
-    CaseGUI.MainWindow = _createWindow(LocalPlayer().CaseInv, true)
+    CaseGUI.MainWindow = _createWindow("MainWindow", LocalPlayer().CaseInv, true)
     CaseGUI.MainWindow:Center()
     mwX, mwY = CaseGUI.MainWindow:GetPos()
     mwX = mwX - ((__CASE_UI_BORDER/1.5) * scaleW)
@@ -77,7 +83,7 @@ local function OpenBasicPanel()
     -- Nobody will notice it's slightly off center yeah?
     -- **YOU** won't tell about this right?
     CaseGUI.MainWindow:SetPos(mwX , mwY)
-    CaseGUI.SortingWindow = _createWindow(CaseInventory:GenerateInventory(6, 8))
+    CaseGUI.SortingWindow = _createWindow("SortingWindow", CaseInventory:GenerateInventory(6, 8))
 
     CaseGUI.SortingWindow:SetPos(mwX + CaseGUI.MainWindow:GetSize() + ((__CASE_UI_BORDER/2) * scaleW), mwY)
     CaseGUI.IsOpen = true

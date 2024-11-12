@@ -1,9 +1,22 @@
 local mStatus = {
-    Left = false,
-    Right = false,
-    Up = false,
-    Down = false
+    Left = 0,
+    Right = 0,
+    Up = 0,
+    Down = 0
 }
+
+local function _checkInput(name, thing)
+
+    if mStatus[name] < 0 then
+        mStatus[name] = mStatus[name] + 1
+    end
+
+    if input.IsMouseDown(thing) and mStatus[name] ~= 2 then
+        mStatus[name] = mStatus[name] + 1
+    else
+        mStatus[name] = 0
+    end
+end
 
 hook.Add("PreDrawHalos", "CASE_PreDrawHalos", function ()
     local lookTarget = LocalPlayer():GetEyeTrace().Entity
@@ -18,24 +31,33 @@ hook.Add("PreDrawHalos", "CASE_PreDrawHalos", function ()
 end)
 
 -- Very fancy way of doing this
-hook.Add("CreateMove", "CASE_CreateMove", function (cmd)
-    mStatus.Left = input.WasMousePressed( MOUSE_LEFT )
-    mStatus.Right = input.WasMousePressed( MOUSE_RIGHT )
+hook.Add("CreateMove", "testMouseWheel", function(cmd)
+    if input.WasMousePressed(MOUSE_WHEEL_UP) then
+        mStatus.Up = 1
+    end
 
-    mStatus.Up = input.WasMousePressed( MOUSE_WHEEL_UP )
-    mStatus.Down = input.WasMousePressed( MOUSE_WHEEL_DOWN )
+    if input.WasMousePressed(MOUSE_WHEEL_DOWN) then
+        mStatus.Down = 1
+    end
 end)
 
 -- This hook is only really for the GUI
 hook.Add("Think", "CASE_Think", function ()
 
+    _checkInput("Left", MOUSE_LEFT)
+    _checkInput("Right", MOUSE_RIGHT)
+
+
     if CaseGUI.IsOpen then
         -- Reset the held item back to its last position
-        if mStatus.Right then
+        if mStatus.Right == 1 then
             CaseGUI.HeldItem.InvID = -1
         end
 
-        if mStatus.Up or mStatus.Down then
+        if mStatus.Up == 1 or mStatus.Down == 1 then
+            mStatus.Up = 0
+            mStatus.Down = 0
+
             CaseGUI.HeldItem.Rotated = not CaseGUI.HeldItem.Rotated
         end
 
@@ -45,8 +67,15 @@ hook.Add("Think", "CASE_Think", function ()
     if CaseGUI.SortingWindow ~= nil then
         -- Move the second window to the front so it's not obscured by the blur
         CaseGUI.SortingWindow:MoveToFront()
+        local hasItem = false
+        for k, v in pairs(CaseGUI.InvTargets["SortingWindow"]:Inv().Items) do
+            if v ~= nil then
+                hasItem = true
+                break
+            end
+        end
 
-        if CaseGUI.HeldItem.InvID == -1 then-- and CaseInventory:ItemSize(CaseGUI.SortingWindow:Inv().Items) == 0 then
+        if CaseGUI.HeldItem.InvID == -1 and not hasItem then-- and  then
             CaseGUI.SortingWindow:Hide()
         else
             CaseGUI.SortingWindow:Show()

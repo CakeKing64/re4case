@@ -125,7 +125,7 @@ function CaseInventory:AddItemToInventory(inv, itemId, count, sync)
         local newItem = CaseInventory:CreateItemInfo(
             itemId, math.min(max, rem), false, 1, 1
         )
-        local newItemId = -1
+        local newItemId = self:FindFreeId(inv)
 
         if CASE_INVENTORY_DEBUG then
             newItem.Name = self.ItemRegister[itemId].Name
@@ -133,23 +133,7 @@ function CaseInventory:AddItemToInventory(inv, itemId, count, sync)
 
         local foundSpace = false
         local placedItem = false
-        local itemSize = CaseInventory:ItemSize(inv)
-        local k = 1
 
-        -- Check to see if there are any empty ids
-        for k = 1, itemSize do
-            local v = inv.Items[k]
-            if v == nil then
-                newItemId = k
-                foundSpace = true 
-                break
-            end
-        end
-
-        -- None found, place at the end of the item list
-        if not foundSpace then
-            newItemId = itemSize + 1
-        end
 
         -- Find a spot to place the new item in the loadout
         for r=1,2 do -- Even attempt both rotations
@@ -374,7 +358,7 @@ function CaseInventory:PlaceItem(inv, invId, info)
         return false 
     end
 
-    if not self:CheckLocation(inv.Loadout, info.X, info.Y, w, h) then
+    if not self:CheckLocation(inv, info.X, info.Y, w, h) then
         return false
     end
     
@@ -394,37 +378,59 @@ end
 ---@param tgt table Target inventory
 ---@param tgtX integer Target X Cell
 ---@param tgtY integer Target Y Cell
----@param tgtRot integer Target rotation
+---@param tgtRot boolean Target rotation
 ---@return boolean success Was the item moved?
 function CaseInventory:MoveItem(src, srcId, tgt, tgtX, tgtY, tgtRot)
-    local item = ply.CaseInv.Items[id]
+    local item = src.Items[srcId]
     local info = CaseInventory.ItemRegister[item.ItemID]
     local w = info.Size.W
     local h = info.Size.H
 
-    if rotation % 2 == 0 then
+    if tgtRot then
         local _w, _h = w, h
         w = _h
         h = _w
     end
 
-    -- See if we encounter any items on our trip
-    local foundItem = 0
-    for _x = x, x + w-1 do
-        for _y = y, y + h-1 do
-            if ply.CaseInv.Loadout[_x][_y] ~= 0 then
+
+    local foundItem = 0 -- See if we encounter any items on our trip
+    for _x = tgtX, tgtX + w-1 do
+        for _y = tgtY, tgtY + h-1 do
+            if tgt.Loadout[_x][_y] ~= 0 and tgt.Loadout[_x][_y] ~= foundItem then
                 if foundItem ~= 0 then
                     return false -- We can only swap one item :( (i'm lazy)
                 end
 
-                foundItem = ply.CaseInv.Loadout[_x][_y]
+                foundItem = tgt.Loadout[_x][_y]
             end
         end
     end
-    item.X = x
-    item.Y = y
-    if self:CheckLocation(ply.CaseInv.Loadout, x, y, w, h, {0, foundItem}) then
-        self:PlaceItem(ply.CaseInv.Loadout, id, info, {1,1, 255, 255})
+
+    print("found:", foundItem)
+
+    if self:CheckLocation(tgt, tgtX, tgtY, w, h, {0, foundItem}) then
+        local tgtId = 0
+        
+        if tgt.Items[srcId] == nil then -- Resuse the old id so it's easier on me :)
+            tgtId = srcId
+        else
+            tgtId = CaseInventory:FindFreeId(tgt)
+        end
+        local newItem = CaseInventory:CreateItemInfo(
+            item.ItemID,
+            item.Count,
+            tgtRot,
+            tgtX,
+            tgtY
+        )
+
+        tgt.Items[tgtId] = newItem
+        src.Items[srcId] = nil
+        
+        CaseInventory:RefreshLoadout(src)
+        CaseInventory:RefreshLoadout(tgt)
+        return true
+        --self:PlaceItem(ply.CaseInv.Loadout, id, info, {1,1, 255, 255})
     end
 end
 
@@ -432,7 +438,16 @@ function CaseInventory:MergeItem(arguments)
 
 end
 
-function CaseInventory:CheckLocation(loadoutTable, x, y, w, h, ignore)
+---Checks a location in a loadout table to see if it's either empty
+---or only contains another thing (could be used to check for more but lmao)
+---@param inv table
+---@param x integer
+---@param y integer
+---@param w integer
+---@param h integer
+---@param ignore table?
+---@return boolean
+function CaseInventory:CheckLocation(inv, x, y, w, h, ignore)
     ignore = ignore or {0} -- Items to ignore, useful for moving stuff
     
     -- *salutes* rip performance
@@ -440,7 +455,7 @@ function CaseInventory:CheckLocation(loadoutTable, x, y, w, h, ignore)
         for _y = y, y + h-1 do
             local found = false
             for k, v in pairs(ignore) do
-                if loadoutTable[_x][_y] == v then
+                if inv.Loadout[_x][_y] == v then
                     found = true 
                     break
                 end
@@ -454,6 +469,28 @@ function CaseInventory:CheckLocation(loadoutTable, x, y, w, h, ignore)
     return true
 end
 
+function CaseInventory:FindFreeId(inv)
+    local itemSize = CaseInventory:ItemSize(inv)
+    local newItemId = 0
+    local foundSpace = false
+    -- Check to see if there are any empty ids
+    for k = 1, itemSize do
+        local v = inv.Items[k]
+        if v == nil then
+            newItemId = k
+            foundSpace = true 
+            break
+        end
+    end
+
+    -- None found, place at the end of the item list
+    if not foundSpace then
+        newItemId = itemSize + 1
+    end
+
+    return newItemId
+end
+
 ---Resets the loadout table for a player
 ---@param inv table
 function CaseInventory:ClearLoadout(inv)
@@ -463,6 +500,16 @@ function CaseInventory:ClearLoadout(inv)
         for y=1,inv.Size[2] do
             inv.Loadout[x][y] = 0
         end
+    end
+end
+
+---Clear and then place :)
+---@param inv table
+function CaseInventory:RefreshLoadout(inv)
+    CaseInventory:ClearLoadout(inv)
+
+    for k, v in pairs(inv.Items) do 
+        CaseInventory:PlaceItem(inv, k, v)
     end
 end
 
@@ -534,11 +581,11 @@ function CaseInventory:Sync(ply)
     --CaseInventory:DebugPrintLoadout(ply.CaseInv.Items)
 end
 
-function CaseInventory:DebugPrintLoadout(ply)
+function CaseInventory:DebugPrintLoadout(inv)
     local s = ""
-    for y=1,ply.CaseInv.Size[2] do
-        for x=1,ply.CaseInv.Size[1] do
-            s = s .. string.format("[%i]", ply.CaseInv.Loadout[x][y])
+    for y=1,inv.Size[2] do
+        for x=1,inv.Size[1] do
+            s = s .. string.format("[%i]", inv.Loadout[x][y])
         end
         s = s .. "\n"
     end

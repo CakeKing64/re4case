@@ -1,17 +1,21 @@
+local cmd = {}
+
+
+
+function cmd:CombineItems()
+    
+end
+
+
+function cmd:NewItemLoadout()
+    
+end
+
 -- Client to server command packet structure
 --[[
-    uint8 SizeX
-    uint8 SizeY
-    uint16 ItemCount
-    for ItemCount
-        uint16   index
-        uint16   itemID
-        uint32   count
-        uint1    rotation
-        uint8    X
-        uint8    Y
+    uint4 command
 ]]--
-net.Receive("CaseSync", function ()
+net.Receive("CaseCommandEvent", function ()
     local ply = LocalPlayer()
     ply.CaseInv = {} -- Reset case
     ply.CaseInv.Size = {}

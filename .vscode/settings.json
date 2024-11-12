@@ -30,6 +30,7 @@
         "MOUSE_RIGHT",
         "MOUSE_LEFT",
         "ScrW",
-        "input"
+        "input",
+        "AccessorFunc"
     ]
 }

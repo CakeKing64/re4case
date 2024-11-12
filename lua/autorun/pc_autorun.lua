@@ -64,5 +64,6 @@ _client(client)
 _client(shared)
 
 if SERVER then
-    util.AddNetworkString("CaseSync")
+    util.AddNetworkString("CaseSync")         -- Server -> Client only full inventory sync
+    util.AddNetworkString("CaseCommandEvent") -- Bidirectional commands
 end

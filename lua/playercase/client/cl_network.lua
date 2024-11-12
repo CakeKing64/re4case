@@ -36,4 +36,10 @@ net.Receive("CaseSync", function ()
         CaseInventory:PlaceItem(ply.CaseInv, index, newItem)
     end
 
+    if CaseGUI.IsOpen then -- fuck you re-do your sorting
+        for k, v in pairs(CaseGUI.InvTargets["SortingWindow"]:Inv().Items) do
+            CaseGUI.InvTargets["SortingWindow"]:Inv().Items[v] = nil
+        end
+    end
+
 end)
