@@ -235,6 +235,71 @@ function CaseInventory:RemoveItem(inv, id, count)
     return rem ~= count, rem
 end
 
+---Drops a player's item on the ground
+---@param inv table
+---@param invId integer
+---@param player table
+---@param sync boolean
+---@return boolean
+function CaseInventory:DropItem(inv, invId, player, sync)
+    if invId < 1 then
+        return false
+    end
+
+    if player == nil then
+        return false
+    end
+
+    if inv.Items[invId] == nil then
+        return false
+    end
+
+    local itemInfo = CaseInventory.ItemRegister[inv.Items[invId].ItemID]
+    local invInfo = inv.Items[invId]
+    inv.Items[invId] = nil -- Remove it here just so no future errors make it materialize back into the inventory
+    
+    if sync then
+        CaseInventory:Sync(player)
+    end
+
+    -- Drop different stuff based on item type
+
+    -- For generic items just spawn the entity on the floor and that should be it
+    if itemInfo.ItemType == CASE_ITEM_GENERIC then
+        for i=1, invInfo.Count do 
+            local ent = ents.Spawn(itemInfo.Name)
+            ent:SetPos(player:GetPos())
+            ent:Spawn()
+        end
+    end
+
+    -- For weapons call player:DropWeapon or if the player is null just spawn it
+    if itemInfo.ItemType == CASE_ITEM_WEAPON  then
+        for _, wep in ipairs( player:GetWeapons() ) do
+            if wep:GetClass() == itemInfo.Name then
+                player:DropWeapon( wep , player:GetPos(), Vector(0, 0, 0))
+
+                break
+            end
+        end
+    end
+
+    -- For ammo we create a caseammo
+    if itemInfo.ItemType == CASE_ITEM_AMMO or itemInfo.ItemType == CASE_ITEM_GRENADE then
+        local ent = ents.Create("ent_caseammo")
+        ent:SetInfo(
+            itemInfo.RenderInfo.Model, -- Use the model provided in the inventory
+            itemInfo.AmmoID, -- AmmoID
+            invInfo.Count -- Count
+        )
+        ent:SetPos(player:GetPos())
+        ent:Spawn()
+
+        self:SyncAmmo(player)
+    end
+
+end
+
 ---Returns the itemID based off name
 ---@param name string
 ---@return integer -1 On not found
@@ -309,12 +374,13 @@ end
 ---@param ply table
 function CaseInventory:SyncAmmo(ply)
     local ammoCount = {}
-    --ply:RemoveAllAmmo() -- no excess ammo :)
+    local plyCurAmmo = ply:GetAmmo()
 
     for k, v in pairs(ply.CaseInv.Items) do
         local info = self.ItemRegister[v.ItemID]
 
         if info.AmmoID ~= -1 then
+            plyCurAmmo[info.AmmoID] = nil
             if ammoCount[info.AmmoID] == nil then
                 ammoCount[info.AmmoID] = 0
             end
@@ -324,6 +390,10 @@ function CaseInventory:SyncAmmo(ply)
 
     for k, v in pairs(ammoCount) do
         ply:SetAmmo(v, k)
+    end
+
+    for k, v in pairs(plyCurAmmo) do -- Strip any ammo not in the inventory
+        ply:SetAmmo(0, k)
     end
 
     CaseInventory:Sync(ply)
@@ -406,12 +476,23 @@ function CaseInventory:MoveItem(src, srcId, tgt, tgtX, tgtY, tgtRot)
         end
     end
 
-    print("found:", foundItem)
+    local filter = {
+        0, foundItem
+    }
 
-    if self:CheckLocation(tgt, tgtX, tgtY, w, h, {0, foundItem}) then
+    if src == tgt then -- Make sure to filter out the item itself
+        filter[#filter+1] = srcId 
+    end
+    filter = { 
+        0,
+        src == tgt and srcId or nil
+    }
+    --PrintTable(filter)
+
+    if self:CheckLocation(tgt, tgtX, tgtY, w, h, filter) then
         local tgtId = 0
         
-        if tgt.Items[srcId] == nil then -- Resuse the old id so it's easier on me :)
+        if tgt.Items[srcId] == nil or tgt == src then -- Resuse the old id so it's easier on me :)
             tgtId = srcId
         else
             tgtId = CaseInventory:FindFreeId(tgt)
@@ -424,8 +505,9 @@ function CaseInventory:MoveItem(src, srcId, tgt, tgtX, tgtY, tgtRot)
             tgtY
         )
 
-        tgt.Items[tgtId] = newItem
         src.Items[srcId] = nil
+        tgt.Items[tgtId] = newItem
+
         
         CaseInventory:RefreshLoadout(src)
         CaseInventory:RefreshLoadout(tgt)
@@ -433,6 +515,7 @@ function CaseInventory:MoveItem(src, srcId, tgt, tgtX, tgtY, tgtRot)
         --self:PlaceItem(ply.CaseInv.Loadout, id, info, {1,1, 255, 255})
     end
 end
+
 
 function CaseInventory:MergeItem(arguments)
 
@@ -503,6 +586,20 @@ function CaseInventory:ClearLoadout(inv)
     end
 end
 
+---Resets the loadout table for a table
+---@param load table
+---@param w integer
+---@param h integer
+function CaseInventory:ClearLoadout2(load, w, h)
+    load = {}
+    for x=1, w do
+        load[x] = {}
+        for y=1,h do
+            load[x][y] = 0
+        end
+    end
+end
+
 ---Clear and then place :)
 ---@param inv table
 function CaseInventory:RefreshLoadout(inv)
@@ -549,6 +646,9 @@ end
 ---Sync the player inventory over the network
 ---@param ply table
 function CaseInventory:Sync(ply)
+    if CLIENT then
+        return
+    end
     -- If any items were removed we have to place them back :)
     self:ClearLoadout(ply.CaseInv)
 
@@ -576,8 +676,8 @@ function CaseInventory:Sync(ply)
         
     net.Send(ply)
     
-    PrintTable(ply.CaseInv.Items)
-    print("sent ", CaseInventory:ItemSize(ply.CaseInv), "items")
+    --PrintTable(ply.CaseInv.Items)
+    --print("sent ", CaseInventory:ItemSize(ply.CaseInv), "items")
     --CaseInventory:DebugPrintLoadout(ply.CaseInv.Items)
 end
 

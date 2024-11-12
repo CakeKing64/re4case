@@ -1,26 +1,23 @@
 local ogWidth, ogHeight = 1920, 1080 -- not my screen size, hopefully that makes it better for testing????
 __CASE_UI_CELL_SIZE = 64 -- #define
 __CASE_UI_BORDER = 32
-local function _setupcasegui()
-    return {
-        HeldItem = {
-            InvID=-1,
-            SourceWindow=nil,
-            Rotated=false,
-            X=1,
-            Y=1,
-            OldInfo={} -- Store info to reset the pos & rot of an item
-        },
-        SortingWindow = nil,
-        MainWindow = nil,
-        HoveredWindow = nil,
-        IsOpen = false,
-        InvTargets = {
 
-        }
+CaseGUI = {
+    HeldItem = {
+        InvID=-1,
+        SourceWindow=nil,
+        Rotated=false,
+        X=1,
+        Y=1,
+        OldInfo={} -- Store info to reset the pos & rot of an item
+    },
+    SortingWindow = nil,
+    MainWindow = nil,
+    HoveredWindow = nil,
+    IsOpen = false,
+    InvTargets = {
     }
-end
-CaseGUI = _setupcasegui()
+}
 
 -- The bane of GUI progammers world wide
 -- Different hardware configurations
@@ -41,6 +38,26 @@ end
 function _CaseUIGetCell(arguments)
     
 end
+
+function CaseGUI:Sync()
+    -- Start by dropping all items stored in the sorting menu
+    for k, v in pairs(self.InvTargets["SortingWindow"]:Inv().Items) do
+        CaseInventory.ClientNet.DropItem(k)
+    end
+
+    CaseInventory.ClientNet.SyncItems()
+end
+
+function CaseGUI:Close()
+    self:Sync()
+    self.SortingWindow:Close()
+    self.MainWindow:Close()
+    self.SortingWindow = nil
+    self.IsOpen = false
+    self.HeldItem.InvID = -1
+end
+
+
 
 
 local function _createWindow(name, inv, parent)
@@ -94,10 +111,7 @@ local function OpenBasicPanel()
     button:SetSize(100, 30)          -- Button size
     button:SetPos(100, 120)          -- Button position within the frame
     button.DoClick = function()      -- Function to run when clicked
-        CaseGUI.SortingWindow:Close()
-        CaseGUI.MainWindow:Close()                -- Closes the frame`
-        CaseGUI.SortingWindow = nil
-        CaseGUI.IsOpen = false
+        CaseGUI:Close()
     end
 end
 

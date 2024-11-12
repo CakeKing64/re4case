@@ -136,7 +136,7 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
 
 
 
-    if invId == CaseGUI.HeldItem.InvID and CaseGUI.HeldItem.SourceWindow == self then
+    if invId == CaseGUI.HeldItem.InvID  then
         surface.SetDrawColor(Color(128, 128, 128, 128))
     elseif CaseGUI.HeldItem.InvID == -1 and invId == self:GetMouseItem() then
         surface.SetDrawColor(Color(128, 128, 128, 128))
@@ -366,9 +366,17 @@ function invpanel:Paint(w, h)
         local mx, my = self:GetMouseSlot(true)
         local itemW, itemH = info.Size.W, info.Size.H
 
+
         if itemW > self:Inv().Size[1] then -- If the item doesn't fit horiz force rotate it
             CaseGUI.HeldItem.Rotated = true
         end
+
+        if itemW > self:Inv().Size[2] then -- If the item doesn't fit vert force rotate it
+            CaseGUI.HeldItem.Rotated = false
+        end
+
+
+
 
         if CaseGUI.HeldItem.Rotated then
             local _w = itemW

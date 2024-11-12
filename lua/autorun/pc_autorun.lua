@@ -3,13 +3,38 @@ AddCSLuaFile()
 CASE_INVENTORY = true
 CASE_INVENTORY_STACK = 32
 CASE_INVENTORY_DEBUG = true
+CASE_INVENTORY_SIZE_DEFAULT = {
+    10, 6
+}
+--[[
+    For each item stored in inventory (in order)
+    uint8 X
+    uint8 Y
+    uint1 Rotated
+]]
+CASE_COMMAND_SYNC = 1
+
+--[[
+    uint16 invId
+]]
+CASE_COMMAND_DROP = 2
+--[[
+    uint16 invId, Base
+    uint16 invId, Ingredient 
+]]
+CASE_COMMAND_REQUEST_COMBINE = 3
+--[[
+    TODO
+]]
+CASE_COMMAND_COMBINE_RESULT = 4
 
 
 CaseInventory = {}
 CaseInventory.ItemRegister = {}
 
 local server = {
-    "server/sv_player.lua"
+    "server/sv_player.lua",
+    "server/sv_network.lua"
 }
 
 local client = {

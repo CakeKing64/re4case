@@ -31,6 +31,7 @@
         "MOUSE_LEFT",
         "ScrW",
         "input",
-        "AccessorFunc"
+        "AccessorFunc",
+        "ents"
     ]
 }

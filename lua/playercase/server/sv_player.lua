@@ -73,10 +73,11 @@ end)
 
 hook.Add("PlayerSpawn", "CASE_PlayerSpawn", function(plr, trans)
     if not trans or plr.CaseInv == nil then
-        plr.CaseInv = CaseInventory:GenerateInventory(15, 8, plr)
+        plr.CaseInv = CaseInventory:GenerateInventory(CASE_INVENTORY_SIZE_DEFAULT[1], CASE_INVENTORY_SIZE_DEFAULT[2], plr)
     end
     CaseInventory:Sync(plr)
 end)
+
 
 
 hook.Add("PlayerDeath", "CASE_PlayerDeath", function (victim, inflictor, attacker)
@@ -93,4 +94,15 @@ hook.Add("PlayerDroppedWeapon", "CASE_PlayerDroppedWeapon", function (owner, wpn
     if owner:IsPlayer() then
         CaseInventory:RemoveItem(owner.CaseInv, CaseInventory:GetItemID(wpn:GetClass()), 1)
     end
+end)
+
+
+hook.Add("PopulateToolMenu", "AddMyEntityVariants", function()
+    spawnmenu.AddToolMenuOption("Entities", "Custom Entities", "MyEntityExplosive", "Explosive Variant", "", "", function(panel)
+        panel:Button("Spawn Explosive Variant", "gmod_tool", "my_entity", { variant = "explosive" })
+    end)
+
+    spawnmenu.AddToolMenuOption("Entities", "Custom Entities", "MyEntityRadioactive", "Radioactive Variant", "", "", function(panel)
+        panel:Button("Spawn Radioactive Variant", "gmod_tool", "my_entity", { variant = "radioactive" })
+    end)
 end)
