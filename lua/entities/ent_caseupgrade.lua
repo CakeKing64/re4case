@@ -5,10 +5,10 @@ ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
 ENT.PrintName = "Case Upgrade (Base/Custom)"
 ENT.Author = "CakeKing64"
-ENT.Category = "Test entities"
+ENT.Category = "RE4 Cases"
 ENT.Contact = "CakeKing64"
-ENT.Purpose = "To test the creation of entities."
-ENT.Spawnable = true
+ENT.Purpose = "Upgrading your fine case sir?"
+ENT.Spawnable = false
 
 ENT.Model = "models/props_c17/SuitCase_Passenger_Physics.mdl"
 ENT.CaseSize = {
@@ -41,13 +41,3 @@ function ENT:Use(activator)
         end
     end
 end
-
-hook.Add("PopulateToolMenu", "AddMyEntityVariants", function()
-    spawnmenu.AddToolMenuOption("Entities", "Custom Entities", "MyEntityExplosive", "Explosive Variant", "", "", function(panel)
-        panel:Button("Spawn Explosive Variant", "gmod_tool", "my_entity", { variant = "explosive" })
-    end)
-
-    spawnmenu.AddToolMenuOption("Entities", "Custom Entities", "MyEntityRadioactive", "Radioactive Variant", "", "", function(panel)
-        panel:Button("Spawn Radioactive Variant", "gmod_tool", "my_entity", { variant = "radioactive" })
-    end)
-end)

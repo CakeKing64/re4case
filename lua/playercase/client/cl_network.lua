@@ -10,7 +10,7 @@ CaseInventory.ClientNet = {
         net.Start("CaseCommandEvent")
         net.WriteUInt(CASE_COMMAND_SYNC, 4)
         for k, v in pairs(LocalPlayer().CaseInv.Items) do
-            print("sending",k)
+            --print("sending",k)
             net.WriteUInt(k, 16)
             net.WriteUInt(v.X, 8)
             net.WriteUInt(v.Y, 8)

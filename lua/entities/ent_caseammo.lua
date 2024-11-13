@@ -11,6 +11,7 @@ ENT.Spawnable = false
 
 ENT.AmmoID = -1
 ENT.AmmoCount = 0
+ENT.GrenadeInfo = nil
 
 function ENT:Initialize()
 end

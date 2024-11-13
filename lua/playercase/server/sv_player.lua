@@ -97,12 +97,3 @@ hook.Add("PlayerDroppedWeapon", "CASE_PlayerDroppedWeapon", function (owner, wpn
 end)
 
 
-hook.Add("PopulateToolMenu", "AddMyEntityVariants", function()
-    spawnmenu.AddToolMenuOption("Entities", "Custom Entities", "MyEntityExplosive", "Explosive Variant", "", "", function(panel)
-        panel:Button("Spawn Explosive Variant", "gmod_tool", "my_entity", { variant = "explosive" })
-    end)
-
-    spawnmenu.AddToolMenuOption("Entities", "Custom Entities", "MyEntityRadioactive", "Radioactive Variant", "", "", function(panel)
-        panel:Button("Spawn Radioactive Variant", "gmod_tool", "my_entity", { variant = "radioactive" })
-    end)
-end)
