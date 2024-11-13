@@ -17,8 +17,8 @@ CaseInventory.ClientNet = {
             net.WriteBool(v.Rotated)
         end
         net.SendToServer()
-    end
-
+    end,
+    SyncTemp = nil
 
 }
 
@@ -38,6 +38,31 @@ CaseInventory.ClientNet = {
 ]]--
 net.Receive("CaseSync", function ()
     local ply = LocalPlayer()
+    local ready = IsValid(ply) -- uh oh
+
+    if not ready then
+        CaseInventory.ClientNet.SyncTemp = {
+            W=net.ReadUInt(8),
+            H=net.ReadUInt(8),
+            Items={}
+        }
+        local itemCount = net.ReadUInt(16)
+        for i=1, itemCount do
+            local index = net.ReadUInt(16)
+            local newItem = CaseInventory:CreateItemInfo(
+                net.ReadUInt(16),   -- ItemID
+                net.ReadUInt(32),   -- Count
+                net.ReadBool(),     -- Rotated
+                net.ReadUInt(8),    -- X
+                net.ReadUInt(8)     -- Y
+    
+            )
+    
+            CaseInventory.ClientNet.SyncTemp.Items[index] = newItem
+        end
+        return
+    end
+
     ply.CaseInv = CaseInventory:GenerateInventory(net.ReadUInt(8), net.ReadUInt(8), LocalPlayer())
     CaseInventory:ClearLoadout(ply.CaseInv)
 

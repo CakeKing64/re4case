@@ -81,15 +81,15 @@ end
 
 local itemsGMOD = {
     -- Ammo
-    CaseAmmo(game.GetAmmoID("AR2"),CaseRenderInfo("models/Items/combine_rifle_cartridge01.mdl", 0.2), 2, 1, 60),
-    CaseAmmo(game.GetAmmoID("AR2AltFire"),CaseRenderInfo("models/Items/combine_rifle_ammo01.mdl", 0.16), 1, 2, 3),
-    CaseAmmo(game.GetAmmoID("Pistol"),CaseRenderInfo("models/Items/BoxSRounds.mdl", 0.22), 2, 1, 50),
-    CaseAmmo(game.GetAmmoID("SMG1"),CaseRenderInfo("models/Items/BoxMRounds.mdl", 0.22), 2, 1, 90),
-    CaseAmmo(game.GetAmmoID("357"),CaseRenderInfo("models/Items/357ammo.mdl", 0.22), 2, 1, 6),
-    CaseAmmo(game.GetAmmoID("XBowBolt"), CaseRenderInfo("models/Items/CrossbowRounds.mdl", 0.7), 4, 1, 20),
-    CaseAmmo(game.GetAmmoID("Buckshot"), CaseRenderInfo("models/Items/BoxBuckshot.mdl", 0.15), 2, 1, 25),
-    CaseAmmo(game.GetAmmoID("RPG_Round"),CaseRenderInfo("models/weapons/w_missile_closed.mdl", 0.7), 4, 1, 3),
-    CaseAmmo(game.GetAmmoID("SMG1_Grenade"),CaseRenderInfo("models/Items/AR2_Grenade.mdl", 0.28), 2, 1, 5),
+    CaseAmmo(game.GetAmmoID("AR2"),CaseRenderInfo("models/Items/combine_rifle_cartridge01.mdl", 2.7), 2, 1, 60),
+    CaseAmmo(game.GetAmmoID("AR2AltFire"),CaseRenderInfo("models/Items/combine_rifle_ammo01.mdl", 2.1), 1, 2, 3),
+    CaseAmmo(game.GetAmmoID("Pistol"),CaseRenderInfo("models/Items/BoxSRounds.mdl", 3), 2, 1, 50),
+    CaseAmmo(game.GetAmmoID("SMG1"),CaseRenderInfo("models/Items/BoxMRounds.mdl", 2.7), 2, 1, 90),
+    CaseAmmo(game.GetAmmoID("357"),CaseRenderInfo("models/Items/357ammo.mdl", 3), 2, 1, 6),
+    CaseAmmo(game.GetAmmoID("XBowBolt"), CaseRenderInfo("models/Items/CrossbowRounds.mdl", 5), 4, 1, 20),
+    CaseAmmo(game.GetAmmoID("Buckshot"), CaseRenderInfo("models/Items/BoxBuckshot.mdl", 2), 2, 1, 25),
+    CaseAmmo(game.GetAmmoID("RPG_Round"),CaseRenderInfo("models/weapons/w_missile_closed.mdl", 4), 4, 1, 3),
+    CaseAmmo(game.GetAmmoID("SMG1_Grenade"),CaseRenderInfo("models/Items/AR2_Grenade.mdl", 4), 2, 1, 5),
     CaseAmmo(game.GetAmmoID("AlyxGun"),CaseRenderInfo("models/Items/BoxSRounds.mdl", 0.22), 2, 1, 90),
 
     -- I have NO idea if any mods will use these or not
@@ -98,32 +98,32 @@ local itemsGMOD = {
     CaseAmmo(game.GetAmmoID("SniperPenetratedRound"),CaseRenderInfo("models/Items/357ammo.mdl", 0.22), 2, 1, 10),
     
     -- Melee + Other
-    CaseWeapon("weapon_crowbar",CaseRenderInfo("models/weapons/w_crowbar.mdl", 0.5, true), 2, 3),
-    CaseWeapon("weapon_stunstick",CaseRenderInfo("models/weapons/w_stunbaton.mdl", 0.5, true), 2, 3),
-    CaseWeapon("weapon_physcannon",CaseRenderInfo("models/weapons/w_physics.mdl", 0.8), 5, 2),
-    CaseWeapon("weapon_crossbow",CaseRenderInfo("models/weapons/w_crossbow.mdl", 0.85), 5, 3),
-    CaseWeapon("weapon_rpg",CaseRenderInfo("models/weapons/w_rocket_launcher.mdl", 1.4), 8, 2),
+    CaseWeapon("weapon_crowbar",CaseRenderInfo("models/weapons/w_crowbar.mdl", 5, true), 2, 3),
+    CaseWeapon("weapon_stunstick",CaseRenderInfo("models/weapons/w_stunbaton.mdl", 5, true), 2, 3),
+    CaseWeapon("weapon_physcannon",CaseRenderInfo("models/weapons/w_physics.mdl", 4), 5, 2),
+    CaseWeapon("weapon_crossbow",CaseRenderInfo("models/weapons/w_crossbow.mdl", 4.5), 5, 3),
+    CaseWeapon("weapon_rpg",CaseRenderInfo("models/weapons/w_rocket_launcher.mdl", 5), 8, 2),
     CaseWeapon("gmod_tool", CaseRenderInfo("models/weapons/w_toolgun.mdl", 0.55, false, 2), 3, 2),
     CaseWeapon("gmod_camera", CaseRenderInfo("models/weapons/w_toolgun.mdl", 0.55, false, 2), 3, 2),
 
     -- Thrown
-    CaseWeapon("weapon_bugbait", CaseRenderInfo("models/weapons/w_bugbait.mdl", 0.15), 1, 1),
-    CaseGrenade("weapon_frag", CaseRenderInfo("models/Items/grenadeAmmo.mdl", 0.13), 1, 2, 3, game.GetAmmoID("Grenade")),
-    CaseGrenade("weapon_slam",CaseRenderInfo("models/weapons/w_slam.mdl", 0.13, true, 0), 1, 2, 3, game.GetAmmoID("slam")),
+    CaseWeapon("weapon_bugbait", CaseRenderInfo("models/weapons/w_bugbait.mdl", 4), 1, 1),
+    CaseGrenade("weapon_frag", CaseRenderInfo("models/Items/grenadeAmmo.mdl", 1.6), 1, 2, 3, game.GetAmmoID("Grenade")),
+    CaseGrenade("weapon_slam",CaseRenderInfo("models/weapons/w_slam.mdl", 1.6, true, 0), 1, 2, 3, game.GetAmmoID("slam")),
 
     -- Pistol
-    CaseWeapon("weapon_357",CaseRenderInfo("models/weapons/w_357.mdl", 0.55), 3, 2),
-    CaseWeapon("weapon_pistol",CaseRenderInfo("models/weapons/w_pistol.mdl", 0.55), 3, 2),
+    CaseWeapon("weapon_357",CaseRenderInfo("models/weapons/w_357.mdl", 4.3), 3, 2),
+    CaseWeapon("weapon_pistol",CaseRenderInfo("models/weapons/w_pistol.mdl", 4.3), 3, 2),
 
 
     -- Shotgun
-    CaseWeapon("weapon_shotgun",CaseRenderInfo("models/weapons/w_shotgun.mdl", 1.15), 8, 2),
+    CaseWeapon("weapon_shotgun",CaseRenderInfo("models/weapons/w_shotgun.mdl", 4), 8, 2),
     CaseWeapon("weapon_annabelle",CaseRenderInfo("models/weapons/w_annabelle.mdl", 1.5), 8, 2), -- tee hee
 
 
     -- Auto
-    CaseWeapon("weapon_smg1",CaseRenderInfo("models/weapons/w_smg1.mdl", 0.5), 3, 2),
-    CaseWeapon("weapon_ar2",CaseRenderInfo("models/weapons/w_irifle.mdl", 0.9), 5, 2),
+    CaseWeapon("weapon_smg1",CaseRenderInfo("models/weapons/w_smg1.mdl", 4), 3, 2),
+    CaseWeapon("weapon_ar2",CaseRenderInfo("models/weapons/w_irifle.mdl", 5.6), 5, 2),
     CaseWeapon("weapon_alyxgun",CaseRenderInfo("models/weapons/w_alyx_gun.mdl", 0.5), 3, 2), -- tee hee 2
 
     -- Consumables (yummers)

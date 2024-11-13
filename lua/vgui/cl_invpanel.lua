@@ -191,10 +191,11 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
             end
         end
 
-
+        --x=(_x - ScrW()/2) + _w/2,
+        -- y=(_y - ScrH()/2) + _h/2,
 
         
-        render.SetScissorRect( _x, _y, _x+_w, _y+_h, true )
+
         local modelWidth = 0
         if renderInfo.ForceRot == 0 then
             modelWidth = math.max( xDiff, yDiff )
@@ -203,24 +204,35 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
         else
             modelWidth = xDiff
         end
-        
+
+
+        local square = math.max(_w, _h)
+        local posX, posY = self:LocalToScreen(self:GetPos())
+
+        local function _offset(a, b)
+            local diff = b-a
+            return diff/2
+        end
+
+        render.SetScissorRect( _x, _y, _x+_w, _y+_h, true )
         cam.Start({
-            x=(_x - ScrW()/2) + _w/2,
-            y=(_y - ScrH()/2) + _h/2,
-            w=ScrW(),
-            h=ScrH(),
+            x=_x-_offset(_w, square),
+            y=_y-_offset(_h, square),
+            w=square,
+            h=square,
             type="3D",
             angles = Angle(0, 0, 0),
-            origin = Vector(-modelWidth*4/(_scale or 1), 0, 0 ),
+            origin = Vector(-modelWidth*4/(_scale or 1),0,0),
             fov=70,
-            aspect=ratio -- tee hee
+            aspect=1,
+            subrect=true
         })
-    
 
 
         model:DrawModel()
         model:Remove()
         cam.End3D()
+
 
         render.SetScissorRect( 0, 0, 0, 0, false )
     end
