@@ -9,7 +9,7 @@ CaseInventory.ClientNet = {
     SyncItems = function ()
         net.Start("CaseCommandEvent")
         net.WriteUInt(CASE_COMMAND_SYNC, 4)
-        for k, v in pairs(LocalPlayer().CaseInv.Items) do
+        for k, v in pairs(CaseInventory:Inv().Items) do
             --print("sending",k)
             net.WriteUInt(k, 16)
             net.WriteUInt(v.X, 8)
@@ -63,8 +63,8 @@ net.Receive("CaseSync", function ()
         return
     end
 
-    ply.CaseInv = CaseInventory:GenerateInventory(net.ReadUInt(8), net.ReadUInt(8), LocalPlayer())
-    CaseInventory:ClearLoadout(ply.CaseInv)
+    LocalPlayer().CaseInv = CaseInventory:GenerateInventory(net.ReadUInt(8), net.ReadUInt(8), LocalPlayer())
+    CaseInventory:ClearLoadout(LocalPlayer().CaseInv)
 
     
     local itemCount = net.ReadUInt(16)
@@ -81,8 +81,8 @@ net.Receive("CaseSync", function ()
         )
 
 
-        ply.CaseInv.Items[index] = newItem
-        CaseInventory:PlaceItem(ply.CaseInv, index, newItem)
+        CaseInventory:Inv().Items[index] = newItem
+        CaseInventory:PlaceItem(CaseInventory:Inv(), index, newItem)
     end
     
 

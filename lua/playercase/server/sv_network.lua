@@ -3,11 +3,11 @@ local commands = {}
 
 
 function commands.DropItem(ply, invID, sync)
-    CaseInventory:DropItem(ply.CaseInv, invID, ply, sync)
+    CaseInventory:DropItem(CaseInventory:Inv(ply), invID, ply, sync)
 end
 
 function commands.SyncLocations(ply, toPlace)
-    local plyCopy = table.Copy(ply.CaseInv)
+    local plyCopy = table.Copy(CaseInventory:Inv(ply))
     CaseInventory:ClearLoadout(plyCopy)
 
     
@@ -25,8 +25,8 @@ function commands.SyncLocations(ply, toPlace)
         end
     end
 
-    ply.CaseInv.Items = plyCopy.Items
-    ply.CaseInv.Loadout = plyCopy.Loadout
+    CaseInventory:Inv(ply).Items = plyCopy.Items
+    CaseInventory:Inv(ply).Loadout = plyCopy.Loadout
 end
 -- Client to server command packet structure
 --[[
@@ -43,14 +43,14 @@ net.Receive("CaseCommandEvent", function (len, ply)
 
     if cmd == CASE_COMMAND_SYNC then
         local newItems = {}
-        for k, v in pairs(ply.CaseInv.Items) do
+        for k, v in pairs(CaseInventory:Inv(ply).Items) do
             local invId = net.ReadUInt(16)
             local x = net.ReadUInt(8)
             local y = net.ReadUInt(8)
             local rotated = net.ReadBool()
 
 
-            if ply.CaseInv.Items[invId] == nil then
+            if CaseInventory:Inv(ply).Items[invId] == nil then
                 print("id outside inventory :(", invId)
                 return
             end

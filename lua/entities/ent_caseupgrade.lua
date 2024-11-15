@@ -33,9 +33,9 @@ end
 
 function ENT:Use(activator)
     if activator:IsPlayer() then
-        if self.CaseSize[1] > activator.CaseInv.Size[1] or self.CaseSize[2] > activator.CaseInv.Size[2] then
-            activator.CaseInv.Size[1] = math.max(self.CaseSize[1], activator.CaseInv.Size[1])
-            activator.CaseInv.Size[2] = math.max(self.CaseSize[2], activator.CaseInv.Size[2])
+        if self.CaseSize[1] > CaseInv(activator).Size[1] or self.CaseSize[2] >  CaseInv(activator).Size[2] then
+            CaseInv(activator).Size[1] = math.max(self.CaseSize[1], CaseInv(activator).Size[1])
+            CaseInv(activator).Size[2] = math.max(self.CaseSize[2], CaseInv(activator).Size[2])
             CaseInventory:Sync(activator)
             self:Remove()
         end

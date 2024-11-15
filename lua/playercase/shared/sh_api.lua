@@ -19,11 +19,11 @@ function CaseInventory:PickupWeapon(ply, wpn)
 
     local wpnId = CaseInventory:GetItemID(wpn:GetClass())
     local info = CaseInventory.ItemRegister[wpnId]
-    local count = CaseInventory:ItemCount(ply.CaseInv, wpnId)
+    local count = CaseInventory:ItemCount(CaseInventory:Inv(ply), wpnId)
 
     -- Do a count check here just for grenades :)
     if count == 0 or info.ItemType == CASE_ITEM_GRENADE then
-        if not CaseInventory:AddItemToInventory(ply.CaseInv, wpnId, 1) then
+        if not CaseInventory:AddItemToInventory(CaseInventory:Inv(ply), wpnId, 1) then
             return false
         end
     end
@@ -50,7 +50,7 @@ end
 ---@param itmId integer
 ---@param count integer
 function CaseInventory:PickupItem(ply, itmId, count)
-    CaseInventory:AddItemToInventory(ply.CaseInv, itmId, count)
+    CaseInventory:AddItemToInventory(CaseInventory:Inv(ply), itmId, count)
     return true
 end
 
@@ -75,7 +75,7 @@ function CaseInventory:PickupAmmo(ply, ammoID, count, dropIfCantPickup)
     end
 
     while res and rem > 0 do
-        res, rem = self:AddItemToInventory(ply.CaseInv, id, rem, false) -- Hold off on syncing for now
+        res, rem = self:AddItemToInventory(CaseInventory:Inv(ply), id, rem, false) -- Hold off on syncing for now
     end
 
 
@@ -452,7 +452,7 @@ function CaseInventory:SyncAmmo(ply)
     local ammoCount = {}
     local plyCurAmmo = ply:GetAmmo()
 
-    for k, v in pairs(ply.CaseInv.Items) do
+    for k, v in pairs(CaseInventory:Inv(ply).Items) do
         local info = self.ItemRegister[v.ItemID]
 
         if info.AmmoID ~= -1 then
@@ -650,6 +650,31 @@ function CaseInventory:FindFreeId(inv)
     return newItemId
 end
 
+---Fetches the inventory of a player from the CaseInventory.Inventories value
+---Or returns the .ClientInventory value if called from the client
+---Not like the .Inventories could be accessed from the client anyway
+---@param ply table?
+---@return table
+function CaseInventory:Inv(ply)
+    if CLIENT then
+        return LocalPlayer().CaseInv
+    end
+
+    if ply == nil then
+        return {}
+    end
+
+    if ply.CaseInv == nil then
+        ply.CaseInv = CaseInventory:GenerateInventory(CASE_INVENTORY_SIZE_DEFAULT[1], CASE_INVENTORY_SIZE_DEFAULT[2], ply)
+    end
+
+    return ply.CaseInv
+end
+
+function CaseInv(ply)
+    return CaseInventory:Inv(ply)
+end
+
 ---Resets the loadout table for a player
 ---@param inv table
 function CaseInventory:ClearLoadout(inv)
@@ -726,22 +751,22 @@ function CaseInventory:Sync(ply)
         return
     end
     -- If any items were removed we have to place them back :)
-    self:ClearLoadout(ply.CaseInv)
+    self:ClearLoadout(CaseInventory:Inv(ply))
 
-    for k, v in pairs(ply.CaseInv.Items) do
-        if not CaseInventory:PlaceItem(ply.CaseInv, k, v) then -- This probably means the case shrunk
-            CaseInventory:DropItem(ply.CaseInv, k, ply, false)
+    for k, v in pairs(CaseInventory:Inv(ply).Items) do
+        if not CaseInventory:PlaceItem(CaseInventory:Inv(ply), k, v) then -- This probably means the case shrunk
+            CaseInventory:DropItem(CaseInventory:Inv(ply), k, ply, false)
         end
     end
 
     
 
     net.Start("CaseSync")
-        net.WriteUInt(ply.CaseInv.Size[1], 8)   -- SizeX
-        net.WriteUInt(ply.CaseInv.Size[2], 8)   -- SizeY
+        net.WriteUInt(CaseInventory:Inv(ply).Size[1], 8)   -- SizeX
+        net.WriteUInt(CaseInventory:Inv(ply).Size[2], 8)   -- SizeY
 
-        net.WriteUInt(CaseInventory:ItemSize(ply.CaseInv), 16) -- ItemCount
-        for k, v in pairs(ply.CaseInv.Items) do
+        net.WriteUInt(CaseInventory:ItemSize(CaseInventory:Inv(ply)), 16) -- ItemCount
+        for k, v in pairs(CaseInventory:Inv(ply).Items) do
             net.WriteUInt(k, 16)            -- Index
             net.WriteUInt(v.ItemID, 16)     -- ItemID
             net.WriteUInt(v.Count, 32)      -- Count

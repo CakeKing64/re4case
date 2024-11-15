@@ -93,13 +93,13 @@ hook.Add( "InitPostEntity", "CASE_PostInit", function()
 	if CaseInventory.ClientNet.SyncTemp ~= nil then 
         local ply = LocalPlayer()
         PrintTable(CaseInventory.ClientNet.SyncTemp)
-        ply.CaseInv = CaseInventory:GenerateInventory(
+        CaseInventory.ClientInventory = CaseInventory:GenerateInventory(
             CaseInventory.ClientNet.SyncTemp.W,
             CaseInventory.ClientNet.SyncTemp.H, ply)
 
         for k, v in pairs(CaseInventory.ClientNet.SyncTemp.Items) do
-            ply.CaseInv.Items[k] = v
-            CaseInventory:PlaceItem(ply.CaseInv, k, v)
+            CaseInventory:Inv().Items[k] = v
+            CaseInventory:PlaceItem(CaseInventory:Inv(), k, v)
         end
         CaseInventory.ClientNet.SyncTemp = nil
     end
