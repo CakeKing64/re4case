@@ -1,3 +1,13 @@
+if SERVER then
+    local case_sync_mode = CreateConVar("case_sync_mode", "0", {FCVAR_ARCHIVE}, 
+    [[Determines if weapons/ammo should be given or taken if they are not in the inventory on sync
+    0 -> Weapons/ammo should be given if they are in the inventory but not held
+    1 -> Weapons/ammo should be removed from the inventory if they aren't also held
+    ]], 0, 1)
+end
+
+
+
 ---Converts a source/lua weapon into a usable item in the inventory
 ---@param ply table
 ---@param wpn table
@@ -48,30 +58,63 @@ end
 ---@param ply table
 ---@param ammoID integer
 ---@param count integer
----@return boolean
-function CaseInventory:PickupAmmo(ply, ammoID, count)
+---@return boolean, integer
+function CaseInventory:PickupAmmo(ply, ammoID, count, dropIfCantPickup)
+    dropIfCantPickup = dropIfCantPickup or true
     if ammoID == -1 then
-        return false
+        return false, count
     end
 
     local rem = count
     local res = true 
     local id = self:GetItemFromAmmo(ammoID)
-
+    local info = CaseInventory.ItemRegister[id]
+    
     if id == -1 then
-        return false
+        return false, 0
     end
 
     while res and rem > 0 do
         res, rem = self:AddItemToInventory(ply.CaseInv, id, rem, false) -- Hold off on syncing for now
     end
 
-    -- TODO: Drop any unused ammo on the ground
-    if rem > 0 then
-        
+
+    -- Give an instance of the weapon if grenade :)
+    -- (And we didn't have one before)
+    if rem ~= count and info.ItemType == CASE_ITEM_GRENADE then
+        local hasGrenade = false
+        for k, v in pairs(ply:GetWeapons()) do
+            if v:GetName() == info.Name then
+                hasGrenade = true
+                break
+            end
+        end
+            if not hasGrenade then
+            local wpn = ents.Create(info.Name)
+            wpn:Spawn()
+            wpn:SetClip1(0)
+            wpn:SetClip2(0)
+            
+            if not ply:PickupWeapon(wpn) then
+                wpn:Remove()
+            end
+        end
+    end
+
+    if rem > 0 and dropIfCantPickup then
+
+        local ent = ents.Create("ent_caseammo")
+        ent:SetInfo(
+            info.RenderInfo.Model, -- Use the model provided in the inventory
+            info.AmmoID, -- AmmoID
+            rem -- Count
+        )
+        ent:SetPos(ply:GetPos())
+        ent:Spawn()
     end
 
     CaseInventory:SyncAmmo(ply)
+    return true, rem
 end
 
 
@@ -189,6 +232,19 @@ function CaseInventory:ItemCount(inv, id)
     return count
 end
 
+---Checks to see if the player has an item
+---@param inv table
+---@param id integer
+---@return boolean
+function CaseInventory:HasItem(inv, id)
+    for k, v in ipairs(inv.Items) do
+        if v.ItemID == id then
+            return true
+        end
+    end
+    return false
+end
+
 
 ---Returns what would kinda just be #ply.CaseInv.Items, but that doesn't work properly :(
 ---@param inv table
@@ -273,15 +329,35 @@ function CaseInventory:DropItem(inv, invId, player, sync)
         end
     end
 
-    -- For weapons call player:DropWeapon or if the player is null just spawn it
+    -- For weapons call player:DropWeapon
+    -- If the player is dead spawn one in with the old clips
     if itemInfo.ItemType == CASE_ITEM_WEAPON  then
+        local found = false
+        local clip1 = 0
+        local clip2 = 0
         for _, wep in ipairs( player:GetWeapons() ) do
             if wep:GetClass() == itemInfo.Name then
-                player:DropWeapon( wep , player:GetPos(), Vector(0, 0, 0))
-
-                break
+                if player:Alive() then
+                    player:DropWeapon( wep , player:GetPos(), Vector(0, 0, 0))
+                    found = true
+                    break
+                else
+                    clip1 = wep:Clip1()
+                    clip2 = wep:Clip2()
+                end
             end
         end
+
+
+        if not found then
+            local wpn = ents.Create(itemInfo.Name) 
+            wpn:SetPos(player:GetPos())
+            wpn:Spawn()
+
+            wpn:SetClip1(clip1)
+            wpn:SetClip2(clip2)
+        end
+
     end
 
     -- For ammo we create a caseammo
@@ -654,7 +730,7 @@ function CaseInventory:Sync(ply)
 
     for k, v in pairs(ply.CaseInv.Items) do
         if not CaseInventory:PlaceItem(ply.CaseInv, k, v) then -- This probably means the case shrunk
-            
+            CaseInventory:DropItem(ply.CaseInv, k, ply, false)
         end
     end
 

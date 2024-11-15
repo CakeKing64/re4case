@@ -1,7 +1,7 @@
-CASE_ITEM_GENERIC       = 0
+CASE_ITEM_GENERIC       = 0 -- :Use will be called when picking up normally, holding Alt/walk will add it to inventory (useful for healing/armor)
 CASE_ITEM_WEAPON        = 1
 CASE_ITEM_GRENADE       = 2
-CASE_ITEM_GLOW_ONLY     = 3 -- Only used to show that ammo can be obtained
+CASE_ITEM_GLOW_ONLY     = 3 -- Only used to show that ammo can be obtained, :Use will be called instead of adding to inventory
 CASE_ITEM_AMMO          = 4
 CASE_ITEM_AMMO_SPECIAL  = 5 -- Used for the caseammo entity to store any type of ammo
 
@@ -70,6 +70,10 @@ function CaseAmmo(ammoID, renderInfo, sizeW, sizeH, maxSize)
     return CaseItem("case_ammo_" .. ammoID, sizeW, sizeH, maxSize, CASE_ITEM_AMMO, nil, ammoID, renderInfo)
 end
 
+function CaseGlowOnly(name)
+   return CaseItem(name, 0, 0, 0, CASE_ITEM_GLOW_ONLY, nil, -1, {}) 
+end
+
 -- Maybe move these to a different file?
 
 
@@ -90,12 +94,12 @@ local itemsGMOD = {
     CaseAmmo(game.GetAmmoID("Buckshot"), CaseRenderInfo("models/Items/BoxBuckshot.mdl", 2), 2, 1, 25),
     CaseAmmo(game.GetAmmoID("RPG_Round"),CaseRenderInfo("models/weapons/w_missile_closed.mdl", 4), 4, 1, 3),
     CaseAmmo(game.GetAmmoID("SMG1_Grenade"),CaseRenderInfo("models/Items/AR2_Grenade.mdl", 4), 2, 1, 5),
-    CaseAmmo(game.GetAmmoID("AlyxGun"),CaseRenderInfo("models/Items/BoxSRounds.mdl", 0.22), 2, 1, 90),
+    CaseAmmo(game.GetAmmoID("AlyxGun"),CaseRenderInfo("models/Items/BoxSRounds.mdl", 3), 2, 1, 90),
 
     -- I have NO idea if any mods will use these or not
     -- (They're used by the combine)
-    CaseAmmo(game.GetAmmoID("SniperRound"),CaseRenderInfo("models/Items/357ammo.mdl", 0.22), 2, 1, 10),
-    CaseAmmo(game.GetAmmoID("SniperPenetratedRound"),CaseRenderInfo("models/Items/357ammo.mdl", 0.22), 2, 1, 10),
+    CaseAmmo(game.GetAmmoID("SniperRound"),CaseRenderInfo("models/Items/357ammo.mdl", 3), 2, 1, 10),
+    CaseAmmo(game.GetAmmoID("SniperPenetratedRound"),CaseRenderInfo("models/Items/357ammo.mdl", 3), 2, 1, 10),
     
     -- Melee + Other
     CaseWeapon("weapon_crowbar",CaseRenderInfo("models/weapons/w_crowbar.mdl", 5, true), 2, 3),
@@ -117,7 +121,7 @@ local itemsGMOD = {
 
 
     -- Shotgun
-    CaseWeapon("weapon_shotgun",CaseRenderInfo("models/weapons/w_shotgun.mdl", 4), 8, 2),
+    CaseWeapon("weapon_shotgun",CaseRenderInfo("models/weapons/w_shotgun.mdl", 6), 6, 2),
     CaseWeapon("weapon_annabelle",CaseRenderInfo("models/weapons/w_annabelle.mdl", 1.5), 8, 2), -- tee hee
 
 
@@ -135,8 +139,35 @@ local itemsGMOD = {
     end),
     CaseConsumable("item_battery", 1, 2, 1, function (arguments)
         
-    end)
-    
+    end),
+
+
+    CaseGlowOnly("ent_caseammo"),
+    CaseGlowOnly("ent_caseupgrade"),
+    CaseGlowOnly("ent_caseupgrade_m"),
+    CaseGlowOnly("ent_caseupgrade_l"),
+    CaseGlowOnly("ent_caseupgrade_xl"),
+    CaseGlowOnly("ent_caseupgrade_xxl"),
+
+    CaseGlowOnly("item_ammo_357"),
+    CaseGlowOnly("item_ammo_357_large"),
+
+    CaseGlowOnly("item_ammo_ar2"),
+    CaseGlowOnly("item_ammo_ar2_altfire"),
+    CaseGlowOnly("item_ammo_ar2_large"),
+
+    CaseGlowOnly("item_ammo_pistol"),
+    CaseGlowOnly("item_ammo_pistol_large"),
+
+    CaseGlowOnly("item_ammo_crossbow"),
+
+    CaseGlowOnly("item_ammo_smg1"),
+    CaseGlowOnly("item_ammo_smg1_large"),
+    CaseGlowOnly("item_ammo_smg1_grenade"),
+
+    CaseGlowOnly("item_box_buckshot"),
+
+    CaseGlowOnly("item_rpg_round"),
 }
 
 _registerItemTable(itemsGMOD)

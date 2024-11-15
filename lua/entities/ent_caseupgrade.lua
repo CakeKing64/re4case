@@ -23,7 +23,7 @@ function ENT:Initialize()
 	    self:SetMoveType( MOVETYPE_VPHYSICS )
 	    self:SetSolid( SOLID_VPHYSICS )
         self:SetCollisionGroup(COLLISION_GROUP_DEBRIS_TRIGGER)
-
+        self:SetUseType(SIMPLE_USE)
 	    local phys = self:GetPhysicsObject() 
 	    if phys:IsValid() then
 	        phys:Wake()
