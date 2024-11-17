@@ -32,6 +32,8 @@
         "ScrW",
         "input",
         "AccessorFunc",
-        "ents"
+        "ents",
+        "CreateConVar",
+        "FCVAR_ARCHIVE"
     ]
 }

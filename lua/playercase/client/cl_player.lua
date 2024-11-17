@@ -81,6 +81,21 @@ hook.Add("Think", "CASE_Think", function ()
             CaseGUI.SortingWindow:Show()
         end
     end
+
+    if CaseGUI.Context.Panel ~= nil then
+        if CaseGUI.Context.Parent:Inv().Items[CaseGUI.Context.Item] == nil then
+            CaseGUI.Context.Panel:Remove()
+            CaseGUI.Context.Panel = nil
+            return
+        end
+        CaseGUI.Context.Panel:MoveToFront()
+        if CaseGUI.Context.Parent == CaseGUI.InvTargets["SortingWindow"] and not CaseGUI.SortingWindow:IsVisible() then
+            CaseGUI.Context.Panel:Remove()
+            CaseGUI.Context.Panel = nil
+        else 
+            CaseGUI.Context.Panel:MoveToFront()
+        end
+    end
 end)
 
 hook.Add("PlayerDeath", "CASE_PlayerDeath", function (victim, inflictor, attacker)

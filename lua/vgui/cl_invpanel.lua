@@ -271,10 +271,20 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
     end
 
     if _countStatus ~= 4 then
+        surface.SetDrawColor(itemColors[_countStatus])
+        --surface.DrawText(tostring(_count), TEXT_ALIGN_RIGHT)
+        local sizeW, sizeH = CaseInvBitmapTextSize(tostring(_count), 25)
+        CaseInvBitmapTextDraw(tostring(_count), 
+            (baseX + (__CASE_UI_CELL_SIZE * (gridX-1) * scaleW) + _w) - sizeW - (5*scaleW),
+            (baseY + (__CASE_UI_CELL_SIZE * (gridY-1) * scaleH) + _h) - sizeH,
+        25
+        )
+        --[[
     draw.DrawText(tostring(_count), "Trebuchet24",
         baseX + (__CASE_UI_CELL_SIZE * (gridX-1) * scaleW) + _w - (7 * scaleW),
         baseY + (__CASE_UI_CELL_SIZE * (gridY-1) * scaleH) + _h - (20 * scaleH),
        itemColors[_countStatus],TEXT_ALIGN_RIGHT)
+       ]]
     end
 
 
@@ -288,6 +298,17 @@ function invpanel:OnRemove()
 end
 
 function invpanel:OnMousePressed(keyCode)
+
+
+    if CaseGUI.Context.Panel ~= nil and (keyCode == MOUSE_LEFT or keyCode == MOUSE_RIGHT ) then
+        if not CaseGUI.Context.Panel:GoBack() then
+            CaseGUI.Context.Panel:Remove()
+            CaseGUI.Context.Panel = nil
+            CaseGUI.Context.Parent = nil
+            CaseGUI.Context.Item = -1
+        end
+        return
+    end
 
     -- An item is held
     if CaseGUI.HeldItem.InvID ~= -1 then
@@ -318,6 +339,42 @@ function invpanel:OnMousePressed(keyCode)
                 CaseGUI.HeldItem.InvID = itm
                 CaseGUI.HeldItem.OldInfo = self:Inv().Items[CaseGUI.HeldItem.InvID]
                 CaseGUI.HeldItem.Rotated = self:Inv().Items[CaseGUI.HeldItem.InvID].Rotated
+            end
+        end
+
+        if keyCode == MOUSE_RIGHT then
+            local itm = self:GetMouseItem()
+
+
+            if itm ~= 0 then
+                CaseGUI.Context.Panel = vgui.Create("CaseInvContext")
+                local posX, posY = self:LocalToScreen(self:GetPos())
+                local itemX, itemY = self:Inv().Items[itm].X, self:Inv().Items[itm].Y
+                local itemInfo = CaseInventory.ItemRegister[self:Inv().Items[itm].ItemID]
+                
+                local scaleW, scaleH = _CaseUIGetScaledDiff()
+                local _x, _y, _w, _h = 
+                posX + (__CASE_UI_BORDER*scaleW) + (__CASE_UI_CELL_SIZE * (itemX-1) * scaleW),
+                posY+ (__CASE_UI_BORDER*scaleH) + (__CASE_UI_CELL_SIZE * (itemY-1) * scaleH),
+                __CASE_UI_CELL_SIZE * itemInfo.Size.W * scaleW,
+                __CASE_UI_CELL_SIZE * itemInfo.Size.H * scaleH
+
+
+                if self:Inv().Items[itm].Rotated then
+                    local tw = _w
+                    _w = _h
+                    _h = tw
+            
+                end
+
+                CaseGUI.Context.Panel:SetPos(_x + _w, _y)
+                CaseGUI.Context.Panel:SetSize(200, 200)
+                CaseGUI.Context.Panel:NoClipping(true)
+                CaseGUI.Context.Panel:MakePopup()
+                CaseGUI.Context.Item = itm
+                CaseGUI.Context.Parent = self
+
+                CaseGUI:FillContext(CaseGUI.Context.Panel, self)
             end
         end
 

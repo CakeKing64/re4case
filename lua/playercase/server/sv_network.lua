@@ -2,8 +2,12 @@ local commands = {}
 
 
 
-function commands.DropItem(ply, invID, sync)
-    CaseInventory:DropItem(CaseInventory:Inv(ply), invID, ply, sync)
+function commands.DropItem(ply, invID, count, sync)
+    CaseInventory:DropItem(CaseInventory:Inv(ply), invID, count, ply, sync)
+end
+
+function commands.Use(ply, invID, sync)
+    CaseInventory:UseItem(ply, invID, sync)
 end
 
 function commands.SyncLocations(ply, toPlace)
@@ -37,8 +41,9 @@ net.Receive("CaseCommandEvent", function (len, ply)
 
     if cmd == CASE_COMMAND_DROP then
         local invID = net.ReadUInt(16)
+        local count = net.ReadInt(16)
         local sync = net.ReadBool()
-        commands.DropItem(ply, invID, sync)
+        commands.DropItem(ply, invID, count, sync)
     end
 
     if cmd == CASE_COMMAND_SYNC then
@@ -51,7 +56,6 @@ net.Receive("CaseCommandEvent", function (len, ply)
 
 
             if CaseInventory:Inv(ply).Items[invId] == nil then
-                print("id outside inventory :(", invId)
                 return
             end
 
@@ -64,5 +68,11 @@ net.Receive("CaseCommandEvent", function (len, ply)
 
         commands.SyncLocations(ply, newItems)
         CaseInventory:Sync(ply)
+    end
+    
+    if cmd == CASE_COMMAND_USE then
+        local invID = net.ReadUInt(16)
+        local sync = net.ReadBool()
+        commands.Use(ply, invID, sync)
     end
 end)

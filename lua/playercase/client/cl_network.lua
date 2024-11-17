@@ -1,7 +1,15 @@
 CaseInventory.ClientNet = {
-    DropItem = function (invId, sync)
+    DropItem = function (invId, count, sync)
         net.Start("CaseCommandEvent")
         net.WriteUInt(CASE_COMMAND_DROP, 4)
+        net.WriteUInt(invId, 16)
+        net.WriteInt(count, 16)
+        net.WriteBool(sync)
+        net.SendToServer()
+    end,
+    UseItem = function (invId, sync)
+        net.Start("CaseCommandEvent")
+        net.WriteUInt(CASE_COMMAND_USE, 4)
         net.WriteUInt(invId, 16)
         net.WriteBool(sync)
         net.SendToServer()

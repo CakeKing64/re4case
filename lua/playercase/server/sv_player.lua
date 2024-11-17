@@ -6,6 +6,11 @@ local cvar_pickup_mode = CreateConVar("case_pickup_mode", "1", {FCVAR_ARCHIVE}, 
 hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent )
     local lookTarget = ply:GetEyeTrace().Entity
 
+    if ply.CasePickup == ent then
+        ply.CasePickup = nil
+        return true
+    end
+
     if ply.UseCommand == nil then
         ply.UseCommand = 0
     end
@@ -102,7 +107,7 @@ hook.Add("PlayerDeath", "CASE_PlayerDeath", function (victim, inflictor, attacke
     -- TODO Drop all items if a cvar is set
     if victim:IsPlayer() and cvar_drop_on_death:GetBool() then
         for k, v in pairs(CaseInventory:Inv(victim).Items) do
-            CaseInventory:DropItem(CaseInventory:Inv(victim), k, victim, false)
+            CaseInventory:DropItem(CaseInventory:Inv(victim), k, -1, victim, false)
         end
         CaseInventory:Sync(victim)
     end

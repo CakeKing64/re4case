@@ -16,17 +16,25 @@ CASE_COMMAND_SYNC = 1
 
 --[[
     uint16 invId
+    uint16 count
+    uint1 sync
 ]]
 CASE_COMMAND_DROP = 2
+--[[
+    uint16 invId
+    uint1 sync
+]]
+
+CASE_COMMAND_USE = 3
 --[[
     uint16 invId, Base
     uint16 invId, Ingredient 
 ]]
-CASE_COMMAND_REQUEST_COMBINE = 3
+CASE_COMMAND_REQUEST_COMBINE = 4
 --[[
     TODO
 ]]
-CASE_COMMAND_COMBINE_RESULT = 4
+CASE_COMMAND_COMBINE_RESULT = 5
 
 
 CaseInventory = {}
@@ -41,7 +49,8 @@ local client = {
     "client/cl_player.lua",
     --"client/vgui/cl_gui.lua",
     --"client/vgui/cl_invpanel.lua",
-    "client/cl_network.lua"
+    "client/cl_network.lua",
+    "client/cl_guifont.lua"
 }
 
 local shared = {

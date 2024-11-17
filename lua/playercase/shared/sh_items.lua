@@ -1,3 +1,19 @@
+--[[
+    Some info, read if you're gonna add something :)
+
+    .OnUse/.CanUse are given three arguments, the player, the info table and the inventoryID, you'll probably only need to use the player but do whatever
+    BOTH are used client and serverside
+
+    .CanUse returns true or false
+    You can set CanUse to nil to indicate always usable
+
+    .OnUse can return two items, a boolean (true/false) to indicate if an item was used and a number to indicate how many were used (optional, will default to 1)
+    It will also be called both CLIENTSIDE AND SERVERSIDE
+    clientside is ONLY used to calculate if the item would've actually been used, make sure to account for this :)
+
+    You might want to set the player variable .CasePickup to the entity you want them to pickup instantly if you're gonna spawn the item to pickup
+
+]]
 CASE_ITEM_GENERIC       = 0 -- :Use will be called when picking up normally, holding Alt/walk will add it to inventory (useful for healing/armor)
 CASE_ITEM_WEAPON        = 1
 CASE_ITEM_GRENADE       = 2
@@ -11,9 +27,10 @@ CASE_ITEM_AMMO_SPECIAL  = 5 -- Used for the caseammo entity to store any type of
 ---@param maxSize number
 ---@param itemType number
 ---@param onUse function?
+---@param canUse function?
 ---@param ammoID number
 ---@param renderInfo table
-function CaseItem(name, sizeW, sizeH, maxSize, itemType, onUse, ammoID, renderInfo)
+function CaseItem(name, sizeW, sizeH, maxSize, itemType, onUse, canUse, ammoID, renderInfo)
     return {
         Name=name,
         Size={
@@ -21,14 +38,14 @@ function CaseItem(name, sizeW, sizeH, maxSize, itemType, onUse, ammoID, renderIn
             H=sizeH
         },
         OnUse=onUse,
+        CanUse=canUse,
         AmmoID=ammoID,
         MaxCount=maxSize,
         ItemType=itemType,
         RenderInfo=renderInfo or CaseRenderInfo(
             "models/error",
             1,
-            {0,0,0},
-            0
+            {0,0,0}
         )
     }
 end
@@ -52,27 +69,27 @@ function CaseRenderInfo(model, scale, rotVec, offset, diffMode)
 end
 
 function CaseGeneric(name, renderInfo, sizeW, sizeH, maxSize)
-    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GENERIC, nil, -1, renderInfo)
+    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GENERIC, nil, nil, -1, renderInfo)
 end
 
-function CaseConsumable(name, renderInfo, sizeW, sizeH, maxSize, onUse)
-    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GENERIC, onUse, -1, renderInfo)
+function CaseConsumable(name, renderInfo, sizeW, sizeH, maxSize, onUse, canUse)
+    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GENERIC, onUse, canUse, -1, renderInfo)
 end
 
 function CaseWeapon(name, renderInfo, sizeW, sizeH)
-    return CaseItem(name, sizeW, sizeH, 1, CASE_ITEM_WEAPON, nil, -1, renderInfo)
+    return CaseItem(name, sizeW, sizeH, 1, CASE_ITEM_WEAPON, nil, nil,-1, renderInfo)
 end
 
 function CaseGrenade(name, renderInfo, sizeW, sizeH, maxSize, grenadeAmmo)
-    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GRENADE, nil, grenadeAmmo, renderInfo)
+    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GRENADE, nil, nil, grenadeAmmo, renderInfo)
 end
 
 function CaseAmmo(ammoID, renderInfo, sizeW, sizeH, maxSize)
-    return CaseItem("case_ammo_" .. ammoID, sizeW, sizeH, maxSize, CASE_ITEM_AMMO, nil, ammoID, renderInfo)
+    return CaseItem("case_ammo_" .. ammoID, sizeW, sizeH, maxSize, CASE_ITEM_AMMO, nil, nil, ammoID, renderInfo)
 end
 
 function CaseGlowOnly(name)
-   return CaseItem(name, 0, 0, 0, CASE_ITEM_GLOW_ONLY, nil, -1, {}) 
+   return CaseItem(name, 0, 0, 0, CASE_ITEM_GLOW_ONLY, nil, nil, -1, {}) 
 end
 
 -- Maybe move these to a different file?
@@ -133,14 +150,63 @@ local itemsGMOD = {
     CaseWeapon("weapon_alyxgun",CaseRenderInfo("models/weapons/w_alyx_gun.mdl", 0.5), 3, 2), -- tee hee 2
 
     -- Consumables (yummers)
-    CaseConsumable("item_healthkit", CaseRenderInfo("models/Items/HealthKit.mdl", 3.2, {90,90,0}, Vector(0,5,8)), 2, 3, 3, function (arguments)
-        
+    CaseConsumable("item_healthkit", CaseRenderInfo("models/Items/HealthKit.mdl", 3.2, {90,90,0}, Vector(0,5,8)), 2, 3, 3,
+    function (ply, tbl) -- OnUse
+        if CLIENT then
+            return true
+        end
+
+        local kit = ents.Create("item_healthkit")
+        kit:Spawn()
+        ply.CasePickup = kit
+        kit:SetPos(ply:GetPos())
+        kit:Use(ply)
+        return true
+    end,
+    function (ply) -- CanUse
+        if ply:Health() >= ply:GetMaxHealth() then
+            return false
+        end
+        return true
     end),
-    CaseConsumable("item_healthvial",CaseRenderInfo("models/healthvial.mdl", 1.9, {0,125}, Vector(0,0.2)),  1, 2, 3, function (arguments)
-        
+
+    CaseConsumable("item_healthvial",CaseRenderInfo("models/healthvial.mdl", 1.9, {0,125}, Vector(0,0.2)),  1, 2, 3, 
+    function (ply, tbl) -- OnUse
+        if CLIENT then
+            return true
+        end
+        local vial = ents.Create("item_healthvial")
+        vial:Spawn()
+        ply.CasePickup = vial
+        vial:SetPos(ply:GetPos())
+        vial:Use(ply)
+        return true
+    end,
+    function (ply) -- CanUse
+        if ply:Health() >= ply:GetMaxHealth() then
+            return false
+        end
+        return true
     end),
-    CaseConsumable("item_battery", CaseRenderInfo("models/items/battery.mdl", 2.1, {0,-60,180}, Vector(0,-0.2,10)), 1, 2, 3, function (arguments)
-        
+
+    CaseConsumable("item_battery", CaseRenderInfo("models/items/battery.mdl", 2.1, {0,-60,180}, Vector(0,-0.2,10)), 1, 2, 3,
+    function (ply) -- OnUse
+        if CLIENT then
+            return true
+        end
+
+        local battery = ents.Create("item_battery")
+        battery:Spawn()
+        ply.CasePickup = battery
+        battery:SetPos(ply:GetPos())
+        battery:Use(ply)
+        return true
+    end,    
+    function (ply) -- CanUse
+        if ply:Armor() >= ply:GetMaxArmor() then
+            return false
+        end
+        return true
     end),
 
 

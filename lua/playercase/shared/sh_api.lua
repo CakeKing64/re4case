@@ -293,11 +293,17 @@ end
 ---Drops a player's item on the ground
 ---@param inv table
 ---@param invId integer
+---@param count integer Set to a negative number to indicate all items
 ---@param player table
 ---@param sync boolean
 ---@return boolean
-function CaseInventory:DropItem(inv, invId, player, sync)
+function CaseInventory:DropItem(inv, invId, count, player, sync)
+
     if invId < 1 then
+        return false
+    end
+    
+    if count == 0 then
         return false
     end
 
@@ -308,11 +314,18 @@ function CaseInventory:DropItem(inv, invId, player, sync)
     if inv.Items[invId] == nil then
         return false
     end
+    
+    local dropCount = count ~= -1 and math.min(count, inv.Items[invId].Count) or inv.Items[invId].Count
 
     local itemInfo = CaseInventory.ItemRegister[inv.Items[invId].ItemID]
     local invInfo = inv.Items[invId]
-    inv.Items[invId] = nil -- Remove it here just so no future errors make it materialize back into the inventory
-    
+
+    if inv.Items[invId].Count - dropCount == 0 or count == -1 then
+        inv.Items[invId] = nil
+    else
+        inv.Items[invId].Count = inv.Items[invId].Count - dropCount
+    end
+
     if sync then
         CaseInventory:Sync(player)
     end
@@ -321,7 +334,7 @@ function CaseInventory:DropItem(inv, invId, player, sync)
 
     -- For generic items just spawn the entity on the floor and that should be it
     if itemInfo.ItemType == CASE_ITEM_GENERIC then
-        for i=1, invInfo.Count do 
+        for i=1, dropCount do 
             local ent = ents.Create(itemInfo.Name)
             ent:SetPos(player:GetPos())
             ent:Spawn()
@@ -330,6 +343,7 @@ function CaseInventory:DropItem(inv, invId, player, sync)
 
     -- For weapons call player:DropWeapon
     -- If the player is dead spawn one in with the old clips
+    -- We'll also ignore dropCount as you can only have one weapon at a time :)
     if itemInfo.ItemType == CASE_ITEM_WEAPON  then
         local found = false
         local clip1 = 0
@@ -365,14 +379,57 @@ function CaseInventory:DropItem(inv, invId, player, sync)
         ent:SetInfo(
             itemInfo.RenderInfo.Model, -- Use the model provided in the inventory
             itemInfo.AmmoID, -- AmmoID
-            invInfo.Count -- Count
+            dropCount-- Count
         )
         ent:SetPos(player:GetPos())
         ent:Spawn()
 
         self:SyncAmmo(player)
     end
+    return true
+end
 
+---Uses an item from a player's inventory
+---@param ply table
+---@param invId integer
+---@param sync boolean
+---@return boolean used, integer amountUsed
+function CaseInventory:UseItem(ply, invId, sync)
+    if CaseInventory:Inv(ply).Items[invId] == nil then
+        return false, 0
+    end
+
+    local item = CaseInventory.ItemRegister[CaseInventory:Inv(ply).Items[invId].ItemID]
+    if item.OnUse == nil then
+        return false, 0
+    end
+
+    if item.CanUse ~= nil and not item.CanUse(ply, item, invId) then
+        return false, 0
+    end
+
+    local used, amount = item.OnUse(ply, invId)
+
+    if not used then
+        return false, 0
+    end
+
+    if amount == nil then
+        amount = 1
+    end
+
+    amount = math.max(1, amount)
+
+    CaseInventory:Inv(ply).Items[invId].Count = CaseInventory:Inv(ply).Items[invId].Count - amount
+    if CaseInventory:Inv(ply).Items[invId].Count <= 0 then
+        CaseInventory:Inv(ply).Items[invId] = nil
+    end
+
+    if sync then
+        CaseInventory:Sync(ply)
+    end
+    local caseCount = CaseInventory:Inv(ply).Items[invId] ~= nil and CaseInventory:Inv(ply).Items[invId].Count or 1
+    return true, math.min(amount, caseCount)
 end
 
 ---Returns the itemID based off name
@@ -589,6 +646,7 @@ function CaseInventory:MoveItem(src, srcId, tgt, tgtX, tgtY, tgtRot)
         return true
         --self:PlaceItem(ply.CaseInv.Loadout, id, info, {1,1, 255, 255})
     end
+    return false
 end
 
 
@@ -703,6 +761,7 @@ end
 ---Clear and then place :)
 ---@param inv table
 function CaseInventory:RefreshLoadout(inv)
+    print("hi :)")
     CaseInventory:ClearLoadout(inv)
 
     for k, v in pairs(inv.Items) do 
@@ -756,7 +815,7 @@ function CaseInventory:Sync(ply)
 
     for k, v in pairs(CaseInventory:Inv(ply).Items) do
         if not CaseInventory:PlaceItem(CaseInventory:Inv(ply), k, v) then -- This probably means the case shrunk
-            CaseInventory:DropItem(CaseInventory:Inv(ply), k, ply, false)
+            CaseInventory:DropItem(CaseInventory:Inv(ply), -1, k, ply, false)
         end
     end
 

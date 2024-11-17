@@ -15,6 +15,11 @@ CaseGUI = {
     MainWindow = nil,
     HoveredWindow = nil,
     IsOpen = false,
+    Context = {
+        Panel=nil,
+        Parent=nil,
+        Item=-1
+    },
     InvTargets = {
     }
 }
@@ -42,7 +47,7 @@ end
 function CaseGUI:Sync()
     -- Start by dropping all items stored in the sorting menu
     for k, v in pairs(self.InvTargets["SortingWindow"]:Inv().Items) do
-        CaseInventory.ClientNet.DropItem(k)
+        CaseInventory.ClientNet.DropItem(k, -1, false)
     end
 
     CaseInventory.ClientNet.SyncItems()
@@ -52,9 +57,94 @@ function CaseGUI:Close()
     self:Sync()
     self.SortingWindow:Close()
     self.MainWindow:Close()
+    if self.Context.Panel ~= nil then
+        self.Context.Panel:Remove()
+    end
     self.SortingWindow = nil
+    self.MainWindow = nil
     self.IsOpen = false
+    self.Context = {
+        Panel=nil,
+        Parent=nil
+    }
     self.HeldItem.InvID = -1
+end
+
+function CaseGUI:CloseContext()
+    if self.Context.Panel ~= nil then
+        self.Context.Panel:Remove()
+        self.Context.Panel = nil
+        self.Context.Parent = nil
+    end
+end
+
+
+---Fills the context menu with that fits with whatever item was selected
+---Params here just for ease of use
+---@param panel table
+---@param parent table
+---@param itm integer
+function CaseGUI:FillContext(panel, parent)
+    
+    local itemInfo = CaseInventory.ItemRegister[self.Context.Parent:Inv().Items[CaseGUI.Context.Item].ItemID]
+
+    if itemInfo.OnUse ~= nil then
+        panel:AddOption("Use", function () -- Actually use the item
+            CaseInventory.ClientNet.UseItem(CaseGUI.Context.Item, false) -- Request for the server to use the item
+            local item = CaseInventory.ItemRegister[parent:Inv().Items[CaseGUI.Context.Item].ItemID]
+            -- Cool line
+            local used, useCount = item.OnUse(LocalPlayer(), item, CaseGUI.Context.Item)
+            useCount = useCount and math.max(0, useCount) or 1
+
+            if used then
+                parent:Inv().Items[CaseGUI.Context.Item].Count = parent:Inv().Items[CaseGUI.Context.Item].Count - useCount
+                if parent:Inv().Items[CaseGUI.Context.Item].Count == 0 then
+                    parent:Inv().Items[CaseGUI.Context.Item] = nil
+                    CaseInventory:RefreshLoadout(self.Context.Parent:Inv())
+                    self:CloseContext()
+                end
+            end
+
+
+        end,
+        function () -- Avail check
+            local item = CaseInventory.ItemRegister[parent:Inv().Items[CaseGUI.Context.Item].ItemID]
+            if item.CanUse == nil then
+                return true
+            end
+            return item.CanUse(LocalPlayer(), item, CaseGUI.Context.Item)
+        end
+    )
+    end
+
+    if itemInfo.ItemType == CASE_ITEM_WEAPON then
+        panel:AddOption("Equip", function ()
+            
+        end)
+    end
+
+    if itemInfo.ItemType == CASE_ITEM_GENERIC or itemInfo.ItemType == CASE_ITEM_GRENADE then
+        panel:AddOption("Drop 1", function ()
+            CaseInventory.ClientNet.DropItem(CaseGUI.Context.Item, 1, false)
+            parent:Inv().Items[CaseGUI.Context.Item].Count = parent:Inv().Items[CaseGUI.Context.Item].Count - 1
+            if parent:Inv().Items[CaseGUI.Context.Item].Count == 0 then
+                parent:Inv().Items[CaseGUI.Context.Item] = nil
+                CaseInventory:RefreshLoadout(self.Context.Parent:Inv())
+                self:CloseContext()
+            end
+
+
+        end)
+    end
+    -- All items have this :)
+    panel:AddOption("Drop", function ()
+        CaseInventory.ClientNet.DropItem(CaseGUI.Context.Item, -1, false)
+        parent:Inv().Items[CaseGUI.Context.Item] = nil
+
+        CaseInventory:RefreshLoadout(self.Context.Parent:Inv())
+        self:CloseContext()
+
+    end)
 end
 
 
