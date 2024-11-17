@@ -168,29 +168,21 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
 
         -- If the x width of the model is larger rotate it 90 degrees
         local xDiff, yDiff = max[1]-min[1], max[2]-min[2]
-        local _renderRotate = isRotated
+        local _renderRotate = false
         if renderInfo.Rotate then
             _renderRotate = not _renderRotate
         end
-        -- Yandare dev ass code
-        if not _renderRotate then
-            if( xDiff > yDiff or renderInfo.ForceRot == 2) then
-                model:SetPos( Vector( getOffset( 2 ), getOffset( 1 ), getOffset( 3 ) ) )
-                model:SetAngles( Angle( 0, 90, 0 ) )
-            else
-                model:SetPos( Vector( getOffset( 1 ), getOffset( 2 ), getOffset( 3 ) ) )
-                model:SetAngles( Angle( 0, 0, 0 ) )
-            end
+        
+        if( xDiff > yDiff or renderInfo.ForceRot == 2) then
+            model:SetPos( Vector( getOffset( 2 ), getOffset( 1 ), getOffset( 3 ) ) )
+            model:SetAngles( Angle( 0, 90, 0 ) )
         else
-            if( xDiff > yDiff or renderInfo.ForceRot == 2) then
-                model:SetPos( Vector( getOffset( 2 ), getOffset( 3 ),  -getOffset( 1 )) )
-                model:SetAngles( Angle( 90, 90, 0 ) )
-            else
-                model:SetPos( Vector(getOffset( 1 ), -getOffset( 3 ), getOffset( 2 )))
-                model:SetAngles( Angle( 0, 0, 90 ) )
-            end
+            model:SetPos( Vector( getOffset( 1 ), getOffset( 2 ), getOffset( 3 ) ) )
+            model:SetAngles( Angle( 0, 0, 0 ) )
         end
 
+        model:SetAngles(model:GetAngles() + Angle(renderInfo.Rotations[1], renderInfo.Rotations[2], renderInfo.Rotations[3]))
+        model:SetPos(model:GetPos() + renderInfo.Offset)
         --x=(_x - ScrW()/2) + _w/2,
         -- y=(_y - ScrH()/2) + _h/2,
 
@@ -207,7 +199,6 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
 
 
         local square = math.max(_w, _h)
-        local posX, posY = self:LocalToScreen(self:GetPos())
 
         local function _offset(a, b)
             local diff = b-a
@@ -221,7 +212,7 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
             w=square,
             h=square,
             type="3D",
-            angles = Angle(0, 0, 0),
+            angles = Angle(0, 0, isRotated and -90 or 0),
             origin = Vector(-modelWidth*4/(_scale or 1),0,0),
             fov=70,
             aspect=1,
@@ -337,6 +328,10 @@ function invpanel:OnMousePressed(keyCode)
 end
 
 function invpanel:Think()
+
+    if CaseGUI.HeldItem.InvID ~= -1 and CaseGUI.HeldItem.SourceWindow == self and self:Inv().Items[CaseGUI.HeldItem.InvID] == nil then
+        CaseGUI.HeldItem.InvID = -1
+    end
     if self:GetMouseSlot() ~= nil then
         CaseGUI.HoveredWindow = self
     end

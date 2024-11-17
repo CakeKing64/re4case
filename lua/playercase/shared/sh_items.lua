@@ -26,25 +26,26 @@ function CaseItem(name, sizeW, sizeH, maxSize, itemType, onUse, ammoID, renderIn
         ItemType=itemType,
         RenderInfo=renderInfo or CaseRenderInfo(
             "models/error",
-            nil,
-            false,
-            Vector(0, 0, 0)
+            1,
+            {0,0,0},
+            0
         )
     }
 end
 
 ---@param model string
 ---@param scale number?
----@param rotate boolean?
----@param forceRot integer? 0 -> Use xDiff > yDiff, 1 -> Force yDiff (0 deg rotation), 2 -> Force xDiff (90 deg rotation)
----@param vecOffset table?
-function CaseRenderInfo(model, scale, rotate, forceRot,  vecOffset)
+---@param rotVec table|boolean? Uses this vector to apply rotations post xDiff/yDiff OR if it's true/false it'll apply 90 degrees instead
+---@param offset table? Vector offset
+---@param diffMode integer? 0 -> Use xDiff > yDiff, 1 -> Force yDiff, 2 -> Force xDiff
+---@return table
+function CaseRenderInfo(model, scale, rotVec, offset, diffMode)
     return {
         Model = model or "",
         Scale = scale, -- Ok to be nil
-        Rotate = rotate or false,
-        ForceRot = forceRot or 0,
-        VecOffset = vecOffset or Vector(0, 0, 0)
+        Rotations = rotVec or {0, 0, 0},
+        DiffMode = diffMode or 0,
+        Offset = offset or Vector(0, 0)
     }
 
 
@@ -87,11 +88,11 @@ local itemsGMOD = {
     -- Ammo
     CaseAmmo(game.GetAmmoID("AR2"),CaseRenderInfo("models/Items/combine_rifle_cartridge01.mdl", 2.7), 2, 1, 60),
     CaseAmmo(game.GetAmmoID("AR2AltFire"),CaseRenderInfo("models/Items/combine_rifle_ammo01.mdl", 2.1), 1, 2, 3),
-    CaseAmmo(game.GetAmmoID("Pistol"),CaseRenderInfo("models/Items/BoxSRounds.mdl", 3), 2, 1, 50),
-    CaseAmmo(game.GetAmmoID("SMG1"),CaseRenderInfo("models/Items/BoxMRounds.mdl", 2.7), 2, 1, 90),
-    CaseAmmo(game.GetAmmoID("357"),CaseRenderInfo("models/Items/357ammo.mdl", 3), 2, 1, 6),
+    CaseAmmo(game.GetAmmoID("Pistol"),CaseRenderInfo("models/Items/BoxSRounds.mdl", 1), 2, 1, 50),
+    CaseAmmo(game.GetAmmoID("SMG1"),CaseRenderInfo("models/Items/BoxMRounds.mdl", 1.7), 2, 1, 90),
+    CaseAmmo(game.GetAmmoID("357"),CaseRenderInfo("models/Items/357ammo.mdl", 1.3, {25, 180, 0}), 2, 1, 6),
     CaseAmmo(game.GetAmmoID("XBowBolt"), CaseRenderInfo("models/Items/CrossbowRounds.mdl", 5), 4, 1, 20),
-    CaseAmmo(game.GetAmmoID("Buckshot"), CaseRenderInfo("models/Items/BoxBuckshot.mdl", 2), 2, 1, 25),
+    CaseAmmo(game.GetAmmoID("Buckshot"), CaseRenderInfo("models/Items/BoxBuckshot.mdl", 1.3, {15, 180, 0}), 2, 1, 25),
     CaseAmmo(game.GetAmmoID("RPG_Round"),CaseRenderInfo("models/weapons/w_missile_closed.mdl", 4), 4, 1, 3),
     CaseAmmo(game.GetAmmoID("SMG1_Grenade"),CaseRenderInfo("models/Items/AR2_Grenade.mdl", 4), 2, 1, 5),
     CaseAmmo(game.GetAmmoID("AlyxGun"),CaseRenderInfo("models/Items/BoxSRounds.mdl", 3), 2, 1, 90),
@@ -102,21 +103,22 @@ local itemsGMOD = {
     CaseAmmo(game.GetAmmoID("SniperPenetratedRound"),CaseRenderInfo("models/Items/357ammo.mdl", 3), 2, 1, 10),
     
     -- Melee + Other
-    CaseWeapon("weapon_crowbar",CaseRenderInfo("models/weapons/w_crowbar.mdl", 5, true), 2, 3),
-    CaseWeapon("weapon_stunstick",CaseRenderInfo("models/weapons/w_stunbaton.mdl", 5, true), 2, 3),
-    CaseWeapon("weapon_physcannon",CaseRenderInfo("models/weapons/w_physics.mdl", 4), 5, 2),
-    CaseWeapon("weapon_crossbow",CaseRenderInfo("models/weapons/w_crossbow.mdl", 4.5), 5, 3),
-    CaseWeapon("weapon_rpg",CaseRenderInfo("models/weapons/w_rocket_launcher.mdl", 5), 8, 2),
-    CaseWeapon("gmod_tool", CaseRenderInfo("models/weapons/w_toolgun.mdl", 0.55, false, 2), 3, 2),
-    CaseWeapon("gmod_camera", CaseRenderInfo("models/weapons/w_toolgun.mdl", 0.55, false, 2), 3, 2),
+    CaseWeapon("weapon_crowbar",CaseRenderInfo("models/weapons/w_crowbar.mdl", 5, {90, 0, 90}), 2, 3),
+    CaseWeapon("weapon_stunstick",CaseRenderInfo("models/weapons/w_stunbaton.mdl", 5, {90, 0, 90}, Vector(0, -1, -1.5)), 2, 3),
+    CaseWeapon("weapon_physcannon",CaseRenderInfo("models/weapons/w_physics.mdl", 4, {0, 180, 0}, Vector(0, 22)), 5, 2),
+    CaseWeapon("weapon_crossbow",CaseRenderInfo("models/weapons/w_crossbow.mdl", 4.9, {0, 180,0}, Vector(0, 16.5)), 5, 3),
+    CaseWeapon("weapon_rpg",CaseRenderInfo("models/weapons/w_rocket_launcher.mdl", 5, {0,0,0}, Vector(0,0,1)), 8, 2),
+    CaseWeapon("gmod_tool", CaseRenderInfo("models/weapons/w_toolgun.mdl", 3.5, {0, -90, 0}, Vector(0, 12)), 3, 2),
+    CaseWeapon("gmod_camera", CaseRenderInfo("models/maxofs2d/camera.mdl", 3.5, {0, 210, 0}), 3, 2),
+    CaseWeapon("weapon_physgun", CaseRenderInfo("models/weapons/w_physics.mdl", 4, {0, 0, 0}), 3, 2),
 
     -- Thrown
     CaseWeapon("weapon_bugbait", CaseRenderInfo("models/weapons/w_bugbait.mdl", 4), 1, 1),
     CaseGrenade("weapon_frag", CaseRenderInfo("models/Items/grenadeAmmo.mdl", 1.6), 1, 2, 3, game.GetAmmoID("Grenade")),
-    CaseGrenade("weapon_slam",CaseRenderInfo("models/weapons/w_slam.mdl", 1.6, true, 0), 1, 2, 3, game.GetAmmoID("slam")),
+    CaseGrenade("weapon_slam",CaseRenderInfo("models/weapons/w_slam.mdl", 3, {0,90,-90}), 1, 2, 3, game.GetAmmoID("slam")),
 
     -- Pistol
-    CaseWeapon("weapon_357",CaseRenderInfo("models/weapons/w_357.mdl", 4.3), 3, 2),
+    CaseWeapon("weapon_357",CaseRenderInfo("models/weapons/w_357.mdl", 4.5, {5, 180, 0}, Vector(0, 13)), 3, 2),
     CaseWeapon("weapon_pistol",CaseRenderInfo("models/weapons/w_pistol.mdl", 4.3), 3, 2),
 
 
@@ -126,18 +128,18 @@ local itemsGMOD = {
 
 
     -- Auto
-    CaseWeapon("weapon_smg1",CaseRenderInfo("models/weapons/w_smg1.mdl", 4), 3, 2),
+    CaseWeapon("weapon_smg1",CaseRenderInfo("models/weapons/w_smg1.mdl", 5, {0,180,0}, Vector(0,-8,0)), 3, 2),
     CaseWeapon("weapon_ar2",CaseRenderInfo("models/weapons/w_irifle.mdl", 5.6), 5, 2),
     CaseWeapon("weapon_alyxgun",CaseRenderInfo("models/weapons/w_alyx_gun.mdl", 0.5), 3, 2), -- tee hee 2
 
     -- Consumables (yummers)
-    CaseConsumable("item_healthkit", CaseRenderInfo("models/Items/HealthKit.mdl", 4), 2, 3, 1, function (arguments)
+    CaseConsumable("item_healthkit", CaseRenderInfo("models/Items/HealthKit.mdl", 3.2, {90,90,0}, Vector(0,5,8)), 2, 3, 3, function (arguments)
         
     end),
-    CaseConsumable("item_healthvial",CaseRenderInfo("models/healthvial.mdl", 2, false, 0),  1, 2, 1, function (arguments)
+    CaseConsumable("item_healthvial",CaseRenderInfo("models/healthvial.mdl", 1.9, {0,125}, Vector(0,0.2)),  1, 2, 3, function (arguments)
         
     end),
-    CaseConsumable("item_battery", CaseRenderInfo("models/weapons/w_bugbait.mdl", 4), 1, 2, 1, function (arguments)
+    CaseConsumable("item_battery", CaseRenderInfo("models/items/battery.mdl", 2.1, {0,-60,180}, Vector(0,-0.2,10)), 1, 2, 3, function (arguments)
         
     end),
 

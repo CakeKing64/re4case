@@ -322,7 +322,7 @@ function CaseInventory:DropItem(inv, invId, player, sync)
     -- For generic items just spawn the entity on the floor and that should be it
     if itemInfo.ItemType == CASE_ITEM_GENERIC then
         for i=1, invInfo.Count do 
-            local ent = ents.Spawn(itemInfo.Name)
+            local ent = ents.Create(itemInfo.Name)
             ent:SetPos(player:GetPos())
             ent:Spawn()
         end

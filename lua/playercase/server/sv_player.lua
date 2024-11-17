@@ -20,10 +20,11 @@ hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent 
             return true
         end
         -- Do funny check to see if holding alt here
-        if true then
+        if not ply:IsWalking() then
             return true
         end
         if CaseInventory:PickupItem(ply, id, 1) then
+            ply:DropObject()
             ent:Remove()
         end
     end
