@@ -38,7 +38,7 @@ function invpanel:GetMouseSlot(clamp)
 
 
     if not clamp and 
-        (gridX < 1 or gridX > self:InvW() or gridY < 0 or gridY > self:InvH()) then
+        (gridX < 1 or gridX > self:InvW() or gridY < 1 or gridY > self:InvH()) then
         return nil, nil
     end
     

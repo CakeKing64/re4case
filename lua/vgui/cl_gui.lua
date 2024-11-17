@@ -105,15 +105,15 @@ local function OpenBasicPanel()
     CaseGUI.SortingWindow:SetPos(mwX + CaseGUI.MainWindow:GetSize() + ((__CASE_UI_BORDER/2) * scaleW), mwY)
     CaseGUI.IsOpen = true
 
-    -- Create a DButton (button)
-    local button = vgui.Create("DButton", CaseGUI.MainWindow)
-    button:SetText("Close")           -- Button text
-    button:SetSize(100, 30)          -- Button size
-    button:SetPos(100, 120)          -- Button position within the frame
-    button.DoClick = function()      -- Function to run when clicked
+
+    local mainWindowW = CaseGUI.MainWindow:GetSize()
+    local button = vgui.Create("CaseInvExitButton", CaseGUI.MainWindow)
+    button:SetText("")
+    button:SetSize(25 * scaleH, 25 * scaleH)
+    button:SetPos(mainWindowW - ((5*scaleW) +  (25 * scaleH)), (5*scaleW))
+    button.DoClick = function()
         CaseGUI:Close()
     end
 end
 
--- Command to open the panel (type "openvgui" in console)
-concommand.Add("openvgui", OpenBasicPanel)
+concommand.Add("case_open", OpenBasicPanel)

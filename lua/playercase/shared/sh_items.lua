@@ -131,13 +131,13 @@ local itemsGMOD = {
     CaseWeapon("weapon_alyxgun",CaseRenderInfo("models/weapons/w_alyx_gun.mdl", 0.5), 3, 2), -- tee hee 2
 
     -- Consumables (yummers)
-    CaseConsumable("item_healthkit", 4, 4, 1, function (arguments)
+    CaseConsumable("item_healthkit", CaseRenderInfo("models/Items/HealthKit.mdl", 4), 2, 3, 1, function (arguments)
         
     end),
-    CaseConsumable("item_healthvial", 1, 2, 1, function (arguments)
+    CaseConsumable("item_healthvial",CaseRenderInfo("models/healthvial.mdl", 2, false, 0),  1, 2, 1, function (arguments)
         
     end),
-    CaseConsumable("item_battery", 1, 2, 1, function (arguments)
+    CaseConsumable("item_battery", CaseRenderInfo("models/weapons/w_bugbait.mdl", 4), 1, 2, 1, function (arguments)
         
     end),
 

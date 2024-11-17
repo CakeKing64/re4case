@@ -50,8 +50,7 @@ end
 ---@param itmId integer
 ---@param count integer
 function CaseInventory:PickupItem(ply, itmId, count)
-    CaseInventory:AddItemToInventory(CaseInventory:Inv(ply), itmId, count)
-    return true
+    return CaseInventory:AddItemToInventory(CaseInventory:Inv(ply), itmId, count)
 end
 
 ---Converts source ammo into a usable item in the inventory
@@ -721,10 +720,12 @@ function CaseInventory:GenerateInventory(width, height, player)
         Size={width or 10, height or 6},
         Items={},
         Loadout={},
-        UseCommand=0,
         Player=player -- could be any entity... maybe
     }
-
+    if player ~= nil then
+        player.UseCommand = 0
+    end
+    
     CaseInventory:ClearLoadout(inv)
     return inv
 end

@@ -1,22 +1,30 @@
 local cvar_drop_on_death = CreateConVar("case_drop_on_death", "1", {FCVAR_ARCHIVE}, "", 0, 1)
 local cvar_drop_excess_ammo = CreateConVar("case_drop_excess_ammo", "1", {FCVAR_ARCHIVE},"", 0, 1)
+local cvar_pickup_mode = CreateConVar("case_pickup_mode", "1", {FCVAR_ARCHIVE}, [[0 -> Items can be walked over to be picked up
+1 -> Items must be +used to pickup]], 0, 1)
 
 hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent )
     local lookTarget = ply:GetEyeTrace().Entity
 
+    if ply.UseCommand == nil then
+        ply.UseCommand = 0
+    end
 
-    if ply.CaseInv.UseCommand == 1 and lookTarget == ent then
-        ply.CaseInv.UseCommand = 2
+    if ply.UseCommand == 1 and lookTarget == ent then
+        ply.UseCommand = 2
 
         local id = CaseInventory:GetItemID(ent:GetClass())
         local info = id ~= -1 and CaseInventory.ItemRegister[id] or {}
 
-        if id == -1 or info.ItemType == CASE_ITEM_GLOW_ONLY then
+        if id == -1 or info.ItemType == CASE_ITEM_GLOW_ONLY or info.ItemType == CASE_ITEM_WEAPON or info.ItemType == CASE_ITEM_GRENADE then
             return true
         end
-
-        if CaseInventory:PickupItem(ply, ent:GetClass(), 1) then
+        -- Do funny check to see if holding alt here
+        if true then
             return true
+        end
+        if CaseInventory:PickupItem(ply, id, 1) then
+            ent:Remove()
         end
     end
 
@@ -26,9 +34,12 @@ end )
 hook.Add("PlayerCanPickupWeapon", "CASE_PlayerCanPickupWeapon", function( ply, ent)
     local lookTarget = ply:GetEyeTrace().Entity
 
+    if ply.UseCommand == nil then
+        ply.UseCommand = 0
+    end
 
-    if ply.CaseInv.UseCommand == 1 and lookTarget == ent then
-        ply.CaseInv.UseCommand = 2
+    if ply.UseCommand == 1 and lookTarget == ent then
+        ply.UseCommand = 2
         CaseInventory:PickupWeapon(ply, ent)
     end
 
@@ -37,11 +48,11 @@ end)
 
 hook.Add( "StartCommand", "CASE_StartCommand", function( ply, cmd)
     if cmd:KeyDown(IN_USE) then
-        if ply.CaseInv.UseCommand < 2 then
-            ply.CaseInv.UseCommand = ply.CaseInv.UseCommand + 1
+        if ply.UseCommand < 2 then
+            ply.UseCommand = ply.UseCommand + 1
         end
     else
-        ply.CaseInv.UseCommand = 0
+        ply.UseCommand = 0
     end
 end)
 
@@ -50,7 +61,7 @@ hook.Add("PlayerAmmoChanged", "CASE_PlayerAmmoChanged", function (ply, ammoID, o
     -- If so don't do anything
     local count = 0
 
-    for k, v in pairs(ply.CaseInv.Items) do
+    for k, v in pairs(CaseInventory:Inv(ply).Items) do
         local info = CaseInventory.ItemRegister[v.ItemID]
 
         if info.AmmoID == ammoID then
@@ -71,7 +82,7 @@ hook.Add("PlayerAmmoChanged", "CASE_PlayerAmmoChanged", function (ply, ammoID, o
     if newCount < oldCount then
         local itemId = CaseInventory:GetItemFromAmmo(ammoID)
 
-        CaseInventory:RemoveItem(ply.CaseInv, itemId, oldCount - newCount)
+        CaseInventory:RemoveItem(CaseInventory:Inv(ply), itemId, oldCount - newCount)
     end
 end)
 
@@ -89,8 +100,8 @@ end)
 hook.Add("PlayerDeath", "CASE_PlayerDeath", function (victim, inflictor, attacker)
     -- TODO Drop all items if a cvar is set
     if victim:IsPlayer() and cvar_drop_on_death:GetBool() then
-        for k, v in pairs(victim.CaseInv.Items) do
-            CaseInventory:DropItem(victim.CaseInv, k, victim, false)
+        for k, v in pairs(CaseInventory:Inv(victim).Items) do
+            CaseInventory:DropItem(CaseInventory:Inv(victim), k, victim, false)
         end
         CaseInventory:Sync(victim)
     end
@@ -99,7 +110,7 @@ end)
 
 hook.Add("PlayerDroppedWeapon", "CASE_PlayerDroppedWeapon", function (owner, wpn)
     if owner:IsPlayer() then
-        CaseInventory:RemoveItem(owner.CaseInv, CaseInventory:GetItemID(wpn:GetClass()), 1)
+        CaseInventory:RemoveItem(CaseInventory:Inv(owner), CaseInventory:GetItemID(wpn:GetClass()), 1)
     end
 end)
 
@@ -110,8 +121,8 @@ hook.Add( "WeaponEquip", "CASE_WeaponEquip", function( weapon, ply )
         return
     end
 
-	if not CaseInventory:HasItem(ply.CaseInv, itemId) then
-        if not CaseInventory:AddItemToInventory(ply.CaseInv, itemId, 1, true) then
+	if not CaseInventory:HasItem(CaseInventory:Inv(ply), itemId) then
+        if not CaseInventory:AddItemToInventory(CaseInventory:Inv(ply), itemId, 1, true) then
             ply:DropWeapon(weapon, ply:GetPos(), Vector(0,0,0))
         end
     end
