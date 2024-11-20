@@ -1,10 +1,13 @@
 if SERVER then
+    --[[
     local case_sync_mode = CreateConVar("case_sync_mode", "0", {FCVAR_ARCHIVE}, 
     [[Determines if weapons/ammo should be given or taken if they are not in the inventory on sync
     0 -> Weapons/ammo should be given if they are in the inventory but not held
     1 -> Weapons/ammo should be removed from the inventory if they aren't also held
-    ]], 0, 1)
-    local cvar_drop_excess_ammo = CreateConVar("case_drop_excess_ammo", "1", {FCVAR_ARCHIVE},"", 0, 1)
+    , 0, 1)
+    ]]
+    local cvar_drop_excess_ammo = CaseInventory:GetCVAR("case_drop_excess_ammo")
+    local cvar_persist_mode = CaseInventory:GetCVAR("case_persist_mode")
 end
 
 
@@ -278,19 +281,29 @@ function CaseInventory:RemoveItem(inv, id, count)
         rem = 1
     end
 
-    for k, v in pairs(inv.Items) do
-        if v.ItemID == id then
-            local toTake = math.min(v.Count, rem)
-            v.Count = v.Count - toTake
-            rem = rem - toTake
-
-            if v.Count == 0 then
-                inv.Items[k] = nil
+    -- Take from the lowest count rather than first in the inventory
+    while rem ~= 0 do
+        local lowest = -1
+        local curID = -1
+        -- Locate the instance of the item with the lowest count
+        -- Or just use the first one we get
+        for k, v in pairs(inv.Items) do
+            if v.ItemID == id and (lowest == -1 and true or v.Count < lowest) then
+                curID = k
+                lowest = v.Count
             end
+        end
+        -- No instances found :(
+        if curID == -1 then
+            break
+        end
 
-            if rem == 0 then
-                break
-            end
+        local toTake = math.min(inv.Items[curID].Count, rem)
+        inv.Items[curID].Count = inv.Items[curID].Count - toTake
+        rem = rem - toTake
+
+        if inv.Items[curID].Count == 0 then
+            inv.Items[curID] = nil
         end
     end
 
@@ -658,9 +671,61 @@ function CaseInventory:MoveItem(src, srcId, tgt, tgtX, tgtY, tgtRot)
     return false
 end
 
+---Combines stacks of items together
+---@param srcInv table
+---@param destInv table
+---@param srcID integer
+---@param destID integer
+---@param sync boolean Will use the srcInv player for server
+---@return boolean combined, number sourceRem, number destRem
+function CaseInventory:MergeItem(srcInv, destInv, srcID, destID, sync)
+    -- Nice
+    if srcInv == destInv and srcID == destID then
+        return false, 0, 0
+    end
+    if srcInv.Items[srcID] == nil or destInv.Items[destID] == nil then
+        return false, 0, 0
+    end
 
-function CaseInventory:MergeItem(arguments)
+    -- Can only combine items of the same type
+    if srcInv.Items[srcID].ItemID ~= destInv.Items[destID].ItemID then
+        return false, 0, 0
+    end
+    
 
+    local itemFrom = srcInv.Items[srcID]
+    local itemTo = destInv.Items[destID]
+    local itemInfo = CaseInventory.ItemRegister[itemTo.ItemID]
+
+    if itemTo.Count == itemInfo.MaxCount then
+        return false, 0, 0
+    end
+
+    local added = math.min(itemInfo.MaxCount, itemFrom.Count + itemTo.Count) - itemTo.Count 
+    local srcCount = 0
+    -- All of the source was added to the dest
+    if added == itemFrom.Count then
+        srcInv.Items[srcID] = nil
+        srcCount = 0
+    else
+        srcInv.Items[srcID].Count = srcInv.Items[srcID].Count - added
+        srcCount = srcInv.Items[srcID].Count
+    end
+
+    destInv.Items[destID].Count = destInv.Items[destID].Count + added
+
+    CaseInventory:RefreshLoadout(srcInv)
+    CaseInventory:RefreshLoadout(destInv)
+
+    if SERVER and sync then
+        CaseInventory:Sync(srcInv.Player)
+    end
+
+    if CLIENT then
+        CaseInventory.ClientNet.MergeItems(srcID, destID, sync)
+    end
+
+    return true, srcCount, destInv.Items[destID].Count
 end
 
 ---Checks a location in a loadout table to see if it's either empty
@@ -725,26 +790,59 @@ end
 ---Or returns the .ClientInventory value if called from the client
 ---Not like the .Inventories could be accessed from the client anyway
 ---@param ply table?
+---@param toSet table? Use this to override the table set
 ---@return table
-function CaseInventory:Inv(ply)
-    if CLIENT then
-        return LocalPlayer().CaseInv
+function CaseInventory:Inv(ply, toSet)
+
+    -- Basic mode
+    -- Inventory data is stored on the player
+    -- Good for singleplayer campaigns/single level multiplayer ones
+    if cvar_persist_mode:GetInt() == 0 then
+        if CLIENT then
+            if toSet ~= nil then
+                LocalPlayer().CaseInv = toSet
+            end
+            return LocalPlayer().CaseInv
+        end
+
+        if ply == nil then
+            return {}
+        end
+
+        if toSet ~= nil then
+            ply.CaseInv = toSet
+        end
+
+        if ply.CaseInv == nil then
+            ply.CaseInv = CaseInventory:GenerateInventory(CASE_INVENTORY_SIZE_DEFAULT[1], CASE_INVENTORY_SIZE_DEFAULT[2], ply)
+        end
+
+        return ply.CaseInv
     end
 
-    if ply == nil then
-        return {}
+    -- On disk for transitions mode
+    -- Inventory data is stored in the CaseInventory.Inventories table
+    -- Inventory data is saved to disk on map change
+    -- Inventory data is not saved over server restarts
+    if cvar_persist_mode:GetInt() == 1 then
+        
     end
 
-    if ply.CaseInv == nil then
-        ply.CaseInv = CaseInventory:GenerateInventory(CASE_INVENTORY_SIZE_DEFAULT[1], CASE_INVENTORY_SIZE_DEFAULT[2], ply)
+        -- On disk for transitions mode
+    -- Inventory data is stored in the CaseInventory.Inventories table
+    -- Inventory data is saved to disk on map change
+    -- Inventory data is not saved over server restarts
+    if cvar_persist_mode:GetInt() == 1 then
+        
     end
-
-    return ply.CaseInv
 end
 
-
-function CaseInv(ply)
-    return CaseInventory:Inv(ply)
+---Shorthand CaseInventory:Inv(ply)
+---@param ply table?
+---@param toSet table?
+---@return table
+function CaseInv(ply, toSet)
+    return CaseInventory:Inv(ply, toSet)
 end
 
 ---Resets the loadout table for a player

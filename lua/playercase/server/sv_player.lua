@@ -1,8 +1,6 @@
-local cvar_drop_on_death = CreateConVar("case_drop_on_death", "1", {FCVAR_ARCHIVE}, "", 0, 1)
-local cvar_drop_excess_ammo = CreateConVar("case_drop_excess_ammo", "1", {FCVAR_ARCHIVE},"", 0, 1)
-local cvar_pickup_mode = CreateConVar("case_pickup_mode", "1", {FCVAR_ARCHIVE}, [[0 -> Items can be walked over to be picked up
-1 -> Items must be +used to pickup (will still be picked up if in a vehicle)
-2 -> Items must be +used no matter what]], 0, 2)
+local cvar_pickup_mode = CaseInventory:GetCVAR("case_pickup_mode")
+local cvar_drop_excess_ammo = CaseInventory:GetCVAR("case_drop_excess_ammo")
+local cvar_drop_on_death = CaseInventory:GetCVAR("case_drop_on_death")
 
 local function _canPickup(ply, ent)
     local lookTarget = ply:GetEyeTrace().Entity
@@ -150,8 +148,8 @@ end)
 
 
 hook.Add("PlayerSpawn", "CASE_PlayerSpawn", function(plr, trans)
-    if not trans or plr.CaseInv == nil then
-        plr.CaseInv = CaseInventory:GenerateInventory(CASE_INVENTORY_SIZE_DEFAULT[1], CASE_INVENTORY_SIZE_DEFAULT[2], plr)
+    if not trans then
+        CaseInv(plr, CaseInventory:GenerateInventory(CASE_INVENTORY_SIZE_DEFAULT[1], CASE_INVENTORY_SIZE_DEFAULT[2], plr))
     end
     CaseInventory:Sync(plr)
 end)

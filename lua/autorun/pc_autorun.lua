@@ -24,23 +24,21 @@ CASE_COMMAND_DROP = 2
     uint16 invId
     uint1 sync
 ]]
-
 CASE_COMMAND_USE = 3
 --[[
-    uint16 invId, Base
-    uint16 invId, Ingredient 
+    uint16 srcID
+    uint16 destID
 ]]
-CASE_COMMAND_REQUEST_COMBINE = 4
---[[
-    TODO
-]]
-CASE_COMMAND_COMBINE_RESULT = 5
+CASE_COMMAND_MERGE = 4
 
 
 CaseInventory = {}
 CaseInventory.ItemRegister = {}
+CaseInventory.Inventories = {}
+
 
 local server = {
+    "server/sv_cvar.lua",
     "server/sv_player.lua",
     "server/sv_network.lua"
 }

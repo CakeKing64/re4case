@@ -32,6 +32,10 @@ function commands.SyncLocations(ply, toPlace)
     CaseInventory:Inv(ply).Items = plyCopy.Items
     CaseInventory:Inv(ply).Loadout = plyCopy.Loadout
 end
+
+function commands.MergeItems(ply, srcID, destID, sync)
+    CaseInventory:MergeItem(CaseInv(ply), CaseInv(ply), srcID, destID, sync)
+end
 -- Client to server command packet structure
 --[[
     uint4 command
@@ -74,5 +78,12 @@ net.Receive("CaseCommandEvent", function (len, ply)
         local invID = net.ReadUInt(16)
         local sync = net.ReadBool()
         commands.Use(ply, invID, sync)
+    end
+
+    if cmd == CASE_COMMAND_MERGE then
+        local srcID = net.ReadUInt(16)
+        local destID = net.ReadUInt(16)
+        local sync = net.ReadBool()
+        commands.MergeItems(ply, srcID, destID, sync)
     end
 end)

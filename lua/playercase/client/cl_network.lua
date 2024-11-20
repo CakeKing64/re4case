@@ -14,11 +14,18 @@ CaseInventory.ClientNet = {
         net.WriteBool(sync)
         net.SendToServer()
     end,
+    MergeItems = function (srcID, destID, sync)
+        net.Start("CaseCommandEvent")
+        net.WriteUInt(CASE_COMMAND_MERGE, 4)
+        net.WriteUInt(srcID, 16)
+        net.WriteUInt(destID, 16)
+        net.WriteBool(sync)
+        net.SendToServer()
+    end,
     SyncItems = function ()
         net.Start("CaseCommandEvent")
         net.WriteUInt(CASE_COMMAND_SYNC, 4)
         for k, v in pairs(CaseInventory:Inv().Items) do
-            --print("sending",k)
             net.WriteUInt(k, 16)
             net.WriteUInt(v.X, 8)
             net.WriteUInt(v.Y, 8)
@@ -71,8 +78,8 @@ net.Receive("CaseSync", function ()
         return
     end
 
-    LocalPlayer().CaseInv = CaseInventory:GenerateInventory(net.ReadUInt(8), net.ReadUInt(8), LocalPlayer())
-    CaseInventory:ClearLoadout(LocalPlayer().CaseInv)
+    CaseInv(LocalPlayer(), CaseInventory:GenerateInventory(net.ReadUInt(8), net.ReadUInt(8), LocalPlayer())) -- Setup local thing
+    CaseInventory:ClearLoadout(CaseInv(LocalPlayer()))
 
     
     local itemCount = net.ReadUInt(16)

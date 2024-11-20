@@ -21,7 +21,7 @@ end
 
 function invpanel:Inv()
     if self.InvTarget.Player ~= nil then
-        return self.InvTarget.Player.CaseInv
+        return CaseInv(self.InvTarget.Player)
     end
     return self.InvTarget
 end
@@ -316,6 +316,32 @@ function invpanel:OnMousePressed(keyCode)
         if keyCode == MOUSE_LEFT then
             local mx, my = self:GetMouseSlot()
             if mx then
+                local destInvID = self:Inv().Loadout[mx][my]
+
+                -- This doesn't look pretty
+                -- But we're just seeing if it slot we're placing the held item on contains an item of the same type
+                if destInvID ~= 0 and
+                    CaseGUI.HeldItem.SourceWindow:Inv().Items[CaseGUI.HeldItem.InvID].ItemID == self:Inv().Items[destInvID].ItemID
+                then
+                    local mergeResult, mSC, mDC = CaseInventory:MergeItem(
+                        CaseGUI.HeldItem.SourceWindow:Inv(),
+                        self:Inv(),
+                        CaseGUI.HeldItem.InvID,
+                        destInvID,
+                        false
+                    )
+
+                    if mergeResult then
+                        -- All of the first item was merged
+                        if mSC == 0 then
+                            CaseGUI.HeldItem.InvID = -1
+                        end
+
+                        return
+                    end
+                end
+
+
                 if CaseInventory:MoveItem(
                     CaseGUI.HeldItem.SourceWindow:Inv(),
                     CaseGUI.HeldItem.InvID,

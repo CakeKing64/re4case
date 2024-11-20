@@ -195,7 +195,7 @@ end
 local function OpenBasicPanel()
     local scaleW, scaleH = _CaseUIGetScaledDiff()
     local mwX, mwY = 0, 0 
-    CaseGUI.MainWindow = _createWindow("MainWindow", LocalPlayer().CaseInv, true)
+    CaseGUI.MainWindow = _createWindow("MainWindow", CaseInv(LocalPlayer()), true)
     CaseGUI.MainWindow:Center()
     mwX, mwY = CaseGUI.MainWindow:GetPos()
     mwX = mwX - ((__CASE_UI_BORDER/1.5) * scaleW)
