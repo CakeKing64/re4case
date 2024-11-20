@@ -117,10 +117,23 @@ function CaseGUI:FillContext(panel, parent)
     )
     end
 
-    if itemInfo.ItemType == CASE_ITEM_WEAPON then
+    if itemInfo.ItemType == CASE_ITEM_WEAPON or itemInfo.ItemType == CASE_ITEM_GRENADE then
         panel:AddOption("Equip", function ()
-            
-        end)
+            for _, wep in ipairs( LocalPlayer():GetWeapons() ) do
+                if wep:GetClass() == itemInfo.Name then
+                    input.SelectWeapon(wep)
+                    break
+                end
+            end
+            self:CloseContext()
+        end,
+        function ()
+            if not IsValid(LocalPlayer():GetActiveWeapon()) then
+                return true
+            end
+            return LocalPlayer():GetActiveWeapon():GetClass() ~= itemInfo.Name
+        end
+    )
     end
 
     if itemInfo.ItemType == CASE_ITEM_GENERIC or itemInfo.ItemType == CASE_ITEM_GRENADE then

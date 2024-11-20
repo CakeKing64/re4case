@@ -1,7 +1,8 @@
 --[[
     Some info, read if you're gonna add something :)
 
-    .OnUse/.CanUse are given three arguments, the player, the info table and the inventoryID, you'll probably only need to use the player but do whatever
+    .OnUse/.CanUse are given three arguments, the player, the info table 
+    and the inventoryID (will be -1 if not yet in the inventory!), you'll probably only need to use the player but do whatever
     BOTH are used client and serverside
 
     .CanUse returns true or false
@@ -101,7 +102,7 @@ local function _registerItemTable(tbl)
     end
 end
 
-local itemsGMOD = {
+local itemsHL2 = {
     -- Ammo
     CaseAmmo(game.GetAmmoID("AR2"),CaseRenderInfo("models/Items/combine_rifle_cartridge01.mdl", 2.7), 2, 1, 60),
     CaseAmmo(game.GetAmmoID("AR2AltFire"),CaseRenderInfo("models/Items/combine_rifle_ammo01.mdl", 2.1), 1, 2, 3),
@@ -125,9 +126,6 @@ local itemsGMOD = {
     CaseWeapon("weapon_physcannon",CaseRenderInfo("models/weapons/w_physics.mdl", 4, {0, 180, 0}, Vector(0, 22)), 5, 2),
     CaseWeapon("weapon_crossbow",CaseRenderInfo("models/weapons/w_crossbow.mdl", 4.9, {0, 180,0}, Vector(0, 16.5)), 5, 3),
     CaseWeapon("weapon_rpg",CaseRenderInfo("models/weapons/w_rocket_launcher.mdl", 5, {0,0,0}, Vector(0,0,1)), 8, 2),
-    CaseWeapon("gmod_tool", CaseRenderInfo("models/weapons/w_toolgun.mdl", 3.5, {0, -90, 0}, Vector(0, 12)), 3, 2),
-    CaseWeapon("gmod_camera", CaseRenderInfo("models/maxofs2d/camera.mdl", 3.5, {0, 210, 0}), 3, 2),
-    CaseWeapon("weapon_physgun", CaseRenderInfo("models/weapons/w_physics.mdl", 4, {0, 0, 0}), 3, 2),
 
     -- Thrown
     CaseWeapon("weapon_bugbait", CaseRenderInfo("models/weapons/w_bugbait.mdl", 4), 1, 1),
@@ -209,6 +207,29 @@ local itemsGMOD = {
         return true
     end),
 
+    -- Forgot this was a thing until i was playing EP2
+    -- All of these will probably only restore 4 health
+    -- Mostly just cus yeah
+    -- ent_dump reveals they can do more but i'm lazy
+    CaseConsumable("item_grubnugget",CaseRenderInfo("models/grub_nugget_small.mdl", 3),  1, 1, 5, 
+    function (ply, tbl) -- OnUse
+        if CLIENT then
+            return true
+        end
+        local vial = ents.Create("item_grubnugget")
+        vial:Spawn()
+        ply.CasePickup = vial
+        vial:SetPos(ply:GetPos())
+        vial:Use(ply)
+        return true
+    end,
+    function (ply) -- CanUse
+        if ply:Health() >= ply:GetMaxHealth() then
+            return false
+        end
+        return true
+    end),
+
 
     CaseGlowOnly("ent_caseammo"),
     CaseGlowOnly("ent_caseupgrade"),
@@ -236,6 +257,26 @@ local itemsGMOD = {
     CaseGlowOnly("item_box_buckshot"),
 
     CaseGlowOnly("item_rpg_round"),
+
+
 }
 
+local itemsGMOD = {
+    CaseWeapon("gmod_tool", CaseRenderInfo("models/weapons/w_toolgun.mdl", 3.5, {0, -90, 0}, Vector(0, 12)), 3, 2),
+    CaseWeapon("gmod_camera", CaseRenderInfo("models/maxofs2d/camera.mdl", 3.5, {0, 210, 0}), 3, 2),
+    CaseWeapon("weapon_physgun", CaseRenderInfo("models/weapons/w_physics.mdl", 4, {0, 0, 0}), 3, 2),
+    CaseWeapon("weapon_medkit",  CaseRenderInfo("models/Items/HealthKit.mdl", 3.2, {90,90,0}, Vector(0,5,8)), 2, 3),
+    CaseWeapon("manhack_welder",CaseRenderInfo("models/weapons/w_pistol.mdl", 4.3), 3, 2),
+    CaseWeapon("weapon_flechettegun",CaseRenderInfo("models/weapons/w_smg1.mdl", 5, {0,180,0}, Vector(0,-8,0)), 3, 2),
+}
+
+--[[
+    Basically all HL1 items don't give a :GetEyeTrace().Entity
+    or barely give a ent_dump !picker
+local itemsHL1 = {
+    CaseWeapon("weapon_357_hl1", CaseRenderInfo("models/w_357.mdl"), 2, 3),
+    CaseWeapon("weapon_shotgun_hl1",CaseRenderInfo("models/weapons/w_shotgun.mdl", 6), 6, 2),
+}]]
+
 _registerItemTable(itemsGMOD)
+_registerItemTable(itemsHL2)

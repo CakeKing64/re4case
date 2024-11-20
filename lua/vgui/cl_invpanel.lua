@@ -135,10 +135,11 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
     end
 
 
+    local contextHover = CaseGUI.Context.Panel ~= nil and (CaseGUI.Context.Panel:IsHovered() or CaseGUI.Context.Panel:IsChildHovered())
 
     if invId == CaseGUI.HeldItem.InvID  then
         surface.SetDrawColor(Color(128, 128, 128, 128))
-    elseif CaseGUI.HeldItem.InvID == -1 and invId == self:GetMouseItem() then
+    elseif CaseGUI.HeldItem.InvID == -1 and invId == self:GetMouseItem() and not contextHover then
         surface.SetDrawColor(Color(128, 128, 128, 128))
     else
         surface.SetDrawColor(Color(25,25,25, 200))
@@ -368,7 +369,7 @@ function invpanel:OnMousePressed(keyCode)
                 end
 
                 CaseGUI.Context.Panel:SetPos(_x + _w, _y)
-                CaseGUI.Context.Panel:SetSize(200, 200)
+                CaseGUI.Context.Panel:SetSize(200 * scaleW, 200)
                 CaseGUI.Context.Panel:NoClipping(true)
                 CaseGUI.Context.Panel:MakePopup()
                 CaseGUI.Context.Item = itm
@@ -412,6 +413,9 @@ function invpanel:Paint(w, h)
     self:DrawGrid(w, h)
 
     render.SuppressEngineLighting( true )
+    local ambient = render.GetAmbientLightColor()
+    render.SetAmbientLight(255, 255, 255)
+
     for k, v in pairs(self:Inv().Items) do
         local info = CaseInventory.ItemRegister[v.ItemID]
         local held = (k == CaseGUI.HeldItem.InvID and self == CaseGUI.HeldItem.SourceWindow)
@@ -471,7 +475,7 @@ function invpanel:Paint(w, h)
         end
     end
 
-
+    render.SetAmbientLight(ambient.X, ambient.Y, ambient.Z)
     render.SuppressEngineLighting( false )
 
 

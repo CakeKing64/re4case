@@ -24,9 +24,45 @@ hook.Add("PreDrawHalos", "CASE_PreDrawHalos", function ()
     if IsValid(lookTarget) and
         LocalPlayer():GetPos():Distance(lookTarget:GetPos()) < 75
     then
-        if CaseInventory:IsValid(lookTarget:GetClass()) then
-            halo.Add({lookTarget}, Color(0,255,0), 2, 2, 2)
+        local itemID = CaseInventory:GetItemID(lookTarget:GetClass())
+        if itemID == -1 then
+            return
         end
+
+        local itemInfo = CaseInventory.ItemRegister[itemID]
+        local drawColor = Color(0, 255, 0)
+
+        -- Weapons will just give ammo if we already have one
+        if itemInfo.ItemType == CASE_ITEM_WEAPON and not CaseInventory:HasItem(CaseInv(), itemID) then
+            if not CaseInventory:FindValidSpot(CaseInv(), itemID) then
+                drawColor = Color(255, 0, 0)
+            end
+        end
+
+        if itemInfo.ItemType == CASE_ITEM_GENERIC or itemInfo.ItemType == CASE_ITEM_GRENADE then
+            local freeSpace = false
+            local canUse = false
+
+            if itemInfo.ItemType == CASE_ITEM_GENERIC and not LocalPlayer():KeyDown(IN_WALK) and itemInfo.CanUse(LocalPlayer(), itemInfo, -1) then
+                canUse = true
+                drawColor = Color(0, 0, 255)
+            end
+
+            if not canUse then
+                for k, v in pairs(CaseInv().Items) do
+                    if v.ItemID == itemID and v.Count < itemInfo.MaxCount then
+                        freeSpace = true
+                        break
+                    end
+                end
+            end
+
+            if not freeSpace and not canUse and not CaseInventory:FindValidSpot(CaseInv(), itemID) then
+                drawColor = Color(255, 0, 0)
+            end
+        end
+        
+        halo.Add({lookTarget}, drawColor, 2, 2, 2)
     end
 end)
 

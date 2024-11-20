@@ -4,6 +4,7 @@ if SERVER then
     0 -> Weapons/ammo should be given if they are in the inventory but not held
     1 -> Weapons/ammo should be removed from the inventory if they aren't also held
     ]], 0, 1)
+    local cvar_drop_excess_ammo = CreateConVar("case_drop_excess_ammo", "1", {FCVAR_ARCHIVE},"", 0, 1)
 end
 
 
@@ -38,8 +39,8 @@ function CaseInventory:PickupWeapon(ply, wpn)
     
 
 
-    self:PickupAmmo(ply, wpn:GetPrimaryAmmoType(), excessAmmo1)
-    self:PickupAmmo(ply, wpn:GetSecondaryAmmoType(), excessAmmo2)
+    self:PickupAmmo(ply, wpn:GetPrimaryAmmoType(), excessAmmo1, cvar_drop_excess_ammo:GetBool())
+    self:PickupAmmo(ply, wpn:GetSecondaryAmmoType(), excessAmmo2, cvar_drop_excess_ammo:GetBool())
 
 
     return true
@@ -59,7 +60,9 @@ end
 ---@param count integer
 ---@return boolean, integer
 function CaseInventory:PickupAmmo(ply, ammoID, count, dropIfCantPickup)
-    dropIfCantPickup = dropIfCantPickup or true
+    if dropIfCantPickup == nil then
+        dropIfCantPickup = true
+    end
     if ammoID == -1 then
         return false, count
     end
@@ -82,7 +85,7 @@ function CaseInventory:PickupAmmo(ply, ammoID, count, dropIfCantPickup)
     -- (And we didn't have one before)
     if rem ~= count and info.ItemType == CASE_ITEM_GRENADE then
         local hasGrenade = false
-        for k, v in pairs(ply:GetWeapons()) do
+        for k, v in ipairs(ply:GetWeapons()) do
             if v:GetName() == info.Name then
                 hasGrenade = true
                 break
@@ -101,7 +104,6 @@ function CaseInventory:PickupAmmo(ply, ammoID, count, dropIfCantPickup)
     end
 
     if rem > 0 and dropIfCantPickup then
-
         local ent = ents.Create("ent_caseammo")
         ent:SetInfo(
             info.RenderInfo.Model, -- Use the model provided in the inventory
@@ -173,49 +175,57 @@ function CaseInventory:AddItemToInventory(inv, itemId, count, sync)
             newItem.Name = self.ItemRegister[itemId].Name
         end
 
-        local foundSpace = false
-        local placedItem = false
+        local placedItem, x, y, rotated = CaseInventory:FindValidSpot(inv, itemId)
 
-
-        -- Find a spot to place the new item in the loadout
-        for r=1,2 do -- Even attempt both rotations
-            newItem.Rotated = r == 2
-            for y=1, inv.Size[2] do
-                for x=1, inv.Size[1] do
-                    newItem.X = x
-                    newItem.Y = y
-                    if CaseInventory:PlaceItem(inv, newItemId, newItem) then
-                        placedItem = true
-                        break
-                    end
-                end
-                    if placedItem then -- for y
-                        break
-                    end
-                end
-            if placedItem then -- for r
-                break
-            end
-        end
-
-       
 
         if not placedItem then
             return false, rem
         end
 
-        inv.Items[newItemId] = newItem
+        newItem.X = x
+        newItem.Y = y
+        newItem.Rotated = rotated
 
+        inv.Items[newItemId] = newItem
         --PrintTable(ply.CaseInv.Items)
         rem = rem - newItem.Count
     end
 
     if sync and inv.Player ~= nil then
         CaseInventory:Sync(inv.Player)
+    else
+        CaseInventory:RefreshLoadout(inv) -- Still need to apply the loadout
     end
     return true, rem
 end
 
+---Finds a valid spot for an item (if any)
+---@param inv table
+---@param itemID integer
+---@return boolean found, number? x, number? y, boolean? rotated 
+function CaseInventory:FindValidSpot(inv, itemID)
+    local info = CaseInventory.ItemRegister[itemID]
+    for r=1,2 do -- Even attempt both rotations
+        local width = 0
+        local height = 0
+        if r == 1 then
+            width = info.Size.W
+            height = info.Size.H
+        else
+            width = info.Size.H
+            height = info.Size.W
+        end
+        for y=1, inv.Size[2] do
+            for x=1, inv.Size[1] do
+                if CaseInventory:CheckLocation(inv, x, y, width, height) then
+                    return true, x, y, r == 2
+                end
+            end
+        end
+    end
+
+    return false
+end
 
 ---Returns the total count of all items of a certain type
 ---@param inv table
@@ -236,7 +246,7 @@ end
 ---@param id integer
 ---@return boolean
 function CaseInventory:HasItem(inv, id)
-    for k, v in ipairs(inv.Items) do
+    for k, v in pairs(inv.Items) do
         if v.ItemID == id then
             return true
         end
@@ -298,7 +308,6 @@ end
 ---@param sync boolean
 ---@return boolean
 function CaseInventory:DropItem(inv, invId, count, player, sync)
-
     if invId < 1 then
         return false
     end
@@ -329,6 +338,11 @@ function CaseInventory:DropItem(inv, invId, count, player, sync)
     if sync then
         CaseInventory:Sync(player)
     end
+
+    CaseInventory:RefreshLoadout(CaseInventory:Inv(player))
+
+    -- Hopefully this is about 1 1/2 seconds
+    player.CasePickupDelay = ( 1 / FrameTime() ) * 1.5
 
     -- Drop different stuff based on item type
 
@@ -554,11 +568,6 @@ function CaseInventory:PlaceItem(inv, invId, info)
         h = _w
     end
 
-    -- If the item doesn't even fit in the bounds why even bother checking
-    if info.X + (w-1) > inv.Size[1] or info.Y + (h-1) > inv.Size[2]
-        or info.X < 1 or info.Y < 1 then
-        return false 
-    end
 
     if not self:CheckLocation(inv, info.X, info.Y, w, h) then
         return false
@@ -665,10 +674,15 @@ end
 ---@return boolean
 function CaseInventory:CheckLocation(inv, x, y, w, h, ignore)
     ignore = ignore or {0} -- Items to ignore, useful for moving stuff
-    
+
+    if x + (w-1) > inv.Size[1] or y + (h-1) > inv.Size[2]
+        or x < 1 or y < 1 then
+        return false 
+    end
+
     -- *salutes* rip performance
-    for _x = x, x + w-1 do
-        for _y = y, y + h-1 do
+    for _x = x, x + (w-1) do
+        for _y = y, y + (h-1) do
             local found = false
             for k, v in pairs(ignore) do
                 if inv.Loadout[_x][_y] == v then
@@ -728,6 +742,7 @@ function CaseInventory:Inv(ply)
     return ply.CaseInv
 end
 
+
 function CaseInv(ply)
     return CaseInventory:Inv(ply)
 end
@@ -761,7 +776,6 @@ end
 ---Clear and then place :)
 ---@param inv table
 function CaseInventory:RefreshLoadout(inv)
-    print("hi :)")
     CaseInventory:ClearLoadout(inv)
 
     for k, v in pairs(inv.Items) do 
@@ -783,6 +797,7 @@ function CaseInventory:GenerateInventory(width, height, player)
     }
     if player ~= nil then
         player.UseCommand = 0
+        player.CasePickupDelay = 0
     end
     
     CaseInventory:ClearLoadout(inv)

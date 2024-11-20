@@ -1,10 +1,40 @@
 local cvar_drop_on_death = CreateConVar("case_drop_on_death", "1", {FCVAR_ARCHIVE}, "", 0, 1)
 local cvar_drop_excess_ammo = CreateConVar("case_drop_excess_ammo", "1", {FCVAR_ARCHIVE},"", 0, 1)
 local cvar_pickup_mode = CreateConVar("case_pickup_mode", "1", {FCVAR_ARCHIVE}, [[0 -> Items can be walked over to be picked up
-1 -> Items must be +used to pickup]], 0, 1)
+1 -> Items must be +used to pickup (will still be picked up if in a vehicle)
+2 -> Items must be +used no matter what]], 0, 2)
+
+local function _canPickup(ply, ent)
+    local lookTarget = ply:GetEyeTrace().Entity
+    local use = (lookTarget == ent and ply.UseCommand == 1)
+
+    -- In order of most likely to be set :)
+    -- if optimization or something [[likely]]
+
+
+    -- Either use or be in a vehicle
+    if cvar_pickup_mode:GetInt() == 1 and 
+        (use or ply:InVehicle())
+    then
+        return true
+    end
+
+    -- Pickup when walked over
+    if cvar_pickup_mode:GetInt() == 0 and ply.CasePickupDelay > 0 then
+        return true
+    end
+
+    -- Must interact with the item, being in a vehicle doesn't count
+    if cvar_pickup_mode:GetInt() == 2 and use then
+        return true
+    end
+
+    return false
+end
 
 hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent )
-    local lookTarget = ply:GetEyeTrace().Entity
+
+    
 
     if ply.CasePickup == ent then
         ply.CasePickup = nil
@@ -15,7 +45,7 @@ hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent 
         ply.UseCommand = 0
     end
 
-    if ply.UseCommand == 1 and lookTarget == ent then
+    if _canPickup(ply, ent) then
         ply.UseCommand = 2
 
         local id = CaseInventory:GetItemID(ent:GetClass())
@@ -24,8 +54,13 @@ hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent 
         if id == -1 or info.ItemType == CASE_ITEM_GLOW_ONLY or info.ItemType == CASE_ITEM_WEAPON or info.ItemType == CASE_ITEM_GRENADE then
             return true
         end
-        -- Do funny check to see if holding alt here
-        if not ply:IsWalking() then
+
+        -- If the player is not holding walk and the item can be used
+        -- Use it in the overworld then :)
+        -- If not pick it up
+        local canUse = CaseInventory.ItemRegister[id].CanUse
+        
+        if not ply:IsWalking() and (canUse ~= nil and canUse(ply, CaseInventory.ItemRegister[id], -1)) then
             return true
         end
         if CaseInventory:PickupItem(ply, id, 1) then
@@ -37,16 +72,27 @@ hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent 
     return false
 end )
 
-hook.Add("PlayerCanPickupWeapon", "CASE_PlayerCanPickupWeapon", function( ply, ent)
-    local lookTarget = ply:GetEyeTrace().Entity
 
+hook.Add("PlayerCanPickupWeapon", "CASE_PlayerCanPickupWeapon", function( ply, ent)
     if ply.UseCommand == nil then
         ply.UseCommand = 0
     end
 
-    if ply.UseCommand == 1 and lookTarget == ent then
+
+    if _canPickup(ply, ent) then
         ply.UseCommand = 2
-        CaseInventory:PickupWeapon(ply, ent)
+        ply.CasePickup = nil
+        
+
+        local itemId = CaseInventory:GetItemID(ent:GetClass())
+        if itemId == -1 then
+            return false
+        end
+
+        -- Weapons will (should) give ammo when picked up so if we already have a copy let it be obtained anyway
+        if CaseInventory:HasItem(CaseInventory:Inv(ply), itemId) or CaseInventory:FindValidSpot(CaseInventory:Inv(ply), itemId) then
+            return true
+        end
     end
 
     return false
@@ -92,6 +138,15 @@ hook.Add("PlayerAmmoChanged", "CASE_PlayerAmmoChanged", function (ply, ammoID, o
     end
 end)
 
+hook.Add("Tick", "CASE_ServerTick", function ()
+    for k, v in ipairs(player.GetAll()) do
+        if v.CasePickupDelay > 0 then
+            v.CasePickupDelay = v.CasePickupDelay - 1
+            if v.CasePickupDelay == 0 then
+            end
+        end
+    end
+end)
 
 
 hook.Add("PlayerSpawn", "CASE_PlayerSpawn", function(plr, trans)
@@ -115,7 +170,8 @@ hook.Add("PlayerDeath", "CASE_PlayerDeath", function (victim, inflictor, attacke
 end)
 
 hook.Add("PlayerDroppedWeapon", "CASE_PlayerDroppedWeapon", function (owner, wpn)
-    if owner:IsPlayer() then
+    -- This check is here just so we don't cause any unnecessary syncs
+    if owner:IsPlayer() and CaseInventory:HasItem(CaseInventory:Inv(owner), CaseInventory:GetItemID(wpn:GetClass())) then
         CaseInventory:RemoveItem(CaseInventory:Inv(owner), CaseInventory:GetItemID(wpn:GetClass()), 1)
     end
 end)
