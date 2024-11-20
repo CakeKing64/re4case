@@ -1,3 +1,7 @@
+local cvar_drop_excess_ammo = 0
+local cvar_persist_mode = 0
+
+
 if SERVER then
     --[[
     local case_sync_mode = CreateConVar("case_sync_mode", "0", {FCVAR_ARCHIVE}, 
@@ -6,10 +10,13 @@ if SERVER then
     1 -> Weapons/ammo should be removed from the inventory if they aren't also held
     , 0, 1)
     ]]
-    local cvar_drop_excess_ammo = CaseInventory:GetCVAR("case_drop_excess_ammo")
-    local cvar_persist_mode = CaseInventory:GetCVAR("case_persist_mode")
+    cvar_persist_mode = CaseInventory:GetCVAR("case_persist_mode")
+    cvar_drop_excess_ammo = CaseInventory:GetCVAR("case_drop_excess_ammo")
 end
 
+if CLIENT then
+    cvar_persist_mode = CreateConVar("case_persist_mode", "0")
+end
 
 
 ---Converts a source/lua weapon into a usable item in the inventory

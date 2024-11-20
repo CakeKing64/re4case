@@ -35,6 +35,7 @@
         "ents",
         "CreateConVar",
         "FCVAR_ARCHIVE",
-        "ENT"
+        "ENT",
+        "FCVAR_REPLICATED"
     ]
 }
