@@ -30,10 +30,12 @@ CASE_ITEM_AMMO_SPECIAL  = 5 -- Used for the caseammo entity to store any type of
 ---@param onUse function?
 ---@param canUse function?
 ---@param ammoID number
----@param renderInfo table
-function CaseItem(name, sizeW, sizeH, maxSize, itemType, onUse, canUse, ammoID, renderInfo)
+---@param renderInfo table?
+---@param printName string?
+function CaseItem(name, sizeW, sizeH, maxSize, itemType, onUse, canUse, ammoID, renderInfo, printName)
     return {
         Name=name,
+        PrintName=printName or "",
         Size={
             W=sizeW,
             H=sizeH
@@ -69,28 +71,59 @@ function CaseRenderInfo(model, scale, rotVec, offset, diffMode)
 
 end
 
-function CaseGeneric(name, renderInfo, sizeW, sizeH, maxSize)
+---Generic item
+---@param name string
+---@param printName string
+---@param renderInfo table?
+---@param sizeW integer
+---@param sizeH integer
+---@param maxSize integer
+---@return table
+function CaseGeneric(name, printName, renderInfo, sizeW, sizeH, maxSize)
     return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GENERIC, nil, nil, -1, renderInfo)
 end
 
-function CaseConsumable(name, renderInfo, sizeW, sizeH, maxSize, onUse, canUse)
+---Usable item
+---@param name string
+---@param printName string
+---@param renderInfo table?
+---@param sizeW integer
+---@param sizeH integer
+---@param maxSize integer
+---@param onUse function
+---@param canUse function?
+---@return table
+function CaseConsumable(name, printName, renderInfo, sizeW, sizeH, maxSize, onUse, canUse)
     return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GENERIC, onUse, canUse, -1, renderInfo)
 end
 
-function CaseWeapon(name, renderInfo, sizeW, sizeH)
-    return CaseItem(name, sizeW, sizeH, 1, CASE_ITEM_WEAPON, nil, nil,-1, renderInfo)
+---Weapon :)
+---@param name string
+---@param renderInfo table?
+---@param sizeW integer
+---@param sizeH integer
+---@param printName string? Last because only HL2 weapons will need to be manually added
+---@return table
+function CaseWeapon(name, renderInfo, sizeW, sizeH, printName)
+    if printName == nil then
+        local info = weapons.GetStored( name )
+        if info ~= nil then
+            printName = info.PrintName
+        end
+    end
+    return CaseItem(name, sizeW, sizeH, 1, CASE_ITEM_WEAPON, nil, nil,-1, renderInfo, printName)
 end
 
 function CaseGrenade(name, renderInfo, sizeW, sizeH, maxSize, grenadeAmmo)
-    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GRENADE, nil, nil, grenadeAmmo, renderInfo)
+    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GRENADE, nil, nil, grenadeAmmo, renderInfo, game.GetAmmoName( grenadeAmmo ))
 end
 
 function CaseAmmo(ammoID, renderInfo, sizeW, sizeH, maxSize)
-    return CaseItem("case_ammo_" .. ammoID, sizeW, sizeH, maxSize, CASE_ITEM_AMMO, nil, nil, ammoID, renderInfo)
+    return CaseItem("case_ammo_" .. ammoID, sizeW, sizeH, maxSize, CASE_ITEM_AMMO, nil, nil, ammoID, renderInfo, game.GetAmmoName( ammoID ))
 end
 
 function CaseGlowOnly(name)
-   return CaseItem(name, 0, 0, 0, CASE_ITEM_GLOW_ONLY, nil, nil, -1, {}) 
+   return CaseItem(name, 0, 0, 0, CASE_ITEM_GLOW_ONLY, nil, nil, -1, {}, "") 
 end
 
 -- Maybe move these to a different file?
@@ -117,15 +150,15 @@ local itemsHL2 = {
 
     -- I have NO idea if any mods will use these or not
     -- (They're used by the combine)
-    CaseAmmo(game.GetAmmoID("SniperRound"),CaseRenderInfo("models/Items/357ammo.mdl", 3), 2, 1, 10),
-    CaseAmmo(game.GetAmmoID("SniperPenetratedRound"),CaseRenderInfo("models/Items/357ammo.mdl", 3), 2, 1, 10),
+    CaseAmmo(game.GetAmmoID("SniperRound"),CaseRenderInfo("models/Items/357ammo.mdl", 1.3, {25, 180, 0}), 2, 1, 10),
+    CaseAmmo(game.GetAmmoID("SniperPenetratedRound"),CaseRenderInfo("models/Items/357ammo.mdl", 1.3, {25, 180, 0}), 2, 1, 10),
     
     -- Melee + Other
-    CaseWeapon("weapon_crowbar",CaseRenderInfo("models/weapons/w_crowbar.mdl", 5, {90, 0, 90}), 2, 3),
-    CaseWeapon("weapon_stunstick",CaseRenderInfo("models/weapons/w_stunbaton.mdl", 5, {90, 0, 90}, Vector(0, -1, -1.5)), 2, 3),
-    CaseWeapon("weapon_physcannon",CaseRenderInfo("models/weapons/w_physics.mdl", 4, {0, 180, 0}, Vector(0, 22)), 5, 2),
-    CaseWeapon("weapon_crossbow",CaseRenderInfo("models/weapons/w_crossbow.mdl", 4.9, {0, 180,0}, Vector(0, 16.5)), 5, 3),
-    CaseWeapon("weapon_rpg",CaseRenderInfo("models/weapons/w_rocket_launcher.mdl", 5, {0,0,0}, Vector(0,0,1)), 8, 2),
+    CaseWeapon("weapon_crowbar",CaseRenderInfo("models/weapons/w_crowbar.mdl", 5, {90, 0, 90}), 2, 3, "Crowbar"),
+    CaseWeapon("weapon_stunstick",CaseRenderInfo("models/weapons/w_stunbaton.mdl", 5, {90, 0, 90}, Vector(0, -1, -1.5)), 2, 3, "Stunstick"),
+    CaseWeapon("weapon_physcannon",CaseRenderInfo("models/weapons/w_physics.mdl", 4, {0, 180, 0}, Vector(0, 22)), 5, 2, "Gravity Gun"),
+    CaseWeapon("weapon_crossbow",CaseRenderInfo("models/weapons/w_crossbow.mdl", 4.9, {0, 180,0}, Vector(0, 16.5)), 5, 3, "Crossbow"),
+    CaseWeapon("weapon_rpg",CaseRenderInfo("models/weapons/w_rocket_launcher.mdl", 5, {0,0,0}, Vector(0,0,1)), 8, 2, "RPG Launcher"),
 
     -- Thrown
     CaseWeapon("weapon_bugbait", CaseRenderInfo("models/weapons/w_bugbait.mdl", 4), 1, 1),
@@ -133,22 +166,22 @@ local itemsHL2 = {
     CaseGrenade("weapon_slam",CaseRenderInfo("models/weapons/w_slam.mdl", 3, {0,90,-90}), 1, 2, 3, game.GetAmmoID("slam")),
 
     -- Pistol
-    CaseWeapon("weapon_357",CaseRenderInfo("models/weapons/w_357.mdl", 4.5, {5, 180, 0}, Vector(0, 13)), 3, 2),
-    CaseWeapon("weapon_pistol",CaseRenderInfo("models/weapons/w_pistol.mdl", 4.3), 3, 2),
+    CaseWeapon("weapon_357",CaseRenderInfo("models/weapons/w_357.mdl", 4.5, {5, 180, 0}, Vector(0, 13)), 3, 2, ".347 Magnum"),
+    CaseWeapon("weapon_pistol",CaseRenderInfo("models/weapons/w_pistol.mdl", 4.3), 3, 2, "9mm Pistol"),
 
 
     -- Shotgun
-    CaseWeapon("weapon_shotgun",CaseRenderInfo("models/weapons/w_shotgun.mdl", 6), 6, 2),
-    CaseWeapon("weapon_annabelle",CaseRenderInfo("models/weapons/w_annabelle.mdl", 1.5), 8, 2), -- tee hee
+    CaseWeapon("weapon_shotgun",CaseRenderInfo("models/weapons/w_shotgun.mdl", 6), 6, 2, "Shotgun"),
+    CaseWeapon("weapon_annabelle",CaseRenderInfo("models/weapons/w_annabelle.mdl", 1.5), 8, 2, "Annabelle"), -- tee hee
 
 
     -- Auto
-    CaseWeapon("weapon_smg1",CaseRenderInfo("models/weapons/w_smg1.mdl", 5, {0,180,0}, Vector(0,-8,0)), 3, 2),
-    CaseWeapon("weapon_ar2",CaseRenderInfo("models/weapons/w_irifle.mdl", 5.6), 5, 2),
-    CaseWeapon("weapon_alyxgun",CaseRenderInfo("models/weapons/w_alyx_gun.mdl", 0.5), 3, 2), -- tee hee 2
+    CaseWeapon("weapon_smg1",CaseRenderInfo("models/weapons/w_smg1.mdl", 5, {0,180,0}, Vector(0,-8,0)), 3, 2, "SMG"),
+    CaseWeapon("weapon_ar2",CaseRenderInfo("models/weapons/w_irifle.mdl", 5.6), 5, 2, "Pulse-Rifle"),
+    CaseWeapon("weapon_alyxgun",CaseRenderInfo("models/weapons/w_alyx_gun.mdl", 0.5), 3, 2, "Alyx's Gun"), -- tee hee 2
 
     -- Consumables (yummers)
-    CaseConsumable("item_healthkit", CaseRenderInfo("models/Items/HealthKit.mdl", 3.2, {90,90,0}, Vector(0,5,8)), 2, 3, 3,
+    CaseConsumable("item_healthkit", "Health Kit", CaseRenderInfo("models/Items/HealthKit.mdl", 3.2, {90,90,0}, Vector(0,5,8)), 2, 3, 3,
     function (ply, tbl) -- OnUse
         if CLIENT then
             return true
@@ -168,7 +201,7 @@ local itemsHL2 = {
         return true
     end),
 
-    CaseConsumable("item_healthvial",CaseRenderInfo("models/healthvial.mdl", 1.9, {0,125}, Vector(0,0.2)),  1, 2, 3, 
+    CaseConsumable("item_healthvial", "Health Vial", CaseRenderInfo("models/healthvial.mdl", 1.9, {0,125}, Vector(0,0.2)),  1, 2, 3, 
     function (ply, tbl) -- OnUse
         if CLIENT then
             return true
@@ -187,7 +220,7 @@ local itemsHL2 = {
         return true
     end),
 
-    CaseConsumable("item_battery", CaseRenderInfo("models/items/battery.mdl", 2.1, {0,-60,180}, Vector(0,-0.2,10)), 1, 2, 3,
+    CaseConsumable("item_battery", "Suit Battery", CaseRenderInfo("models/items/battery.mdl", 2.1, {0,-60,180}, Vector(0,-0.2,10)), 1, 2, 3,
     function (ply) -- OnUse
         if CLIENT then
             return true
@@ -211,7 +244,7 @@ local itemsHL2 = {
     -- All of these will probably only restore 4 health
     -- Mostly just cus yeah
     -- ent_dump reveals they can do more but i'm lazy
-    CaseConsumable("item_grubnugget",CaseRenderInfo("models/grub_nugget_small.mdl", 3),  1, 1, 5, 
+    CaseConsumable("item_grubnugget", "Grub Nugget", CaseRenderInfo("models/grub_nugget_small.mdl", 3),  1, 1, 5, 
     function (ply, tbl) -- OnUse
         if CLIENT then
             return true

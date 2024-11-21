@@ -5,6 +5,7 @@ local CVARS = {
     1 -> Items must be +used to pickup (will still be picked up if in a vehicle)
     2 -> Items must be +used no matter what]], 0, 2),
     case_persist_mode = CreateConVar("case_persist_mode", "0", {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "???", 0, 2),
+    case_auto_generate = CreateConVar("case_auto_generate", "0", {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Auto generates ammo/weapons (probably kinda bad)", 0, 1)
 
 
 

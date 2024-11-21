@@ -1,6 +1,6 @@
 local cvar_drop_excess_ammo = 0
 local cvar_persist_mode = 0
-
+local cvar_auto_generate = 0
 
 if SERVER then
     --[[
@@ -12,10 +12,12 @@ if SERVER then
     ]]
     cvar_persist_mode = CaseInventory:GetCVAR("case_persist_mode")
     cvar_drop_excess_ammo = CaseInventory:GetCVAR("case_drop_excess_ammo")
+    cvar_auto_generate = CaseInventory:GetCVAR("case_auto_generate")
 end
 
 if CLIENT then
     cvar_persist_mode = CreateConVar("case_persist_mode", "0")
+    cvar_auto_generate = CreateConVar("case_auto_generate", "0")
 end
 
 
@@ -960,6 +962,54 @@ function CaseInventory:Sync(ply)
     --PrintTable(ply.CaseInv.Items)
     --print("sent ", CaseInventory:ItemSize(ply.CaseInv), "items")
     --CaseInventory:DebugPrintLoadout(ply.CaseInv.Items)
+end
+
+---Auto generates weapon and ammo
+---Probably bad and also maybe like O(n something (nothing good))
+function CaseInventory:AutoGenerate()
+    if not cvar_auto_generate:GetBool() then
+        return
+    end
+
+    -- Copying as I don't want this to have any....
+    -- Unforseen consequences
+    local wepList = table.Copy(weapons.GetList())
+    local ammoList = game.GetAmmoTypes()
+
+    -- We're about to push that big O to its limits fellas
+    -- Find out what is already registed and remove it from the todo list
+    for k, v in ipairs(CaseInventory.ItemRegister) do
+        if v.ItemType ~= CASE_ITEM_WEAPON or v.ItemType ~= CASE_ITEM_GRENADE then
+            continue
+        end
+        local i = 1
+        while i <= #wepList do
+            local v2 = wepList[i]
+            if v2.ClassName == v.Name then
+                print("removed " .. v2.ClassName)
+                table.remove(wepList, i)
+            else
+                i = i + 1
+            end
+        end
+    end
+
+    for k, v in ipairs(CaseInventory.ItemRegister) do
+        if v.AmmoID == -1 then
+            continue
+        end
+
+        for k2, v2 in pairs(ammoList) do
+            print(v2)
+        end
+    end
+
+    for k, v in ipairs(wepList) do
+        local world = v.WorldModel or "models/weapons/w_pistol.mdl"
+        CaseInventory:RegisterItem(CaseWeapon(v.ClassName, CaseRenderInfo(world), 3, 2))
+    end
+
+
 end
 
 function CaseInventory:DebugPrintLoadout(inv)
