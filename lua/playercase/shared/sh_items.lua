@@ -278,5 +278,8 @@ local itemsHL1 = {
     CaseWeapon("weapon_shotgun_hl1",CaseRenderInfo("models/weapons/w_shotgun.mdl", 6), 6, 2),
 }]]
 
-_registerItemTable(itemsGMOD)
-_registerItemTable(itemsHL2)
+hook.Add("CaseRegisterItems", "CaseDefaultItemRegister", function ()
+    _registerItemTable(itemsGMOD)
+    _registerItemTable(itemsHL2)
+end)
+

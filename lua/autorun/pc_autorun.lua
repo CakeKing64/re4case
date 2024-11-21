@@ -39,6 +39,7 @@ CaseInventory.Inventories = {}
 
 local server = {
     "server/sv_cvar.lua",
+    "server/sv_hooks.lua",
     "server/sv_player.lua",
     "server/sv_network.lua"
 }
@@ -53,7 +54,8 @@ local client = {
 
 local shared = {
     "shared/sh_api.lua",
-    "shared/sh_items.lua"
+    "shared/sh_items.lua",
+    "shared/sh_hooks.lua"
 }
 
 

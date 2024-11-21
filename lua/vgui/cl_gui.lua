@@ -78,54 +78,57 @@ function CaseGUI:CloseContext()
     end
 end
 
+---Creates a context item
+---@param text string
+---@param callback function
+---@param allowed function?
+function CaseGUI:AddContext(list, text, callback, allowed)
+    table.insert(list, {
+        Text=text,
+        Callback=callback,
+        Allowed=allowed
+    })
+end
 
----Fills the context menu with that fits with whatever item was selected
----Params here just for ease of use
----@param panel table
----@param parent table
----@param itm integer
-function CaseGUI:FillContext(panel, parent)
-    
-    local itemInfo = CaseInventory.ItemRegister[self.Context.Parent:Inv().Items[CaseGUI.Context.Item].ItemID]
 
+hook.Add("CaseFillContext", "CaseDefaultFillContext", function (list, info)
+    local itemInfo = info.ItemInfo
     if itemInfo.OnUse ~= nil then
-        panel:AddOption("Use", function () -- Actually use the item
-            CaseInventory.ClientNet.UseItem(CaseGUI.Context.Item, false) -- Request for the server to use the item
-            local item = CaseInventory.ItemRegister[parent:Inv().Items[CaseGUI.Context.Item].ItemID]
+        CaseGUI:AddContext(list, "Use", function () -- Actually use the item
+            CaseInventory.ClientNet.UseItem(info.InvID, false) -- Request for the server to use the item
             -- Cool line
-            local used, useCount = item.OnUse(LocalPlayer(), item, CaseGUI.Context.Item)
+            local used, useCount = itemInfo.OnUse(LocalPlayer(), itemInfo, info.InvID)
             useCount = useCount and math.max(0, useCount) or 1
 
             if used then
-                parent:Inv().Items[CaseGUI.Context.Item].Count = parent:Inv().Items[CaseGUI.Context.Item].Count - useCount
-                if parent:Inv().Items[CaseGUI.Context.Item].Count == 0 then
-                    parent:Inv().Items[CaseGUI.Context.Item] = nil
-                    CaseInventory:RefreshLoadout(self.Context.Parent:Inv())
-                    self:CloseContext()
+                info.Inv.Items[info.InvID].Count = info.Inv.Items[info.InvID].Count - useCount
+                if info.Inv.Items[info.InvID].Count == 0 then
+                    info.Inv.Items[info.InvID] = nil
+                    CaseInventory:RefreshLoadout(info.Inv)
+                    CaseGUI:CloseContext()
                 end
             end
 
 
         end,
         function () -- Avail check
-            local item = CaseInventory.ItemRegister[parent:Inv().Items[CaseGUI.Context.Item].ItemID]
-            if item.CanUse == nil then
+            if itemInfo.CanUse == nil then
                 return true
             end
-            return item.CanUse(LocalPlayer(), item, CaseGUI.Context.Item)
+            return itemInfo.CanUse(LocalPlayer(), itemInfo, info.InvID)
         end
     )
     end
 
     if itemInfo.ItemType == CASE_ITEM_WEAPON or itemInfo.ItemType == CASE_ITEM_GRENADE then
-        panel:AddOption("Equip", function ()
+        CaseGUI:AddContext(list, "Equip", function ()
             for _, wep in ipairs( LocalPlayer():GetWeapons() ) do
                 if wep:GetClass() == itemInfo.Name then
                     input.SelectWeapon(wep)
                     break
                 end
             end
-            self:CloseContext()
+            CaseGUI:CloseContext()
         end,
         function ()
             if not IsValid(LocalPlayer():GetActiveWeapon()) then
@@ -135,29 +138,54 @@ function CaseGUI:FillContext(panel, parent)
         end
     )
     end
-
+    
     if itemInfo.ItemType == CASE_ITEM_GENERIC or itemInfo.ItemType == CASE_ITEM_GRENADE then
-        panel:AddOption("Drop 1", function ()
-            CaseInventory.ClientNet.DropItem(CaseGUI.Context.Item, 1, false)
-            parent:Inv().Items[CaseGUI.Context.Item].Count = parent:Inv().Items[CaseGUI.Context.Item].Count - 1
-            if parent:Inv().Items[CaseGUI.Context.Item].Count == 0 then
-                parent:Inv().Items[CaseGUI.Context.Item] = nil
-                CaseInventory:RefreshLoadout(self.Context.Parent:Inv())
-                self:CloseContext()
+        CaseGUI:AddContext(list, "Drop 1", function ()
+            CaseInventory.ClientNet.DropItem(info.InvID, 1, false)
+            info.Inv.Items[info.InvID].Count = info.Inv.Items[info.InvID].Count - 1
+            if info.Inv.Items[info.InvID].Count == 0 then
+                info.Inv.Items[info.InvID] = nil
+                CaseInventory:RefreshLoadout(info.Inv)
+                CaseGUI:CloseContext()
             end
 
 
         end)
     end
+
+end)
+
+
+---Fills the context menu with that fits with whatever item was selected
+---Params here just for ease of use
+---@param panel table
+---@param parent table
+---@param itm integer
+function CaseGUI:FillContext(panel, parent)
+    local itemID = self.Context.Parent:Inv().Items[CaseGUI.Context.Item].ItemID
+    local itemInfo = CaseInventory.ItemRegister[itemID]
+    local list = {}
+
+    hook.Call("CaseFillContext", nil, list, {
+        Menu=self.Context.Panel,
+        ItemID=itemID,
+        ItemInfo=itemInfo,
+        Inv=self.Context.Parent:Inv(),
+        InvID=CaseGUI.Context.Item}
+    )
+
     -- All items have this :)
-    panel:AddOption("Drop", function ()
+    CaseGUI:AddContext(list,"Drop", function ()
         CaseInventory.ClientNet.DropItem(CaseGUI.Context.Item, -1, false)
         parent:Inv().Items[CaseGUI.Context.Item] = nil
 
         CaseInventory:RefreshLoadout(self.Context.Parent:Inv())
-        self:CloseContext()
-
+        CaseGUI:CloseContext()
     end)
+
+    for k, v in pairs(list) do
+        panel:AddOption(v.Text, v.Callback, v.Allowed)
+    end
 end
 
 

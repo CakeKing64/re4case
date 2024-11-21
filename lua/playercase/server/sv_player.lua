@@ -70,7 +70,6 @@ hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent 
     return false
 end )
 
-
 hook.Add("PlayerCanPickupWeapon", "CASE_PlayerCanPickupWeapon", function( ply, ent)
     if ply.UseCommand == nil then
         ply.UseCommand = 0
@@ -136,15 +135,7 @@ hook.Add("PlayerAmmoChanged", "CASE_PlayerAmmoChanged", function (ply, ammoID, o
     end
 end)
 
-hook.Add("Tick", "CASE_ServerTick", function ()
-    for k, v in ipairs(player.GetAll()) do
-        if v.CasePickupDelay > 0 then
-            v.CasePickupDelay = v.CasePickupDelay - 1
-            if v.CasePickupDelay == 0 then
-            end
-        end
-    end
-end)
+
 
 
 hook.Add("PlayerSpawn", "CASE_PlayerSpawn", function(plr, trans)
