@@ -102,7 +102,7 @@ end
 ---@param renderInfo table?
 ---@param sizeW integer
 ---@param sizeH integer
----@param printName string? Last because only HL2 weapons will need to be manually added
+---@param printName string? Last because only HL2 weapons will need to be manually added (their pickup names are all caps :()
 ---@return table
 function CaseWeapon(name, renderInfo, sizeW, sizeH, printName)
     if printName == nil then
@@ -118,8 +118,11 @@ function CaseGrenade(name, renderInfo, sizeW, sizeH, maxSize, grenadeAmmo)
     return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GRENADE, nil, nil, grenadeAmmo, renderInfo, game.GetAmmoName( grenadeAmmo ))
 end
 
-function CaseAmmo(ammoID, renderInfo, sizeW, sizeH, maxSize)
-    return CaseItem("case_ammo_" .. ammoID, sizeW, sizeH, maxSize, CASE_ITEM_AMMO, nil, nil, ammoID, renderInfo, game.GetAmmoName( ammoID ))
+function CaseAmmo(ammoID, renderInfo, sizeW, sizeH, maxSize, printName)
+    if printName == nil and not SERVER then
+        printName = language.GetPhrase("#" .. game.GetAmmoName( ammoID ) .. "_ammo")
+    end
+    return CaseItem("case_ammo_" .. ammoID, sizeW, sizeH, maxSize, CASE_ITEM_AMMO, nil, nil, ammoID, renderInfo, printName)
 end
 
 function CaseGlowOnly(name)
@@ -150,7 +153,7 @@ local itemsHL2 = {
 
     -- I have NO idea if any mods will use these or not
     -- (They're used by the combine)
-    CaseAmmo(game.GetAmmoID("SniperRound"),CaseRenderInfo("models/Items/357ammo.mdl", 1.3, {25, 180, 0}), 2, 1, 10),
+    CaseAmmo(game.GetAmmoID("SniperRound"),CaseRenderInfo("models/Items/357ammo.mdl", 1.3, {25, 180, 0}), 2, 1, 10, "Sniper Round"),
     CaseAmmo(game.GetAmmoID("SniperPenetratedRound"),CaseRenderInfo("models/Items/357ammo.mdl", 1.3, {25, 180, 0}), 2, 1, 10),
     
     -- Melee + Other

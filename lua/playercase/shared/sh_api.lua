@@ -978,15 +978,15 @@ function CaseInventory:AutoGenerate()
 
     -- We're about to push that big O to its limits fellas
     -- Find out what is already registed and remove it from the todo list
-    for k, v in ipairs(CaseInventory.ItemRegister) do
-        if v.ItemType ~= CASE_ITEM_WEAPON or v.ItemType ~= CASE_ITEM_GRENADE then
+    for k, v in pairs(CaseInventory.ItemRegister) do
+        if v.ItemType ~= CASE_ITEM_WEAPON and v.ItemType ~= CASE_ITEM_GRENADE then
             continue
         end
         local i = 1
         while i <= #wepList do
             local v2 = wepList[i]
+            
             if v2.ClassName == v.Name then
-                print("removed " .. v2.ClassName)
                 table.remove(wepList, i)
             else
                 i = i + 1
@@ -998,15 +998,25 @@ function CaseInventory:AutoGenerate()
         if v.AmmoID == -1 then
             continue
         end
+        
 
         for k2, v2 in pairs(ammoList) do
-            print(v2)
+            if k2 == v.AmmoID then
+                if not SERVER then
+                    local ammoName = language.GetPhrase("#" .. v2 .. "_ammo")
+                end
+                ammoList[k2] = nil
+            end
         end
     end
 
     for k, v in ipairs(wepList) do
         local world = v.WorldModel or "models/weapons/w_pistol.mdl"
-        CaseInventory:RegisterItem(CaseWeapon(v.ClassName, CaseRenderInfo(world), 3, 2))
+        CaseInventory:RegisterItem(CaseWeapon(v.ClassName, CaseRenderInfo(world), 3, 2, v.Name))
+    end
+
+    for k, v in pairs(ammoList) do
+        CaseInventory:RegisterItem(CaseAmmo(k,CaseRenderInfo("models/Items/357ammo.mdl", 1.3, {25, 180, 0}), 2, 1, 6))
     end
 
 
