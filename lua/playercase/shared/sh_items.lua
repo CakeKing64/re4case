@@ -94,7 +94,7 @@ end
 ---@param canUse function?
 ---@return table
 function CaseConsumable(name, printName, renderInfo, sizeW, sizeH, maxSize, onUse, canUse)
-    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GENERIC, onUse, canUse, -1, renderInfo)
+    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GENERIC, onUse, canUse, -1, renderInfo,  printName)
 end
 
 ---Weapon :)

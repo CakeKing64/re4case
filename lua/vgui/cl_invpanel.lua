@@ -1,5 +1,7 @@
+local cvar_draw_names = CreateClientConVar("case_draw_weapon_names", "1", true, false, "Should item names be shown in the case?", 0, 1)
 local invpanel = {}
 invpanel.InvTarget = nil
+invpanel.IsMainPanel = false
 
 AccessorFunc(invpanel, "bHasItems", "HasItems")
 
@@ -504,6 +506,20 @@ function invpanel:Paint(w, h)
     render.SetAmbientLight(ambient.X, ambient.Y, ambient.Z)
     render.SuppressEngineLighting( false )
 
+    -- Draw item item name (+ desc?)
+    if cvar_draw_names:GetBool() and self.IsMainPanel and IsValid(CaseGUI.HoveredWindow) then
+        local itm = CaseGUI.HoveredWindow:GetMouseItem()
+        if itm ~= 0 then
+            local realID = CaseGUI.HoveredWindow:Inv().Items[itm].ItemID
+            local name = CaseInventory.ItemRegister[realID].PrintName
+            local sW, sH = self:GetSize()
+            local tW, tH = CaseInvBitmapTextSize(name, 35)
+
+
+            surface.SetDrawColor(Color(255, 255, 255))
+            CaseInvBitmapTextDraw(name, (sW / 2) - (tW / 2), -50, 35)
+        end
+    end
 
 end
 
