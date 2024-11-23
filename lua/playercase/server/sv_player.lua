@@ -1,6 +1,7 @@
 local cvar_pickup_mode = CaseInventory:GetCVAR("case_pickup_mode")
 local cvar_drop_excess_ammo = CaseInventory:GetCVAR("case_drop_excess_ammo")
 local cvar_drop_on_death = CaseInventory:GetCVAR("case_drop_on_death")
+local cvar_inventory_mode = CaseInventory:GetCVAR("case_inventory_mode")
 
 local function _canPickup(ply, ent)
     local lookTarget = ply:GetEyeTrace().Entity
@@ -178,3 +179,9 @@ hook.Add( "WeaponEquip", "CASE_WeaponEquip", function( weapon, ply )
         end
     end
 end )
+
+hook.Add("PlayerDisconnected", "CASE_PlayerDisconnected", function (ply)
+    if cvar_inventory_mode:GetInt() == 1 then
+        CaseInventory.Inventories[ply:SteamID64()] = nil
+    end
+end)

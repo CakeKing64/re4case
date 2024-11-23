@@ -1,5 +1,5 @@
 local cvar_drop_excess_ammo = 0
-local cvar_persist_mode = 0
+local cvar_inventory_mode = 0
 local cvar_auto_generate = 0
 
 if SERVER then
@@ -10,13 +10,13 @@ if SERVER then
     1 -> Weapons/ammo should be removed from the inventory if they aren't also held
     , 0, 1)
     ]]
-    cvar_persist_mode = CaseInventory:GetCVAR("case_persist_mode")
+    cvar_inventory_mode = CaseInventory:GetCVAR("case_inventory_mode")
     cvar_drop_excess_ammo = CaseInventory:GetCVAR("case_drop_excess_ammo")
     cvar_auto_generate = CaseInventory:GetCVAR("case_auto_generate")
 end
 
 if CLIENT then
-    cvar_persist_mode = CreateConVar("case_persist_mode", "0")
+    cvar_inventory_mode = CreateConVar("case_inventory_mode", "0")
     cvar_auto_generate = CreateConVar("case_auto_generate", "0")
 end
 
@@ -795,6 +795,7 @@ function CaseInventory:FindFreeId(inv)
     return newItemId
 end
 
+
 ---Fetches the inventory of a player from the CaseInventory.Inventories value
 ---Or returns the .ClientInventory value if called from the client
 ---Not like the .Inventories could be accessed from the client anyway
@@ -806,7 +807,7 @@ function CaseInventory:Inv(ply, toSet)
     -- Basic mode
     -- Inventory data is stored on the player
     -- Good for singleplayer campaigns/single level multiplayer ones
-    if cvar_persist_mode:GetInt() == 0 then
+    if cvar_inventory_mode:GetInt() == 0 then
         if CLIENT then
             if toSet ~= nil then
                 LocalPlayer().CaseInv = toSet
@@ -833,8 +834,31 @@ function CaseInventory:Inv(ply, toSet)
     -- Inventory data is stored in the CaseInventory.Inventories table
     -- Inventory data is saved to disk on map change
     -- Inventory data is not saved over server restarts
-    if cvar_persist_mode:GetInt() == 1 then
-        
+    if cvar_inventory_mode:GetInt() == 1 then
+        if CLIENT then
+            if toSet ~= nil then
+                CaseInventory.ClientInventory = toSet
+            end
+
+            if CaseInventory.ClientInventory == nil then
+                CaseInventory.ClientInventory = CaseInventory:GenerateInventory(CASE_INVENTORY_SIZE_DEFAULT[1], CASE_INVENTORY_SIZE_DEFAULT[2], ply)
+            end
+            return CaseInventory.ClientInventory
+        end
+
+        if ply == nil then
+            return {}
+        end
+
+        if toSet ~= nil then
+            CaseInventory.Inventories[ply:SteamID64()] = toSet
+        end
+
+        if CaseInventory.Inventories[ply:SteamID64()] == nil then
+            ply.CaseInv = CaseInventory:GenerateInventory(CASE_INVENTORY_SIZE_DEFAULT[1], CASE_INVENTORY_SIZE_DEFAULT[2], ply)
+        end
+
+        return CaseInventory.Inventories[ply:SteamID64()]
     end
 
         -- On disk for transitions mode
