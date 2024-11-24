@@ -236,7 +236,7 @@ local function OpenBasicPanel()
     -- Nobody will notice it's slightly off center yeah?
     -- **YOU** won't tell about this right?
     CaseGUI.MainWindow:SetPos(mwX , mwY)
-    CaseGUI.SortingWindow = _createWindow("SortingWindow", CaseInventory:GenerateInventory(6, 8), false, false)
+    CaseGUI.SortingWindow = _createWindow("SortingWindow", CaseInventory:GenerateInventory(6, 9), false, false)
 
     CaseGUI.SortingWindow:SetPos(mwX + CaseGUI.MainWindow:GetSize() + ((__CASE_UI_BORDER/2) * scaleW), mwY)
     CaseGUI.IsOpen = true

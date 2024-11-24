@@ -144,6 +144,9 @@ function CaseInvBitmapTextDraw(text, x, y, height)
     for i = 1, #text do
         local c = text:sub(i,i)
         local chr = fontInfo[tostring(string.byte(c))]
+        if chr == nil then
+            chr = fontInfo[tostring(string.byte("?"))]
+        end
         local UVX = chr.x / fontInfo.W
         local UVY = chr.y / fontInfo.H
         surface.DrawTexturedRectUV( x + curChar*width, y, width, _height, UVX, UVY, UVX + (chr.width / fontInfo.W), UVY + (chr.height / fontInfo.H ))

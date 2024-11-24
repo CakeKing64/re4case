@@ -2,7 +2,7 @@ local cvar_pickup_mode = CaseInventory:GetCVAR("case_pickup_mode")
 local cvar_drop_excess_ammo = CaseInventory:GetCVAR("case_drop_excess_ammo")
 local cvar_drop_on_death = CaseInventory:GetCVAR("case_drop_on_death")
 local cvar_inventory_mode = CaseInventory:GetCVAR("case_inventory_mode")
-
+local cvar_frame0 = CaseInventory:GetCVAR("case_frame0_pickup")
 local function _canPickup(ply, ent)
     local lookTarget = ply:GetEyeTrace().Entity
     local use = (lookTarget == ent and ply.UseCommand == 1)
@@ -25,6 +25,12 @@ local function _canPickup(ply, ent)
 
     -- Must interact with the item, being in a vehicle doesn't count
     if cvar_pickup_mode:GetInt() == 2 and use then
+        return true
+    end
+
+    -- An item was :Give()'d to a player :)
+    -- Pos check to skip some shenanigoons
+    if cvar_frame0:GetBool() and CurTime() - ent:GetCreationTime() == 0 and ent:GetPos() == ply:GetPos()then
         return true
     end
 
@@ -89,7 +95,7 @@ hook.Add("PlayerCanPickupWeapon", "CASE_PlayerCanPickupWeapon", function( ply, e
 
         -- Weapons will (should) give ammo when picked up so if we already have a copy let it be obtained anyway
         if CaseInventory:HasItem(CaseInventory:Inv(ply), itemId) or CaseInventory:FindValidSpot(CaseInventory:Inv(ply), itemId) then
-            return true
+            return
         end
     end
 
@@ -141,7 +147,7 @@ end)
 
 hook.Add("PlayerSpawn", "CASE_PlayerSpawn", function(plr, trans)
     if not trans then
-        CaseInv(plr, CaseInventory:GenerateInventory(CASE_INVENTORY_SIZE_DEFAULT[1], CASE_INVENTORY_SIZE_DEFAULT[2], plr))
+        CaseInventory:Inv(plr, CaseInventory:GenerateInventory(CASE_INVENTORY_SIZE_DEFAULT[1], CASE_INVENTORY_SIZE_DEFAULT[2], plr))
     end
     CaseInventory:Sync(plr)
 end)
@@ -167,6 +173,10 @@ hook.Add("PlayerDroppedWeapon", "CASE_PlayerDroppedWeapon", function (owner, wpn
 end)
 
 hook.Add( "WeaponEquip", "CASE_WeaponEquip", function( weapon, ply )
+
+    if CASE_INVENTORY_DEBUG then
+        print(weapon.WorldModel)
+    end
     -- Check to see if the player has picked up an item but doesn't have it in their inventory
     local itemId = CaseInventory:GetItemID(weapon:GetClass())
     if itemId == -1 then

@@ -251,7 +251,7 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
 
             if _maxClip <= 0 then -- Melee weapon or something gravgun like?
                 _countStatus = 4
-            elseif _count == _maxClip then
+            elseif _count >= _maxClip then
                 _countStatus = 3
             elseif _count > 0 then
                 _countStatus = 2
@@ -507,11 +507,24 @@ function invpanel:Paint(w, h)
     render.SuppressEngineLighting( false )
 
     -- Draw item item name (+ desc?)
-    if cvar_draw_names:GetBool() and self.IsMainPanel and IsValid(CaseGUI.HoveredWindow) then
-        local itm = CaseGUI.HoveredWindow:GetMouseItem()
+    if cvar_draw_names:GetBool() and self.IsMainPanel then
+        local itm = 0
+        local realID = 0
+        if CaseGUI.HeldItem.InvID ~= -1 then
+            itm = CaseGUI.HeldItem.InvID
+            realID = CaseGUI.HeldItem.SourceWindow:Inv().Items[itm].ItemID
+        elseif CaseGUI.Context.Item ~= -1 and IsValid(CaseGUI.Context.Parent) then
+            itm = CaseGUI.Context.Item
+            realID = CaseGUI.Context.Parent:Inv().Items[itm].ItemID
+        elseif IsValid(CaseGUI.HoveredWindow) then
+            itm = CaseGUI.HoveredWindow:GetMouseItem()
+            if itm ~= 0 then
+                realID = CaseGUI.HoveredWindow:Inv().Items[itm].ItemID
+            end
+        end
+        
         if itm ~= 0 then
-            local realID = CaseGUI.HoveredWindow:Inv().Items[itm].ItemID
-            local name = CaseInventory.ItemRegister[realID].PrintName
+            local name = CaseInventory.ItemRegister[realID].PrintName or "" -- or if someone opens the case frame 0 or something
             local sW, sH = self:GetSize()
             local tW, tH = CaseInvBitmapTextSize(name, 35)
 

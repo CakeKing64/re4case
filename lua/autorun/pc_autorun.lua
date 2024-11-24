@@ -36,6 +36,10 @@ CaseInventory = {}
 CaseInventory.ItemRegister = {}
 CaseInventory.Inventories = {}
 
+if CLIENT and not CaseInventory.Ready then
+    CaseInventory.Ready = false
+end
+
 
 local server = {
     "server/sv_cvar.lua",

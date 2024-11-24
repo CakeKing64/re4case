@@ -1000,6 +1000,7 @@ function CaseInventory:AutoGenerate()
     local wepList = table.Copy(weapons.GetList())
     local ammoList = game.GetAmmoTypes()
 
+
     -- We're about to push that big O to its limits fellas
     -- Find out what is already registed and remove it from the todo list
     for k, v in pairs(CaseInventory.ItemRegister) do
@@ -1043,7 +1044,55 @@ function CaseInventory:AutoGenerate()
         CaseInventory:RegisterItem(CaseAmmo(k,CaseRenderInfo("models/Items/357ammo.mdl", 1.3, {25, 180, 0}), 2, 1, 6))
     end
 
+    if cvar_auto_generate:GetInt() == 2 and SERVER then
+        local lua = ""
+        for k, v in ipairs(wepList) do
+            local world = v.WorldModel or "models/weapons/w_pistol.mdl"
+            lua = lua .. string.format("CaseWeapon(\"%s\", CaseRenderInfo(\"%s\"), 3, 2),\n", v.ClassName, world)
+        end
 
+        for k, v in pairs(ammoList) do
+            lua = lua .. string.format("CaseAmmo(game.GetAmmoID(\"%s\"), CaseRenderInfo(\"models/Items/357ammo.mdl, 1.3, {25, 180, 0}), 2, 1, 6), \n", v)
+        end
+
+        print(lua)
+    end
+
+
+end
+
+function CaseInventory:TryLocalize(string)
+    local attempt0 = language.GetPhrase(string)
+    local attempt1 = language.GetPhrase("#" .. string)
+
+    if attempt0 ~= string then
+        return attempt0
+    end
+
+    if attempt1 ~= "#" .. string then
+        return attempt1
+    end
+
+    return string
+end
+
+---Client only
+function CaseInventory:PopulateNames()
+    for k, v in ipairs(CaseInventory.ItemRegister) do
+        if v.PrintName ~= nil then
+            CaseInventory:TryLocalize(v.PrintName)
+            continue
+        end
+
+        if v.ItemType == CASE_ITEM_WEAPON or v.ItemType == CASE_ITEM_GRENADE then
+            local info = weapons.Get(v.Name)
+            if info ~= nil then
+                v.PrintName = CaseInventory:TryLocalize(info.PrintName)
+            else
+                v.PrintName = ""
+            end
+        end
+    end
 end
 
 function CaseInventory:DebugPrintLoadout(inv)

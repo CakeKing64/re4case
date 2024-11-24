@@ -4,8 +4,12 @@ local CVARS = {
     case_pickup_mode = CreateConVar("case_pickup_mode", "1", {FCVAR_ARCHIVE}, [[0 -> Items can be walked over to be picked up
     1 -> Items must be +used to pickup (will still be picked up if in a vehicle)
     2 -> Items must be +used no matter what]], 0, 2),
+    case_frame0_pickup = CreateConVar("case_frame_0_pickup", "1", {FCVAR_ARCHIVE}, [[Allows items to be picked up if they were created 0 frames ago
+    Useful for mods that replace weapons on pickup]], 0, 1),
     case_inventory_mode = CreateConVar("case_inventory_mode", "0", {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "???", 0, 2),
-    case_auto_generate = CreateConVar("case_auto_generate", "0", {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Auto generates ammo/weapons (probably kinda bad)", 0, 1),
+    case_auto_generate = CreateConVar("case_auto_generate", "0", {FCVAR_ARCHIVE, FCVAR_REPLICATED}, [[0-> Don't auto generate weapons
+    1 -> Auto generates ammo/weapons
+    2 -> Auto generate and dump some lua code to replicate]], 0, 2),
 
     --case_changelevel = CreateConVar()
 }

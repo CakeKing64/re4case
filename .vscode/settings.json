@@ -36,6 +36,7 @@
         "CreateConVar",
         "FCVAR_ARCHIVE",
         "ENT",
-        "FCVAR_REPLICATED"
+        "FCVAR_REPLICATED",
+        "CurTime"
     ]
 }

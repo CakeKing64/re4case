@@ -35,7 +35,7 @@ CASE_ITEM_AMMO_SPECIAL  = 5 -- Used for the caseammo entity to store any type of
 function CaseItem(name, sizeW, sizeH, maxSize, itemType, onUse, canUse, ammoID, renderInfo, printName)
     return {
         Name=name,
-        PrintName=printName or "",
+        PrintName=printName,
         Size={
             W=sizeW,
             H=sizeH
@@ -80,7 +80,7 @@ end
 ---@param maxSize integer
 ---@return table
 function CaseGeneric(name, printName, renderInfo, sizeW, sizeH, maxSize)
-    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GENERIC, nil, nil, -1, renderInfo)
+    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GENERIC, nil, nil, -1, renderInfo, printName)
 end
 
 ---Usable item
@@ -105,19 +105,29 @@ end
 ---@param printName string? Last because only HL2 weapons will need to be manually added (their pickup names are all caps :()
 ---@return table
 function CaseWeapon(name, renderInfo, sizeW, sizeH, printName)
-    if printName == nil then
-        local info = weapons.GetStored( name )
-        if info ~= nil then
-            printName = info.PrintName
-        end
-    end
     return CaseItem(name, sizeW, sizeH, 1, CASE_ITEM_WEAPON, nil, nil,-1, renderInfo, printName)
 end
 
+---Creates a grenade :)
+---@param name string
+---@param renderInfo table
+---@param sizeW integer
+---@param sizeH integer
+---@param maxSize integer
+---@param grenadeAmmo integer
+---@return table
 function CaseGrenade(name, renderInfo, sizeW, sizeH, maxSize, grenadeAmmo)
     return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GRENADE, nil, nil, grenadeAmmo, renderInfo, game.GetAmmoName( grenadeAmmo ))
 end
 
+---Creates ammo
+---@param ammoID integer
+---@param renderInfo table?
+---@param sizeW integer
+---@param sizeH integer
+---@param maxSize integer
+---@param printName string?
+---@return table
 function CaseAmmo(ammoID, renderInfo, sizeW, sizeH, maxSize, printName)
     if printName == nil and not SERVER then
         printName = language.GetPhrase("#" .. game.GetAmmoName( ammoID ) .. "_ammo")
@@ -144,7 +154,7 @@ local itemsHL2 = {
     CaseAmmo(game.GetAmmoID("AR2AltFire"),CaseRenderInfo("models/Items/combine_rifle_ammo01.mdl", 2.1), 1, 2, 3),
     CaseAmmo(game.GetAmmoID("Pistol"),CaseRenderInfo("models/Items/BoxSRounds.mdl", 1), 2, 1, 50),
     CaseAmmo(game.GetAmmoID("SMG1"),CaseRenderInfo("models/Items/BoxMRounds.mdl", 1.7), 2, 1, 90),
-    CaseAmmo(game.GetAmmoID("357"),CaseRenderInfo("models/Items/357ammo.mdl", 1.3, {25, 180, 0}), 2, 1, 6),
+    CaseAmmo(game.GetAmmoID("357"),CaseRenderInfo("models/Items/357ammo.mdl", 1.3, {25, 180, 0}), 2, 1, 10),
     CaseAmmo(game.GetAmmoID("XBowBolt"), CaseRenderInfo("models/Items/CrossbowRounds.mdl", 5), 4, 1, 20),
     CaseAmmo(game.GetAmmoID("Buckshot"), CaseRenderInfo("models/Items/BoxBuckshot.mdl", 1.3, {15, 180, 0}), 2, 1, 25),
     CaseAmmo(game.GetAmmoID("RPG_Round"),CaseRenderInfo("models/weapons/w_missile_closed.mdl", 4), 4, 1, 3),
@@ -298,24 +308,77 @@ local itemsHL2 = {
 }
 
 local itemsGMOD = {
+    CaseWeapon("weapon_fists", CaseRenderInfo(""), 3, 2),
     CaseWeapon("gmod_tool", CaseRenderInfo("models/weapons/w_toolgun.mdl", 3.5, {0, -90, 0}, Vector(0, 12)), 3, 2),
     CaseWeapon("gmod_camera", CaseRenderInfo("models/maxofs2d/camera.mdl", 3.5, {0, 210, 0}), 3, 2),
     CaseWeapon("weapon_physgun", CaseRenderInfo("models/weapons/w_physics.mdl", 4, {0, 0, 0}), 3, 2),
     CaseWeapon("weapon_medkit",  CaseRenderInfo("models/Items/HealthKit.mdl", 3.2, {90,90,0}, Vector(0,5,8)), 2, 3),
     CaseWeapon("manhack_welder",CaseRenderInfo("models/weapons/w_pistol.mdl", 4.3), 3, 2),
     CaseWeapon("weapon_flechettegun",CaseRenderInfo("models/weapons/w_smg1.mdl", 5, {0,180,0}, Vector(0,-8,0)), 3, 2),
+    CaseWeapon("weapon_base", CaseRenderInfo("models/weapons/w_357.mdl"), 3, 2),
 }
 
---[[
-    Basically all HL1 items don't give a :GetEyeTrace().Entity
-    or barely give a ent_dump !picker
-local itemsHL1 = {
-    CaseWeapon("weapon_357_hl1", CaseRenderInfo("models/w_357.mdl"), 2, 3),
-    CaseWeapon("weapon_shotgun_hl1",CaseRenderInfo("models/weapons/w_shotgun.mdl", 6), 6, 2),
-}]]
+local itemsARC9Base = {
+    CaseWeapon("arc9_base", CaseRenderInfo(""), 3, 2),
+    CaseWeapon("arc9_base_nade", CaseRenderInfo("models/weapons/w_pistol.mdl"), 3, 2),
+    CaseWeapon("arc9_uplp_grenade_base", CaseRenderInfo("models/weapons/w_eq_fraggrenade.mdl"), 3, 2),
+}
+
+local itemsPolyArms = {
+    -- Melee + Grenades
+    CaseWeapon("arc9_uplp_knife", CaseRenderInfo("models/weapons/arc9/w_uplp_knife.mdl", 2, {}, Vector(0,-1,0)), 1 , 3),
+    CaseGrenade("arc9_uplp_grenade_flash", CaseRenderInfo("models/weapons/arc9/w_uplp_m84.mdl"),1,2,1, game.GetAmmoID("arc9_uplp_grenade_flash")),
+    CaseGrenade("arc9_uplp_grenade_frag", CaseRenderInfo("models/weapons/arc9/w_uplp_m26.mdl"),1,2,1, game.GetAmmoID("arc9_uplp_grenade_frag")),  
+
+
+
+    -- SMG
+    CaseWeapon("arc9_uplp_ak_smg", CaseRenderInfo("models/weapons/arc9/w_uplp_ak_smol.mdl", 7, {0, 180}, Vector(0,-7)), 4, 2),
+    CaseWeapon("arc9_uplp_mac", CaseRenderInfo("models/weapons/arc9/w_uplp_mac11.mdl", 5, {0, 180}, Vector(0, 2)), 2, 2),
+    CaseWeapon("arc9_uplp_mp9", CaseRenderInfo("models/weapons/arc9/w_uplp_mp9.mdl", 10, {0, 180}, Vector(0,-14)), 3, 2),
+    CaseWeapon("arc9_uplp_mp5", CaseRenderInfo("models/weapons/arc9/w_uplp_mp5.mdl", 7, {0, 180}, Vector(0,-9)), 4, 2),
+    CaseWeapon("arc9_uplp_mp7", CaseRenderInfo("models/weapons/arc9/w_uplp_mp7.mdl", 9, {0, 180}, Vector(0,-14)), 3, 2),
+
+    -- Sniper
+    CaseWeapon("arc9_uplp_awp", CaseRenderInfo("models/weapons/arc9/w_uplp_awp.mdl", 5.2, {0, 180}, Vector(0, 2)), 7, 2),
+    CaseWeapon("arc9_uplp_orsis", CaseRenderInfo("models/weapons/arc9/w_uplp_orsis.mdl", 5 ,{0, 180}, Vector(0, 10)), 7, 2),
+
+
+    -- Shotguns
+    CaseWeapon("arc9_uplp_molot", CaseRenderInfo("models/weapons/arc9/w_uplp_molot.mdl", 5.2, {0, 180}, Vector(0, -2)),6 ,2 ),
+    CaseWeapon("arc9_uplp_spas", CaseRenderInfo("models/weapons/arc9/w_uplp_spas.mdl", 5.2, {0, 180}, Vector(0,-2)),6 ,2 ),
+    CaseWeapon("arc9_uplp_m590", CaseRenderInfo("models/weapons/arc9/w_uplp_590.mdl", 5.2, {0, 180}, Vector(0, -2)),6 ,2 ),
+    CaseWeapon("arc9_uplp_r870", CaseRenderInfo("models/weapons/arc9/w_uplp_870.mdl", 5.2, {0, 180}, Vector(0, -2)),6 ,2 ),
+
+    -- funny guns
+    CaseWeapon("arc9_uplp_deagle", CaseRenderInfo("models/weapons/arc9/w_uplp_deagle.mdl", 4.5, {0, 180}, Vector(0, 4.5)), 3, 2),
+    CaseWeapon("arc9_uplp_fn57", CaseRenderInfo("models/weapons/arc9/w_uplp_fn57.mdl", 4.5, {0, 180}, Vector(0,3.5)), 3, 2),
+    CaseWeapon("arc9_uplp_m9", CaseRenderInfo("models/weapons/arc9/w_uplp_beretta.mdl", 4.5, {0, 180}, Vector(0, 4.5)), 3, 2),
+
+    -- ARs
+    CaseWeapon("arc9_uplp_ak", CaseRenderInfo("models/weapons/arc9/w_uplp_ak.mdl",6, {0, 180}, Vector(0, -3)), 5, 2),
+    CaseWeapon("arc9_uplp_ak12", CaseRenderInfo("models/weapons/arc9/w_uplp_ak12.mdl",6, {0, 180}, Vector(0, -3)), 5, 2),
+    CaseWeapon("arc9_uplp_ar15", CaseRenderInfo("models/weapons/arc9/w_uplp_ar15.mdl",8, {0, 180}, Vector(0, -6)), 5, 2),
+    CaseWeapon("arc9_uplp_aug", CaseRenderInfo("models/weapons/arc9/w_uplp_aug.mdl",7.5, {0, 180}, Vector(0, -8.5)), 5, 2),
+    CaseWeapon("arc9_uplp_fal", CaseRenderInfo("models/weapons/arc9/w_uplp_fal.mdl",5.25, {0, 180}, Vector(0, 2)), 6, 2),
+    CaseWeapon("arc9_uplp_ar18", CaseRenderInfo("models/weapons/arc9/w_uplp_ar18.mdl",6, {0, 180}, Vector(0, -3)), 5, 2),
+    CaseWeapon("arc9_uplp_asval", CaseRenderInfo("models/weapons/arc9/w_uplp_asval.mdl",6, {0, 180}, Vector(0, -5)), 5, 2),
+    CaseWeapon("arc9_uplp_scar", CaseRenderInfo("models/weapons/arc9/w_uplp_scar.mdl",5.7, {0, 180}, Vector(0, -4)), 6, 2),
+    CaseWeapon("arc9_uplp_base", CaseRenderInfo("models/weapons/w_pistol.mdl"), 3, 2),
+
+
+
+
+
+
+    
+
+}
 
 hook.Add("CaseRegisterItems", "CaseDefaultItemRegister", function ()
     _registerItemTable(itemsGMOD)
     _registerItemTable(itemsHL2)
+    _registerItemTable(itemsARC9Base)
+    _registerItemTable(itemsPolyArms)
 end)
 

@@ -80,6 +80,12 @@ end)
 -- This hook is only really for the GUI
 hook.Add("Think", "CASE_Think", function ()
 
+    -- Doing this frame one because trying to populate the names anywhere else kinda doesn't work
+    if not CaseInventory.Ready then
+        CaseInventory.Ready = true
+        CaseInventory:PopulateNames()
+    end
+
     _checkInput("Left", MOUSE_LEFT)
     _checkInput("Right", MOUSE_RIGHT)
 
@@ -154,6 +160,8 @@ hook.Add( "InitPostEntity", "CASE_PostInit", function()
         end
         CaseInventory.ClientNet.SyncTemp = nil
     end
+
+
 end )
 
 -- Hook into the pause menu (ESC) so we can close the case if it's open
