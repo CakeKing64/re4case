@@ -92,15 +92,19 @@ hook.Add("Think", "CASE_Think", function ()
 
     if CaseGUI.IsOpen then
         -- Reset the held item back to its last position
-        if mStatus.Right == 1 then
+        if mStatus.Right == 1 and CaseGUI.HeldItem.InvID ~= -1 then
             CaseGUI.HeldItem.InvID = -1
+            CaseGUI.PlaySound("ui/re4case/case_unequip.wav")
         end
 
         if mStatus.Up == 1 or mStatus.Down == 1 then
             mStatus.Up = 0
             mStatus.Down = 0
 
-            CaseGUI.HeldItem.Rotated = not CaseGUI.HeldItem.Rotated
+            if CaseGUI.HeldItem.InvID ~= -1 then
+                CaseGUI.HeldItem.Rotated = not CaseGUI.HeldItem.Rotated
+                CaseGUI.PlaySound("ui/re4case/case_selection.wav")
+            end
         end
 
     end
@@ -160,7 +164,6 @@ hook.Add( "InitPostEntity", "CASE_PostInit", function()
         end
         CaseInventory.ClientNet.SyncTemp = nil
     end
-
 
 end )
 

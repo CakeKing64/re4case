@@ -21,7 +21,21 @@ CaseGUI = {
         Item=-1
     },
     InvTargets = {
-    }
+    },
+    ShouldPlaySounds = CreateClientConVar("case_play_sounds", "1", true, false, [[Should sounds be played?
+    Set to 2 to replace the more annoying sounds]], 0, 2 ),
+    PlaySound = function (sound, replace)
+        if not CaseGUI.ShouldPlaySounds:GetBool() then
+            return
+        end
+
+        if replace ~= nil and CaseGUI.ShouldPlaySounds:GetInt() == 2 then
+            surface.PlaySound(replace)
+            return
+        end
+
+        surface.PlaySound(sound)
+    end
 }
 
 -- The bane of GUI progammers world wide
@@ -65,9 +79,14 @@ function CaseGUI:Close()
     self.IsOpen = false
     self.Context = {
         Panel=nil,
-        Parent=nil
+        Parent=nil,
+        Item=-1
     }
     self.HeldItem.InvID = -1
+
+    if CaseGUI.ShouldPlaySounds:GetBool() then
+        surface.PlaySound("ui/re4case/case_close.wav")
+    end
 end
 
 function CaseGUI:CloseContext()
@@ -82,11 +101,13 @@ end
 ---@param text string
 ---@param callback function
 ---@param allowed function?
-function CaseGUI:AddContext(list, text, callback, allowed)
+---@param sound string?
+function CaseGUI:AddContext(list, text, callback, allowed, sound)
     table.insert(list, {
         Text=text,
         Callback=callback,
-        Allowed=allowed
+        Allowed=allowed,
+        Sound=sound
     })
 end
 
@@ -135,7 +156,8 @@ hook.Add("CaseFillContext", "CaseDefaultFillContext", function (list, info)
                 return true
             end
             return LocalPlayer():GetActiveWeapon():GetClass() ~= itemInfo.Name
-        end
+        end,
+        "ui/re4case/case_equip.wav"
     )
     end
     
@@ -184,7 +206,7 @@ function CaseGUI:FillContext(panel, parent)
     end)
 
     for k, v in pairs(list) do
-        panel:AddOption(v.Text, v.Callback, v.Allowed)
+        panel:AddOption(v.Text, v.Callback, v.Allowed, v.Sound)
     end
 end
 
@@ -249,6 +271,10 @@ local function OpenBasicPanel()
     button:SetPos(mainWindowW - ((5*scaleW) +  (25 * scaleH)), (5*scaleW))
     button.DoClick = function()
         CaseGUI:Close()
+    end
+
+    if CaseGUI.ShouldPlaySounds:GetBool() then
+        CaseGUI.PlaySound("ui/re4case/case_open.wav")
     end
 end
 

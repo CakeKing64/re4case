@@ -1,7 +1,10 @@
 local cvar_draw_names = CreateClientConVar("case_draw_weapon_names", "1", true, false, "Should item names be shown in the case?", 0, 1)
+--local cvar_play_sound = CreateClientConVar("case_play_sounds", "1", true, false, "Should sounds be played?", 0, 1)
+
 local invpanel = {}
 invpanel.InvTarget = nil
 invpanel.IsMainPanel = false
+invpanel.LastHoveredItem = -1
 
 AccessorFunc(invpanel, "bHasItems", "HasItems")
 
@@ -309,6 +312,7 @@ function invpanel:OnMousePressed(keyCode)
             CaseGUI.Context.Panel = nil
             CaseGUI.Context.Parent = nil
             CaseGUI.Context.Item = -1
+            CaseGUI.PlaySound("ui/re4case/context_close.wav")
         end
         return
     end
@@ -352,6 +356,7 @@ function invpanel:OnMousePressed(keyCode)
                     CaseGUI.HeldItem.Y,
                     CaseGUI.HeldItem.Rotated
                 ) then
+                    CaseGUI.PlaySound("ui/re4case/case_putdown.wav", "ui/re4case/case_unequip.wav")
                     CaseGUI.HeldItem.InvID = -1
                     return
                 end
@@ -364,6 +369,9 @@ function invpanel:OnMousePressed(keyCode)
         if keyCode == MOUSE_LEFT then
             local itm = self:GetMouseItem()
             if itm ~= 0 then
+
+                CaseGUI.PlaySound("ui/re4case/case_pickup.wav", "ui/re4case/case_equip.wav")
+
                 CaseGUI.HeldItem.SourceWindow = self
                 CaseGUI.HeldItem.InvID = itm
                 CaseGUI.HeldItem.OldInfo = self:Inv().Items[CaseGUI.HeldItem.InvID]
@@ -376,6 +384,8 @@ function invpanel:OnMousePressed(keyCode)
 
 
             if itm ~= 0 then
+
+                CaseGUI.PlaySound("ui/re4case/context_open.wav")
                 CaseGUI.Context.Panel = vgui.Create("CaseInvContext")
                 local posX, posY = self:LocalToScreen(self:GetPos())
                 local itemX, itemY = self:Inv().Items[itm].X, self:Inv().Items[itm].Y
@@ -420,6 +430,27 @@ function invpanel:Think()
     end
     if self:GetMouseSlot() ~= nil then
         CaseGUI.HoveredWindow = self
+    end
+    
+
+    if CaseGUI.ShouldPlaySounds:GetBool() then
+        local item = self:GetMouseItem()
+        
+        if CaseGUI.HeldItem.InvID ~= -1 then
+            item = CaseGUI.HeldItem.InvID
+            self.LastHoveredItem = item
+        end
+        
+        if CaseGUI.Context.Item ~= nil and CaseGUI.Context.Item ~= -1 then
+            item = CaseGUI.Context.Item
+            self.LastHoveredItem  = item
+        end
+
+        if item ~= 0 and item ~= self.LastHoveredItem then
+            CaseGUI.PlaySound("ui/re4case/case_selection.wav")
+        end
+
+        self.LastHoveredItem = item
     end
     
     self.bHasItems = false

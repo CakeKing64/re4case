@@ -8,13 +8,16 @@ function PANEL:Init()
     self:NewMenu()
 end
 
-function PANEL:AddOption(text, onClick, availCheck)
+function PANEL:AddOption(text, onClick, availCheck, sound)
     local scaleW, scaleH = _CaseUIGetScaledDiff()
     local button = vgui.Create("CaseInvContextButton", self)
     button.Text = text
-    button.DoClick = onClick
+    button.OnClick = onClick
     button.Disabled = availCheck ~= nil and not availCheck() or false
-
+    if sound ~= nil then
+        button.Sound = sound 
+    end
+    
     local cW = self:GetSize()
     button:SetSize(cW, BUTTON_SIZE * scaleH)
     table.insert(self.Menus:Top(), {Button=button, AvailCheck=availCheck})
