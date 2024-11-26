@@ -16,8 +16,8 @@ if SERVER then
 end
 
 if CLIENT then
-    cvar_inventory_mode = CreateConVar("case_inventory_mode", "0")
-    cvar_auto_generate = CreateConVar("case_auto_generate", "0")
+    cvar_inventory_mode = CreateConVar("case_inventory_mode", "0", {FCVAR_REPLICATED})
+    cvar_auto_generate = CreateConVar("case_auto_generate", "0", {FCVAR_REPLICATED})
 end
 
 
