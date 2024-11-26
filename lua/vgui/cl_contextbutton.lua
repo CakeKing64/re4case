@@ -19,7 +19,7 @@ end
 
 function PANEL:DoClick()
     CaseGUI.PlaySound(self.Sound)
-    self:OnClick()
+    self.OnClick(CaseGUI:GenerateInfo())
 end
 
 function PANEL:Paint(w, h)

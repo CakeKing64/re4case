@@ -112,67 +112,81 @@ function CaseGUI:AddContext(list, text, callback, allowed, sound)
 end
 
 
+local function _Use(info)
+    local itemInfo = info.ItemInfo
+    CaseInventory.ClientNet.UseItem(info.InvID, false) -- Request for the server to use the item
+    -- Cool line
+    local used, useCount = itemInfo.OnUse(LocalPlayer(), itemInfo, info.InvID)
+    useCount = useCount and math.max(0, useCount) or 1
+    if used then
+        info.Inv.Items[info.InvID].Count = info.Inv.Items[info.InvID].Count - useCount
+        if info.Inv.Items[info.InvID].Count == 0 then
+            info.Inv.Items[info.InvID] = nil
+            CaseInventory:RefreshLoadout(info.Inv)
+            CaseGUI:CloseContext()
+        end
+    end
+end
+
+local function _UseCheck(info)
+    local itemInfo = info.ItemInfo
+    if itemInfo.CanUse == nil then
+        return true
+    end
+    return itemInfo.CanUse(LocalPlayer(), itemInfo, info.InvID)
+end
+
+local function _Equip(info)
+    local itemInfo = info.ItemInfo
+    for _, wep in ipairs( LocalPlayer():GetWeapons() ) do
+        if wep:GetClass() == itemInfo.Name then
+            input.SelectWeapon(wep)
+            break
+        end
+    end
+    CaseGUI:CloseContext()
+end
+
+local function _EquipCheck(info)
+    local itemInfo = info.ItemInfo
+    if not IsValid(LocalPlayer():GetActiveWeapon()) then
+        return true
+    end
+    return LocalPlayer():GetActiveWeapon():GetClass() ~= itemInfo.Name
+end
+
+local function _Drop1(info)
+    local itemInfo = info.ItemInfo
+    CaseInventory.ClientNet.DropItem(info.InvID, 1, false)
+    info.Inv.Items[info.InvID].Count = info.Inv.Items[info.InvID].Count - 1
+    if info.Inv.Items[info.InvID].Count == 0 then
+        info.Inv.Items[info.InvID] = nil
+        CaseInventory:RefreshLoadout(info.Inv)
+        CaseGUI:CloseContext()
+    end
+end
+
+local function _Drop(info)
+    CaseInventory.ClientNet.DropItem(info.InvID, -1, false)
+    info.Inv.Items[info.InvID] = nil
+
+    CaseInventory:RefreshLoadout(info.Inv)
+    CaseGUI:CloseContext()
+end
+
+
 hook.Add("CaseFillContext", "CaseDefaultFillContext", function (list, info)
     local itemInfo = info.ItemInfo
     if itemInfo.OnUse ~= nil then
-        CaseGUI:AddContext(list, "Use", function () -- Actually use the item
-            CaseInventory.ClientNet.UseItem(info.InvID, false) -- Request for the server to use the item
-            -- Cool line
-            local used, useCount = itemInfo.OnUse(LocalPlayer(), itemInfo, info.InvID)
-            useCount = useCount and math.max(0, useCount) or 1
-
-            if used then
-                info.Inv.Items[info.InvID].Count = info.Inv.Items[info.InvID].Count - useCount
-                if info.Inv.Items[info.InvID].Count == 0 then
-                    info.Inv.Items[info.InvID] = nil
-                    CaseInventory:RefreshLoadout(info.Inv)
-                    CaseGUI:CloseContext()
-                end
-            end
-
-
-        end,
-        function () -- Avail check
-            if itemInfo.CanUse == nil then
-                return true
-            end
-            return itemInfo.CanUse(LocalPlayer(), itemInfo, info.InvID)
-        end
-    )
+        CaseGUI:AddContext(list, "Use", _Use, _UseCheck)
     end
 
     if itemInfo.ItemType == CASE_ITEM_WEAPON or itemInfo.ItemType == CASE_ITEM_GRENADE then
-        CaseGUI:AddContext(list, "Equip", function ()
-            for _, wep in ipairs( LocalPlayer():GetWeapons() ) do
-                if wep:GetClass() == itemInfo.Name then
-                    input.SelectWeapon(wep)
-                    break
-                end
-            end
-            CaseGUI:CloseContext()
-        end,
-        function ()
-            if not IsValid(LocalPlayer():GetActiveWeapon()) then
-                return true
-            end
-            return LocalPlayer():GetActiveWeapon():GetClass() ~= itemInfo.Name
-        end,
-        "ui/re4case/case_equip.wav"
-    )
+        CaseGUI:AddContext(list, "Equip", _Equip, _EquipCheck, "ui/re4case/case_equip.wav")
     end
     
     if itemInfo.ItemType == CASE_ITEM_GENERIC or itemInfo.ItemType == CASE_ITEM_GRENADE then
-        CaseGUI:AddContext(list, "Drop 1", function ()
-            CaseInventory.ClientNet.DropItem(info.InvID, 1, false)
-            info.Inv.Items[info.InvID].Count = info.Inv.Items[info.InvID].Count - 1
-            if info.Inv.Items[info.InvID].Count == 0 then
-                info.Inv.Items[info.InvID] = nil
-                CaseInventory:RefreshLoadout(info.Inv)
-                CaseGUI:CloseContext()
-            end
-
-
-        end)
+        CaseGUI:AddContext(list, "Drop 1", _Drop1)
     end
 
 end)
@@ -188,28 +202,28 @@ function CaseGUI:FillContext(panel, parent)
     local itemInfo = CaseInventory.ItemRegister[itemID]
     local list = {}
 
-    hook.Call("CaseFillContext", nil, list, {
-        Menu=self.Context.Panel,
-        ItemID=itemID,
-        ItemInfo=itemInfo,
-        Inv=self.Context.Parent:Inv(),
-        InvID=CaseGUI.Context.Item}
-    )
+    hook.Call("CaseFillContext", nil, list, self:GenerateInfo())
 
     -- All items have this :)
-    CaseGUI:AddContext(list,"Drop", function ()
-        CaseInventory.ClientNet.DropItem(CaseGUI.Context.Item, -1, false)
-        parent:Inv().Items[CaseGUI.Context.Item] = nil
-
-        CaseInventory:RefreshLoadout(self.Context.Parent:Inv())
-        CaseGUI:CloseContext()
-    end)
+    CaseGUI:AddContext(list,"Drop", _Drop)
 
     for k, v in pairs(list) do
         panel:AddOption(v.Text, v.Callback, v.Allowed, v.Sound)
     end
 end
 
+---Generates some info to pass to a context option
+---@return table
+function CaseGUI:GenerateInfo()
+    local itemID = self.Context.Parent:Inv().Items[CaseGUI.Context.Item].ItemID
+    local itemInfo = CaseInventory.ItemRegister[itemID]
+    return {
+        Menu=self.Context.Panel,
+        ItemID=itemID,
+        ItemInfo=itemInfo,
+        Inv=self.Context.Parent:Inv(),
+        InvID=CaseGUI.Context.Item}
+end
 
 
 

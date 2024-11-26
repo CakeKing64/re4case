@@ -13,7 +13,7 @@ function PANEL:AddOption(text, onClick, availCheck, sound)
     local button = vgui.Create("CaseInvContextButton", self)
     button.Text = text
     button.OnClick = onClick
-    button.Disabled = availCheck ~= nil and not availCheck() or false
+    button.Disabled = availCheck ~= nil and not availCheck(CaseGUI:GenerateInfo()) or false
     if sound ~= nil then
         button.Sound = sound 
     end
@@ -38,7 +38,7 @@ end
 function PANEL:Think()
     for k, v in pairs(self.Menus:Top()) do
         if v.AvailCheck ~= nil then
-            v.Button:SetEnabled( v.AvailCheck())
+            v.Button:SetEnabled( v.AvailCheck(CaseGUI:GenerateInfo()))
         end
     end
 end
