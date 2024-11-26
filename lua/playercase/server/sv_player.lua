@@ -19,7 +19,7 @@ local function _canPickup(ply, ent)
     end
 
     -- Pickup when walked over
-    if cvar_pickup_mode:GetInt() == 0 and ply.CasePickupDelay > 0 then
+    if cvar_pickup_mode:GetInt() == 0 and ply.CasePickupDelay <= 0 then
         return true
     end
 

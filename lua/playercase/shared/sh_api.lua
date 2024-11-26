@@ -419,8 +419,7 @@ function CaseInventory:DropItem(inv, invId, count, player, sync)
         )
         ent:SetPos(player:GetPos())
         ent:Spawn()
-
-        self:SyncAmmo(player)
+        self:SyncAmmo(player, sync)
     end
     return true
 end
@@ -540,10 +539,13 @@ end
 
 ---Used to make sure the ammo in the player's inventory is the same in the case
 ---@param ply table
-function CaseInventory:SyncAmmo(ply)
+---@param sync boolean?
+function CaseInventory:SyncAmmo(ply, sync)
     local ammoCount = {}
     local plyCurAmmo = ply:GetAmmo()
-
+    if sync == nil then
+        sync = true
+    end
     for k, v in pairs(CaseInventory:Inv(ply).Items) do
         local info = self.ItemRegister[v.ItemID]
 
@@ -564,8 +566,9 @@ function CaseInventory:SyncAmmo(ply)
         ply:SetAmmo(0, k)
     end
 
-    CaseInventory:Sync(ply)
-
+    if SERVER and sync then
+        CaseInventory:Sync(ply)
+    end
 end
 
 ---Place items in the loadout array (or attempt to at least)
