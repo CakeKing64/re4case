@@ -518,6 +518,9 @@ end
 ---@param info table
 ---@return boolean 
 function CaseInventory:RegisterItem(info)
+    if info == nil then
+        return false
+    end
     local exists = false
     for k, v in pairs(self.ItemRegister) do
         if v.Name == info.Name then
@@ -1044,21 +1047,19 @@ function CaseInventory:AutoGenerate()
     end
 
     for k, v in pairs(ammoList) do
-        CaseInventory:RegisterItem(CaseAmmo(k,CaseRenderInfo("models/Items/357ammo.mdl", 1.3, {25, 180, 0}), 2, 1, 6))
+        CaseInventory:RegisterItem(CaseAmmo(k,CaseRenderInfo("models/Items/357ammo.mdl", 1.3, {25, 180, 0}), 2, 1, 30))
     end
 
     if cvar_auto_generate:GetInt() == 2 and SERVER then
         local lua = ""
         for k, v in ipairs(wepList) do
             local world = v.WorldModel or "models/weapons/w_pistol.mdl"
-            lua = lua .. string.format("CaseWeapon(\"%s\", CaseRenderInfo(\"%s\"), 3, 2),\n", v.ClassName, world)
+            print(string.format("CaseWeapon(\"%s\", CaseRenderInfo(\"%s\"), 3, 2),", v.ClassName, world))
         end
 
         for k, v in pairs(ammoList) do
-            lua = lua .. string.format("CaseAmmo(game.GetAmmoID(\"%s\"), CaseRenderInfo(\"models/Items/357ammo.mdl, 1.3, {25, 180, 0}), 2, 1, 6), \n", v)
+            print(string.format("CaseAmmo(game.GetAmmoID(\"%s\"), CaseRenderInfo(\"models/Items/357ammo.mdl\", 1.3, {25, 180, 0}), 2, 1, 30),", v))
         end
-
-        print(lua)
     end
 
 

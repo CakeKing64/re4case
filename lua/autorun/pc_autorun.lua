@@ -94,12 +94,15 @@ local function _server(files)
 end
 
 
+if SERVER then
+    _server(server)
+    _server(shared)
+end
 
-_server(server)
-_server(shared)
-
-_client(client)
-_client(shared)
+if CLIENT then
+    _client(client)
+    _client(shared)
+end
 
 if SERVER then
     util.AddNetworkString("CaseSync")         -- Server -> Client only full inventory sync
