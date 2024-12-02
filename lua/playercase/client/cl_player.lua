@@ -82,7 +82,7 @@ hook.Add("CreateMove", "testMouseWheel", function(cmd)
         local bind = input.LookupBinding( "case_open")
         if bind ~= nil then
             bind = input.GetKeyCode(bind)
-            if input.WasKeyPressed(bind) then
+            if input.WasKeyPressed(bind) or input.WasMousePressed(bind) then
                 CaseGUI:Close()
             end
         end
