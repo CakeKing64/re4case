@@ -75,6 +75,18 @@ hook.Add("CreateMove", "testMouseWheel", function(cmd)
     if input.WasMousePressed(MOUSE_WHEEL_DOWN) then
         mStatus.Down = 1
     end
+
+
+    -- Allow closing the case with the same button used to open it
+    if CaseGUI.IsOpen and CaseGUI.ReadyToClose then
+        local bind = input.LookupBinding( "case_open")
+        if bind ~= nil then
+            bind = input.GetKeyCode(bind)
+            if input.WasKeyPressed(bind) then
+                CaseGUI:Close()
+            end
+        end
+    end
 end)
 
 -- This hook is only really for the GUI
@@ -90,6 +102,7 @@ hook.Add("Think", "CASE_Think", function ()
     _checkInput("Right", MOUSE_RIGHT)
 
 
+    
     if CaseGUI.IsOpen then
         -- Reset the held item back to its last position
         if mStatus.Right == 1 and CaseGUI.HeldItem.InvID ~= -1 then
@@ -141,6 +154,10 @@ hook.Add("Think", "CASE_Think", function ()
         else 
             CaseGUI.Context.Panel:MoveToFront()
         end
+    end
+
+    if CaseGUI.IsOpen and not CaseGUI.ReadyToClose then
+        CaseGUI.ReadyToClose = true
     end
 end)
 

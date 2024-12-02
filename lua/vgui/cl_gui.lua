@@ -15,6 +15,7 @@ CaseGUI = {
     MainWindow = nil,
     HoveredWindow = nil,
     IsOpen = false,
+    ReadyToClose=false,
     Context = {
         Panel=nil,
         Parent=nil,
@@ -83,6 +84,7 @@ function CaseGUI:Close()
         Item=-1
     }
     self.HeldItem.InvID = -1
+    self.ReadyToClose = false
 
     if CaseGUI.ShouldPlaySounds:GetBool() then
         surface.PlaySound("ui/re4case/case_close.wav")
