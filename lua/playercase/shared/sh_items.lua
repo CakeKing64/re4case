@@ -191,12 +191,12 @@ local itemsHL2 = {
 
 
     -- Shotgun
-    CaseWeapon("weapon_shotgun",CaseRenderInfo("models/weapons/w_shotgun.mdl", 6), 6, 2, "Shotgun"),
+    CaseWeapon("weapon_shotgun",CaseRenderInfo("models/weapons/w_shotgun.mdl", 5.5, {}, Vector(0, 0, -1)), 6, 2, "Shotgun"),
     CaseWeapon("weapon_annabelle",CaseRenderInfo("models/weapons/w_annabelle.mdl", 1.5), 8, 2, "Annabelle"), -- tee hee
 
 
     -- Auto
-    CaseWeapon("weapon_smg1",CaseRenderInfo("models/weapons/w_smg1.mdl", 5, {0,180,0}, Vector(0,-8,0)), 3, 2, "SMG"),
+    CaseWeapon("weapon_smg1",CaseRenderInfo("models/weapons/w_smg1.mdl", 5, {0,180,0}, Vector(0,-3,0)), 3, 2, "SMG"),
     CaseWeapon("weapon_ar2",CaseRenderInfo("models/weapons/w_irifle.mdl", 5.6), 5, 2, "Pulse-Rifle"),
     CaseWeapon("weapon_alyxgun",CaseRenderInfo("models/weapons/w_alyx_gun.mdl", 0.5), 3, 2, "Alyx's Gun"), -- tee hee 2
 
@@ -356,8 +356,6 @@ local itemsGMOD = {
     CaseWeapon("weapon_base", CaseRenderInfo("models/weapons/w_357.mdl"), 3, 2),
 }
 
-
-
 local itemsPolyArms = {
     -- Melee + Grenades
     CaseWeapon("arc9_uplp_knife", CaseRenderInfo("models/weapons/arc9/w_uplp_knife.mdl", 2, {}, Vector(0,-1,0)), 1 , 3),
@@ -494,13 +492,55 @@ local function itemsNMRiH()
     }
 end
 
+-- There are two MMod replacements i kinda like so i'm gonna add both :)
+-- They only break some sizing & positioning for some weapons so it's not **that** bad
+local function itemsMMODReplacement()
+
+    -- Only really rendering changes
+    -- The server is a highly trained professional they don't need to hear about this
+    if SERVER then
+        return {}
+    end
+
+    for k, v in ipairs(engine.GetAddons()) do
+        if not v.mounted then
+            continue
+        end
+
+        if v.wsid == "1606822274" then
+        -- https://steamcommunity.com/sharedfiles/filedetails/?id=1606822274
+            return {
+                CaseWeapon("weapon_smg1",CaseRenderInfo("models/weapons/w_smg1.mdl", 5, {0,180,0}, Vector(0,-8,0)), 3, 2, "SMG"),
+                CaseWeapon("weapon_shotgun",CaseRenderInfo("models/weapons/w_shotgun.mdl", 6), 6, 2, "Shotgun")
+            }
+        end
+
+        -- https://steamcommunity.com/sharedfiles/filedetails/?id=2035609495
+        if v.wsid == "2035609495" then
+            return {
+                CaseWeapon("weapon_physcannon",CaseRenderInfo("models/weapons/w_physics.mdl", 3.5, {0, 0, 0}, Vector(0, 5)), 5, 2, "Gravity Gun"),
+                CaseWeapon("weapon_smg1",CaseRenderInfo("models/weapons/w_smg1.mdl",6, {0,180,0}, Vector(0,-7,0)), 3, 2, "SMG"),
+                CaseWeapon("weapon_rpg",CaseRenderInfo("models/weapons/w_rocket_launcher.mdl", 5.5, {0,0,40}, Vector(0,0,4.5)), 8, 2, "RPG Launcher"),
+                CaseWeapon("weapon_ar2",CaseRenderInfo("models/weapons/w_irifle.mdl", 6, {}, Vector(0, -3, 0.25)), 5, 2, "Pulse-Rifle"),
+
+                CaseAmmo(game.GetAmmoID("RPG_Round"),CaseRenderInfo("models/weapons/w_missile_closed.mdl", 4, {0, 180}), 4, 1, 3),
+            }
+        end
+
+    end
+
+    return {}
+end
+
 hook.Add("CaseRegisterItems", "CaseDefaultItemRegister", function ()
     _registerItemTable(itemsGMOD)
     _registerItemTable(itemsHL2)
+
+    _registerItemTable(itemsMMODReplacement())
     
+
     -- Modded weapons 'n stuff
     _registerItemTable(itemBases)
     _registerItemTable(itemsPolyArms)
     _registerItemTable(itemsNMRiH())
 end)
-
