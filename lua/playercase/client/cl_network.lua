@@ -102,9 +102,8 @@ net.Receive("CaseSync", function ()
     
 
     if CaseGUI.IsOpen then -- fuck you re-do your sorting
-        for k, v in pairs(CaseGUI.InvTargets["SortingWindow"]:Inv().Items) do
-            CaseGUI.InvTargets["SortingWindow"]:Inv().Items[v] = nil
-        end
+        CaseGUI.InvTargets["SortingWindow"]:Inv().Items = {}
+        CaseInventory:RefreshLoadout(CaseGUI.InvTargets["SortingWindow"]:Inv())
     end
 
 end)
