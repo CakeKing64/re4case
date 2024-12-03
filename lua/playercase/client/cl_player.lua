@@ -181,7 +181,6 @@ hook.Add( "InitPostEntity", "CASE_PostInit", function()
         end
         CaseInventory.ClientNet.SyncTemp = nil
     end
-
 end )
 
 -- Hook into the pause menu (ESC) so we can close the case if it's open

@@ -115,11 +115,16 @@ end
 function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated, count )
     local screenW, screenH = _CaseUIGetScaledSize()
     local scaleW, scaleH = _CaseUIGetScaledDiff()
-    --local player = LocalPlayer()
     local posX, posY = self:LocalToScreen(self:GetPos())
     local itemInfo = CaseInventory.ItemRegister[itemID]
     local renderInfo = itemInfo.RenderInfo
-    local model = ClientsideModel(renderInfo.Model)
+    local model = CaseGUI.ModelCache[renderInfo.Model]
+
+    if model == nil then
+        model = ClientsideModel(renderInfo.Model)
+        CaseGUI.ModelCache[renderInfo.Model] = model
+    end
+
     local baseX, baseY = __CASE_UI_BORDER*scaleW, (__CASE_UI_BORDER*scaleH)
 
 
@@ -149,7 +154,7 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
     else
         surface.SetDrawColor(Color(25,25,25, 200))
     end
-
+    
     surface.DrawRect(
         baseX + (__CASE_UI_CELL_SIZE * (gridX-1) * scaleW) + (5 * scaleW),
         baseY + (__CASE_UI_CELL_SIZE * (gridY-1) * scaleH) + (5 * scaleH),
@@ -227,7 +232,6 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
 
 
         model:DrawModel()
-        model:Remove()
         cam.End3D()
 
 
@@ -278,19 +282,12 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
 
     if _countStatus ~= 4 then
         surface.SetDrawColor(itemColors[_countStatus])
-        --surface.DrawText(tostring(_count), TEXT_ALIGN_RIGHT)
         local sizeW, sizeH = CaseInvBitmapTextSize(tostring(_count), 25)
         CaseInvBitmapTextDraw(tostring(_count), 
             (baseX + (__CASE_UI_CELL_SIZE * (gridX-1) * scaleW) + _w) - sizeW - (5*scaleW),
             (baseY + (__CASE_UI_CELL_SIZE * (gridY-1) * scaleH) + _h) - sizeH,
         25
         )
-        --[[
-    draw.DrawText(tostring(_count), "Trebuchet24",
-        baseX + (__CASE_UI_CELL_SIZE * (gridX-1) * scaleW) + _w - (7 * scaleW),
-        baseY + (__CASE_UI_CELL_SIZE * (gridY-1) * scaleH) + _h - (20 * scaleH),
-       itemColors[_countStatus],TEXT_ALIGN_RIGHT)
-       ]]
     end
 
 
@@ -366,6 +363,7 @@ function invpanel:OnMousePressed(keyCode)
 
     -- No item is held
     if CaseGUI.HeldItem.InvID == -1 then
+        -- Pickup item
         if keyCode == MOUSE_LEFT then
             local itm = self:GetMouseItem()
             if itm ~= 0 then
@@ -379,12 +377,12 @@ function invpanel:OnMousePressed(keyCode)
             end
         end
 
+        -- Show context menu
         if keyCode == MOUSE_RIGHT then
             local itm = self:GetMouseItem()
 
 
             if itm ~= 0 then
-
                 CaseGUI.PlaySound("ui/re4case/context_open.wav")
                 CaseGUI.Context.Panel = vgui.Create("CaseInvContext")
                 local posX, posY = self:LocalToScreen(self:GetPos())
@@ -564,7 +562,6 @@ function invpanel:Paint(w, h)
             CaseInvBitmapTextDraw(name, (sW / 2) - (tW / 2), -50, 35)
         end
     end
-
 end
 
 

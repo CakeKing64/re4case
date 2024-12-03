@@ -36,7 +36,8 @@ CaseGUI = {
         end
 
         surface.PlaySound(sound)
-    end
+    end,
+    ModelCache={}
 }
 
 -- The bane of GUI progammers world wide
@@ -68,6 +69,7 @@ function CaseGUI:Sync()
     CaseInventory.ClientNet.SyncItems()
 end
 
+-- Sick cleanup
 function CaseGUI:Close()
     self:Sync()
     self.SortingWindow:Close()
@@ -86,9 +88,13 @@ function CaseGUI:Close()
     self.HeldItem.InvID = -1
     self.ReadyToClose = false
 
-    if CaseGUI.ShouldPlaySounds:GetBool() then
-        surface.PlaySound("ui/re4case/case_close.wav")
+    CaseGUI.PlaySound("ui/re4case/case_close.wav")
+
+    for k, v in pairs(self.ModelCache) do
+        v:Remove()
     end
+
+    self.ModelCache = {}
 end
 
 function CaseGUI:CloseContext()
