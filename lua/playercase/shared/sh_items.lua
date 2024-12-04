@@ -192,7 +192,7 @@ local itemsHL2 = {
 
     -- Shotgun
     CaseWeapon("weapon_shotgun",CaseRenderInfo("models/weapons/w_shotgun.mdl", 5.5, {}, Vector(0, 0, -1)), 6, 2, "Shotgun"),
-    CaseWeapon("weapon_annabelle",CaseRenderInfo("models/weapons/w_annabelle.mdl", 1.5), 8, 2, "Annabelle"), -- tee hee
+    CaseWeapon("weapon_annabelle",CaseRenderInfo("models/weapons/w_annabelle.mdl", 7, {}, Vector(0, 0, -1)), 8, 2, "Annabelle"), -- tee hee
 
 
     -- Auto
