@@ -307,7 +307,10 @@ concommand.Add("case_open", OpenBasicPanel)
 -- Do this manually to remove flickering :)
 hook.Add( "PostDrawHUD", "CASE_PostDrawHUD", function()
 	if CaseGUI.IsOpen then
-        CaseGUI.MainWindow:PaintManual()
-        CaseGUI.SortingWindow:PaintManual()
+        -- Make a new 2D context so there isn't a 1px border where there isn't a blur
+        cam.Start2D()
+            CaseGUI.MainWindow:PaintManual()
+            CaseGUI.SortingWindow:PaintManual()
+        cam.End2D()
     end
 end )
