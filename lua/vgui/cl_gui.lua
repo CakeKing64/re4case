@@ -37,7 +37,8 @@ CaseGUI = {
 
         surface.PlaySound(sound)
     end,
-    ModelCache={}
+    ModelCache={},
+    CaseFPS = CreateClientConVar("case_menu_fps", "40", true, false, "Framerate at which the case menu should be drawn", 0, 999)
 }
 
 -- The bane of GUI progammers world wide
@@ -235,7 +236,7 @@ end
 
 
 
-local function _createWindow(name, inv, parent, isMain)
+local function _createWindow(name, inv, parent, isMain, rtName)
     local window = vgui.Create("DFrame")
     window:NoClipping(true)
     local screenW, screenH = _CaseUIGetScaledSize()
@@ -260,6 +261,14 @@ local function _createWindow(name, inv, parent, isMain)
         (inv.Size[2] * __CASE_UI_CELL_SIZE * scaleH) + (__CASE_UI_BORDER * 2 * scaleH)
     )
     inventory.InvTarget = inv
+
+    if rtName ~= nil then
+        inventory.RT = GetRenderTarget("re4case_RT_" .. rtName, ScrW(), ScrH())
+        inventory.RTMat = CreateMaterial("re4case_MAT_" .. rtName, "UnlitGeneric", {
+            ["$basetexture"] = inventory.RT:GetName()
+        })
+    end
+
     inventory:NoClipping(true)
     CaseGUI.InvTargets[name] = inventory
 
@@ -271,7 +280,7 @@ end
 local function OpenBasicPanel()
     local scaleW, scaleH = _CaseUIGetScaledDiff()
     local mwX, mwY = 0, 0 
-    CaseGUI.MainWindow = _createWindow("MainWindow", CaseInv(LocalPlayer()), true, true)
+    CaseGUI.MainWindow = _createWindow("MainWindow", CaseInv(LocalPlayer()), true, true, "MainWindow")
     CaseGUI.MainWindow:Center()
 
     mwX, mwY = CaseGUI.MainWindow:GetPos()
@@ -280,7 +289,7 @@ local function OpenBasicPanel()
     -- Nobody will notice it's slightly off center yeah?
     -- **YOU** won't tell about this right?
     CaseGUI.MainWindow:SetPos(mwX , mwY)
-    CaseGUI.SortingWindow = _createWindow("SortingWindow", CaseInventory:GenerateInventory(6, 9), false, false)
+    CaseGUI.SortingWindow = _createWindow("SortingWindow", CaseInventory:GenerateInventory(6, 9), false, false, "SortingWindow")
     CaseGUI.MainWindow:SetPaintedManually(true)
 
     CaseGUI.SortingWindow:SetPos(mwX + CaseGUI.MainWindow:GetSize() + ((__CASE_UI_BORDER/2) * scaleW), mwY)

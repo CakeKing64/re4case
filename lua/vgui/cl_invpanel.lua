@@ -5,6 +5,9 @@ local invpanel = {}
 invpanel.InvTarget = nil
 invpanel.IsMainPanel = false
 invpanel.LastHoveredItem = -1
+invpanel.RT = nil
+invpanel.RTMat = nil
+invpanel.NextDrawTime = 0
 
 AccessorFunc(invpanel, "bHasItems", "HasItems")
 
@@ -298,7 +301,6 @@ function invpanel:Init()
 end
 
 function invpanel:OnRemove()
-    
 end
 
 function invpanel:OnMousePressed(keyCode)
@@ -461,10 +463,14 @@ function invpanel:Think()
     end
 end
 
-function invpanel:Paint(w, h)
+function invpanel:PaintLimited(w, h)
     local screenW, screenH = _CaseUIGetScaledSize()
     local scaleW, scaleH = _CaseUIGetScaledDiff()
    
+    if self.RT ~= nil then
+        render.PushRenderTarget(self.RT)
+        render.ClearDepth()
+    end
 
     surface.SetDrawColor(Color(42, 41, 37))
     surface.DrawRect(0, 0, w, h)
@@ -536,7 +542,33 @@ function invpanel:Paint(w, h)
     render.SetAmbientLight(ambient.X, ambient.Y, ambient.Z)
     render.SuppressEngineLighting( false )
 
+    if self.RT ~= nil then
+        render.PopRenderTarget()
+    end
+end
+
+function invpanel:Paint(w, h)
+    local posX, posY = self:LocalToScreen(self:GetPos())
+    local panelW, panelH = self:GetSize()
+    -- Limit the framerate as to not use 100fps
+
+    if self.RT == nil or SysTime() >= self.NextDrawTime then
+        self:PaintLimited(w, h)
+        self.NextDrawTime = SysTime() + (1/CaseGUI.CaseFPS:GetInt())
+    end
+
+
+    -- Draw the render target
+    if self.RT ~= nil then
+        render.SetScissorRect( posX, posY, posX+panelW, posY+panelH, true)
+        surface.SetMaterial(self.RTMat)
+        surface.SetDrawColor(255, 255, 255)
+        surface.DrawTexturedRect(-posX, -posY, ScrW(), ScrH())
+        render.SetScissorRect( 0, 0, 0, 0, false )
+    end
+
     -- Draw item item name (+ desc?)
+    -- This is done outside of the framerate limit because it's cool
     if cvar_draw_names:GetBool() and self.IsMainPanel then
         local itm = 0
         local realID = 0
@@ -563,6 +595,8 @@ function invpanel:Paint(w, h)
             CaseInvBitmapTextDraw(name, (sW / 2) - (tW / 2), -50, 35)
         end
     end
+
+
 end
 
 
