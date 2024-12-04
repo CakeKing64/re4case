@@ -230,8 +230,9 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
             subrect=true
         })
 
-
+        model:SetNoDraw(false)
         model:DrawModel()
+        model:SetNoDraw(true)
         cam.End3D()
 
 
