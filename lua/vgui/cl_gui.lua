@@ -305,7 +305,7 @@ end
 concommand.Add("case_open", OpenBasicPanel)
 
 -- Do this manually to remove flickering :)
-hook.Add( "PostDrawHUD", "DrawOverlayTest", function()
+hook.Add( "PostDrawHUD", "CASE_PostDrawHUD", function()
 	if CaseGUI.IsOpen then
         CaseGUI.MainWindow:PaintManual()
         CaseGUI.SortingWindow:PaintManual()
