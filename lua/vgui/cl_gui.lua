@@ -281,8 +281,10 @@ local function OpenBasicPanel()
     -- **YOU** won't tell about this right?
     CaseGUI.MainWindow:SetPos(mwX , mwY)
     CaseGUI.SortingWindow = _createWindow("SortingWindow", CaseInventory:GenerateInventory(6, 9), false, false)
+    CaseGUI.MainWindow:SetPaintedManually(true)
 
     CaseGUI.SortingWindow:SetPos(mwX + CaseGUI.MainWindow:GetSize() + ((__CASE_UI_BORDER/2) * scaleW), mwY)
+    CaseGUI.SortingWindow:SetPaintedManually(true)
     CaseGUI.IsOpen = true
 
 
@@ -301,3 +303,11 @@ local function OpenBasicPanel()
 end
 
 concommand.Add("case_open", OpenBasicPanel)
+
+-- Do this manually to remove flickering :)
+hook.Add( "PostDrawHUD", "DrawOverlayTest", function()
+	if CaseGUI.IsOpen then
+        CaseGUI.MainWindow:PaintManual()
+        CaseGUI.SortingWindow:PaintManual()
+    end
+end )
