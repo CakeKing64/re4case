@@ -276,8 +276,8 @@ local function _createWindow(name, inv, parent, isMain, rtName)
 
     return window
 end
--- thank u chat gee pea tei
-local function OpenBasicPanel()
+
+function CaseGUI.OpenInventory()
     local scaleW, scaleH = _CaseUIGetScaledDiff()
     local mwX, mwY = 0, 0 
     CaseGUI.MainWindow = _createWindow("MainWindow", CaseInv(LocalPlayer()), true, true, "MainWindow")
@@ -311,7 +311,7 @@ local function OpenBasicPanel()
     end
 end
 
-concommand.Add("case_open", OpenBasicPanel)
+concommand.Add("case_open", CaseGUI.OpenInventory)
 
 -- Do this manually to remove flickering :)
 hook.Add( "PostDrawHUD", "CASE_PostDrawHUD", function()

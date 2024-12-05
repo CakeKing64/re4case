@@ -155,7 +155,7 @@ end)
 
 
 hook.Add("PlayerDeath", "CASE_PlayerDeath", function (victim, inflictor, attacker)
-    -- TODO Drop all items if a cvar is set
+    -- Drop all items if cvar is set
     if victim:IsPlayer() and cvar_drop_on_death:GetBool() then
         for k, v in pairs(CaseInventory:Inv(victim).Items) do
             CaseInventory:DropItem(CaseInventory:Inv(victim), k, -1, victim, false)

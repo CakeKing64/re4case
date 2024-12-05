@@ -170,7 +170,6 @@ hook.Add( "InitPostEntity", "CASE_PostInit", function()
     -- A sync event happened before the client was ready, apply it now
 	if CaseInventory.ClientNet.SyncTemp ~= nil then 
         local ply = LocalPlayer()
-        PrintTable(CaseInventory.ClientNet.SyncTemp)
         CaseInventory.ClientInventory = CaseInventory:GenerateInventory(
             CaseInventory.ClientNet.SyncTemp.W,
             CaseInventory.ClientNet.SyncTemp.H, ply)

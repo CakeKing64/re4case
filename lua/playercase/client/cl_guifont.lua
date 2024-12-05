@@ -157,7 +157,7 @@ function CaseInvBitmapTextDraw(text, x, y, height)
 end
 
 ---god bless monospace<br>
---- Returns the size of text in pixels (pre-scaled)
+--- Returns the size of text in pixels (comes scaled for your pleasure)
 ---@param text string
 ---@param height number
 function CaseInvBitmapTextSize(text, height)
