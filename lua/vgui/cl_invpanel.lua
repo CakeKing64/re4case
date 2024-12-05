@@ -115,7 +115,8 @@ end
 ---@param gridH integer
 ---@param isRotated boolean
 ---@param count integer
-function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated, count )
+---@param isHeld boolean
+function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated, count, isHeld)
     local screenW, screenH = _CaseUIGetScaledSize()
     local scaleW, scaleH = _CaseUIGetScaledDiff()
     local posX, posY = self:LocalToScreen(self:GetPos())
@@ -487,7 +488,7 @@ function invpanel:PaintLimited(w, h)
         if held then -- Draw at mouse position if held :)
             continue -- draw later so it can be over the top of everything
         else
-            self:DrawItem(v.ItemID, k, v.X, v.Y, info.Size.W, info.Size.H, v.Rotated, v.Count)
+            self:DrawItem(v.ItemID, k, v.X, v.Y, info.Size.W, info.Size.H, v.Rotated, v.Count, false)
         end
     end
 
@@ -535,7 +536,9 @@ function invpanel:PaintLimited(w, h)
         CaseGUI.HeldItem.Y = my or v.Y
 
         if mx and my then -- Don't draw if model would be out of the grid
-            self:DrawItem(v.ItemID, CaseGUI.HeldItem.InvID, mx or v.X, my or v.Y, info.Size.W, info.Size.H, CaseGUI.HeldItem.Rotated, v.Count)
+            -- Make it so this item is drawn on top of everything else
+            render.ClearDepth()
+            self:DrawItem(v.ItemID, CaseGUI.HeldItem.InvID, mx or v.X, my or v.Y, info.Size.W, info.Size.H, CaseGUI.HeldItem.Rotated, v.Count, true)
         end
     end
 
