@@ -99,10 +99,8 @@ if SERVER then
     _server(shared)
 end
 
-if CLIENT then
-    _client(client)
-    _client(shared)
-end
+_client(client)
+_client(shared)
 
 if SERVER then
     util.AddNetworkString("CaseSync")         -- Server -> Client only full inventory sync

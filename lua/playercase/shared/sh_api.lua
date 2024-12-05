@@ -818,6 +818,9 @@ function CaseInventory:Inv(ply, toSet)
             if toSet ~= nil then
                 LocalPlayer().CaseInv = toSet
             end
+            if LocalPlayer().CaseInv == nil then
+                LocalPlayer().CaseInv = CaseInventory:GenerateInventory(CASE_INVENTORY_SIZE_DEFAULT[1], CASE_INVENTORY_SIZE_DEFAULT[2], ply)
+            end
             return LocalPlayer().CaseInv
         end
 
