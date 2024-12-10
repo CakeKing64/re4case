@@ -304,6 +304,50 @@ end
 function invpanel:OnRemove()
 end
 
+function invpanel:UpdateItemPos(mx, my)
+    local v = CaseGUI.HeldItem.SourceWindow:Inv().Items[CaseGUI.HeldItem.InvID]
+    local info = CaseInventory.ItemRegister[v.ItemID]
+    local itemW, itemH = info.Size.W, info.Size.H
+
+
+    if itemW > self:Inv().Size[1] then -- If the item doesn't fit horiz force rotate it
+        CaseGUI.HeldItem.Rotated = true
+    end
+
+    if itemW > self:Inv().Size[2] then -- If the item doesn't fit vert force rotate it
+        CaseGUI.HeldItem.Rotated = false
+    end
+
+
+
+
+    if CaseGUI.HeldItem.Rotated then
+        local _w = itemW
+        itemW = itemH
+        itemH = _w
+    end
+    
+    local offsetX, offsetY = 
+            math.Clamp(math.floor(itemW / 2), 0,  math.max(0, itemW-1)),
+            math.Clamp(math.floor(itemH / 2), 0, math.max(0, itemH-1))
+
+    if offsetX > 1 then
+        mx = mx - offsetX
+    end
+
+    if offsetY > 1 then
+        my = my - offsetY
+    end
+    
+    mx = math.Clamp(mx, 1, self:InvW()+1 - itemW)
+    my = math.Clamp(my, 1, self:InvH()+1 - itemH)
+
+    CaseGUI.HeldItem.X = mx or v.X
+    CaseGUI.HeldItem.Y = my or v.Y
+
+    return mx, my
+end
+
 function invpanel:OnMousePressed(keyCode)
 
 
@@ -348,6 +392,7 @@ function invpanel:OnMousePressed(keyCode)
                     end
                 end
 
+                self:UpdateItemPos(mx, my)
 
                 if CaseInventory:MoveItem(
                     CaseGUI.HeldItem.SourceWindow:Inv(),
@@ -462,6 +507,13 @@ function invpanel:Think()
             break
         end
     end
+
+    if CaseGUI.HeldItem.InvID ~= -1 and CaseGUI.HoveredWindow == self then
+        local v = CaseGUI.HeldItem.SourceWindow:Inv().Items[CaseGUI.HeldItem.InvID]
+        local info = CaseInventory.ItemRegister[v.ItemID]
+        local mx, my = self:GetMouseSlot(true)
+        self:UpdateItemPos(mx, my)
+    end
 end
 
 function invpanel:PaintLimited(w, h)
@@ -497,48 +549,11 @@ function invpanel:PaintLimited(w, h)
         local v = CaseGUI.HeldItem.SourceWindow:Inv().Items[CaseGUI.HeldItem.InvID]
         local info = CaseInventory.ItemRegister[v.ItemID]
         local mx, my = self:GetMouseSlot(true)
-        local itemW, itemH = info.Size.W, info.Size.H
-
-
-        if itemW > self:Inv().Size[1] then -- If the item doesn't fit horiz force rotate it
-            CaseGUI.HeldItem.Rotated = true
-        end
-
-        if itemW > self:Inv().Size[2] then -- If the item doesn't fit vert force rotate it
-            CaseGUI.HeldItem.Rotated = false
-        end
-
-
-
-
-        if CaseGUI.HeldItem.Rotated then
-            local _w = itemW
-            itemW = itemH
-            itemH = _w
-        end
-        
-        local offsetX, offsetY = 
-                math.Clamp(math.floor(itemW / 2), 0,  math.max(0, itemW-1)),
-                math.Clamp(math.floor(itemH / 2), 0, math.max(0, itemH-1))
-
-        if offsetX > 1 then
-            mx = mx - offsetX
-        end
-
-        if offsetY > 1 then
-            my = my - offsetY
-        end
-        
-        mx = math.Clamp(mx, 1, self:InvW()+1 - itemW)
-        my = math.Clamp(my, 1, self:InvH()+1 - itemH)
-
-        CaseGUI.HeldItem.X = mx or v.X
-        CaseGUI.HeldItem.Y = my or v.Y
 
         if mx and my then -- Don't draw if model would be out of the grid
             -- Make it so this item is drawn on top of everything else
             render.ClearDepth()
-            self:DrawItem(v.ItemID, CaseGUI.HeldItem.InvID, mx or v.X, my or v.Y, info.Size.W, info.Size.H, CaseGUI.HeldItem.Rotated, v.Count, true)
+            self:DrawItem(v.ItemID, CaseGUI.HeldItem.InvID, CaseGUI.HeldItem.X or v.X, CaseGUI.HeldItem.Y or v.Y, info.Size.W, info.Size.H, CaseGUI.HeldItem.Rotated, v.Count, true)
         end
     end
 
