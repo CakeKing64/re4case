@@ -9,7 +9,7 @@ local cvar_pickup_mode = CaseInventory:GetCVAR("case_pickup_mode")
 local function _canPickup(ply, ent)
     local lookTarget = ply:GetEyeTrace().Entity
     local use = (lookTarget == ent and ply.UseCommand == 1)
-    local pickup_mode = cvar_pickup_mode:GetInt() == -1 and ply:GetInfoNum("case_cl_pickup_mode") or cvar_pickup_mode:GetInt()
+    local pickup_mode = cvar_pickup_mode:GetInt() == -1 and math.Clamp(ply:GetInfoNum("case_cl_pickup_mode", 1), 0, 2) or cvar_pickup_mode:GetInt()
     -- In order of most likely to be set :)
     -- if optimization or something [[likely]]
 
@@ -200,7 +200,7 @@ hook.Add("OnPlayerPhysicsPickup", "CASE_OnPlayerPhysicsPickup", function( ply, e
     end
 
     -- Allow the client to pick this value if the serverside version is -1
-    local pickup_setting = cvar_pick_on_hold:GetInt() == -1 and ply:GetInfoNum("case_cl_pickup_on_hold", 0) or cvar_pick_on_hold:GetInt()
+    local pickup_setting = cvar_pick_on_hold:GetInt() == -1 and math.Clamp(ply:GetInfoNum("case_cl_pickup_on_hold", 0), 0, 2) or cvar_pick_on_hold:GetInt()
     local itemID = CaseInventory:GetItemID(ent:GetClass())
 
     if itemID ~= -1 and pickup_setting > 0 then

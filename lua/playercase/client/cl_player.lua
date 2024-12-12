@@ -3,6 +3,10 @@ local case_pickup_on_hold = CreateConVar("case_cl_pickup_on_hold", "1", {FCVAR_A
 1 -> Holding an item picks it up if walk isn't held
 2 -> Holding an item picks it up]], 0, 2)
 
+local case_pickup_mode = CreateConVar("case_cl_pickup_mode", "1", {FCVAR_ARCHIVE, FCVAR_USERINFO}, [[0 -> Items can be walked over to be picked up
+1 -> Items must be +used to pickup (will still be picked up if in a vehicle)
+2 -> Items must be +used no matter what]], 0, 2)
+
 local mStatus = {
     Left = 0,
     Right = 0,
