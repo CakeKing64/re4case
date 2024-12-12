@@ -35,6 +35,7 @@ CASE_COMMAND_MERGE = 4
 CaseInventory = {}
 CaseInventory.ItemRegister = {}
 CaseInventory.Inventories = {}
+CaseInventory.PickupQueue = {}
 
 if CLIENT and not CaseInventory.Ready then
     CaseInventory.Ready = false

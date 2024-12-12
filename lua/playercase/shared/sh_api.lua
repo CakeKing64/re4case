@@ -1083,6 +1083,42 @@ function CaseInventory:TryLocalize(string)
     return string
 end
 
+--- Funny check to see if an item is a weapon
+---@param itemID integer
+---@return boolean
+function CaseInventory:IsWeapon(itemID)
+    local item = CaseInventory.ItemRegister[itemID]
+    if item == nil then
+        return false
+    end
+
+    return item.ItemType == CASE_ITEM_WEAPON or item.ItemType == CASE_ITEM_GRENADE
+end
+
+--- Funny check to see if an item is a weapon
+---@param itemID integer
+---@return boolean
+function CaseInventory:IsAmmo(itemID)
+    local item = CaseInventory.ItemRegister[itemID]
+    if item == nil then
+        return false
+    end
+
+    return item.ItemType == CASE_ITEM_AMMO
+end
+
+--- Checks if an item is a proper item that can be placed in an inventory
+---@param itemID integer
+---@return boolean
+function CaseInventory:IsItem(itemID)
+    local item = CaseInventory.ItemRegister[itemID]
+    if item == nil then
+        return false
+    end
+
+    return item.ItemType ~= CASE_ITEM_GLOW_ONLY
+end
+
 ---Client only
 function CaseInventory:PopulateNames()
     for k, v in ipairs(CaseInventory.ItemRegister) do

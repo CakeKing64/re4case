@@ -1,8 +1,8 @@
 --[[
     Some info, read if you're gonna add something :)
 
-    .OnUse/.CanUse are given three arguments, the player, the info table 
-    and the inventoryID (will be -1 if not yet in the inventory!), you'll probably only need to use the player but do whatever
+    .OnUse/.CanUse are given three arguments, the player, the info table and the inventoryID
+    (the inventoryID will be -1 if not yet in the inventory!), you'll probably only need to use the player but do whatever
     BOTH are used client and serverside
 
     .CanUse returns true or false

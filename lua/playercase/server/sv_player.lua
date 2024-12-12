@@ -210,7 +210,35 @@ hook.Add("OnPlayerPhysicsPickup", "CASE_OnPlayerPhysicsPickup", function( ply, e
             (pickup_setting == 1 and not ply:IsWalking() or pickup_setting == 2)
             
         if pickup then
-            CaseInventory:PickupWeapon(ply, ent)
+            if CaseInventory:IsWeapon(itemID) then
+                CaseInventory:PickupWeapon(ply, ent)
+                return
+            end
+
+
+
+            local info = CaseInventory.ItemRegister[itemID]
+            -- Anti infinite loop:tm:
+            -- Don't try to pickup if already in the queue
+            for k, v in ipairs(CaseInventory.PickupQueue) do
+                if v.ENT == ent then
+                    return
+                end
+            end
+
+            if info.CanUse ~= nil and info.CanUse(ply, itemID, -1) then
+                ply.CasePickup = ent
+                return
+            end
+
+            if info.CanUse == nil then
+                ply.CasePickup = ent
+                return
+            end
+
+            -- Add to a queue to be added to the inventory next tick
+            -- If the item is invalid by then it will be assumed to have been used
+            table.insert(CaseInventory.PickupQueue, {Player=ply, ENT=ent, Timer=0, ItemID=itemID})
         end
     end
 end)
