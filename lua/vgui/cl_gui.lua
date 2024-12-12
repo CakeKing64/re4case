@@ -23,7 +23,7 @@ CaseGUI = {
     },
     InvTargets = {
     },
-    ShouldPlaySounds = CreateClientConVar("case_play_sounds", "1", true, false, [[Should sounds be played?
+    ShouldPlaySounds = CreateClientConVar("case_cl_play_sounds", "1", true, false, [[Should sounds be played?
     Set to 2 to replace the more annoying sounds]], 0, 2 ),
     PlaySound = function (sound, replace)
         if not CaseGUI.ShouldPlaySounds:GetBool() then
@@ -38,7 +38,7 @@ CaseGUI = {
         surface.PlaySound(sound)
     end,
     ModelCache={},
-    CaseFPS = CreateClientConVar("case_menu_fps", "40", true, false, "Framerate at which the case menu should be drawn", 0, 999)
+    CaseFPS = CreateClientConVar("case_cl_menu_fps", "40", true, false, "Framerate at which the case menu should be drawn", 0, 999)
 }
 
 -- The bane of GUI progammers world wide

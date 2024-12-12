@@ -37,6 +37,7 @@
         "FCVAR_ARCHIVE",
         "ENT",
         "FCVAR_REPLICATED",
-        "CurTime"
+        "CurTime",
+        "FCVAR_USERINFO"
     ]
 }

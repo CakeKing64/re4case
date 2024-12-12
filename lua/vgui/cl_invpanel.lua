@@ -1,4 +1,4 @@
-local cvar_draw_names = CreateClientConVar("case_draw_weapon_names", "1", true, false, "Should item names be shown in the case?", 0, 1)
+local cvar_draw_names = CreateClientConVar("case_cl_draw_weapon_names", "1", true, false, "Should item names be shown in the case?", 0, 1)
 --local cvar_play_sound = CreateClientConVar("case_play_sounds", "1", true, false, "Should sounds be played?", 0, 1)
 
 local invpanel = {}

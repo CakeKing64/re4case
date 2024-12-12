@@ -1,3 +1,8 @@
+-- CVars that are checked serverside, but are client vars
+local case_pickup_on_hold = CreateConVar("case_cl_pickup_on_hold", "1", {FCVAR_ARCHIVE, FCVAR_USERINFO}, [[0 -> Holding an item doesn't pick it up
+1 -> Holding an item picks it up if walk isn't held
+2 -> Holding an item picks it up]], 0, 2)
+
 local mStatus = {
     Left = 0,
     Right = 0,

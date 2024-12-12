@@ -1,30 +1,33 @@
-local cvar_pickup_mode = CaseInventory:GetCVAR("case_pickup_mode")
 local cvar_drop_excess_ammo = CaseInventory:GetCVAR("case_drop_excess_ammo")
 local cvar_drop_on_death = CaseInventory:GetCVAR("case_drop_on_death")
 local cvar_inventory_mode = CaseInventory:GetCVAR("case_inventory_mode")
 local cvar_frame0 = CaseInventory:GetCVAR("case_frame0_pickup")
+
+local cvar_pick_on_hold = CaseInventory:GetCVAR("case_pickup_on_hold")
+local cvar_pickup_mode = CaseInventory:GetCVAR("case_pickup_mode")
+
 local function _canPickup(ply, ent)
     local lookTarget = ply:GetEyeTrace().Entity
     local use = (lookTarget == ent and ply.UseCommand == 1)
-
+    local pickup_mode = cvar_pickup_mode:GetInt() == -1 and ply:GetInfoNum("case_cl_pickup_mode") or cvar_pickup_mode:GetInt()
     -- In order of most likely to be set :)
     -- if optimization or something [[likely]]
 
 
     -- Either use or be in a vehicle
-    if cvar_pickup_mode:GetInt() == 1 and 
+    if pickup_mode == 1 and 
         (use or ply:InVehicle())
     then
         return true
     end
 
     -- Pickup when walked over
-    if cvar_pickup_mode:GetInt() == 0 and ply.CasePickupDelay <= 0 then
+    if pickup_mode == 0 and ply.CasePickupDelay <= 0 then
         return true
     end
 
     -- Must interact with the item, being in a vehicle doesn't count
-    if cvar_pickup_mode:GetInt() == 2 and use then
+    if pickup_mode == 2 and use then
         return true
     end
 
@@ -189,6 +192,28 @@ hook.Add( "WeaponEquip", "CASE_WeaponEquip", function( weapon, ply )
         end
     end
 end )
+
+-- For if you just slightly miss picking up an item
+hook.Add("OnPlayerPhysicsPickup", "CASE_OnPlayerPhysicsPickup", function( ply, ent )
+    if not IsValid(ent) then
+        return
+    end
+
+    -- Allow the client to pick this value if the serverside version is -1
+    local pickup_setting = cvar_pick_on_hold:GetInt() == -1 and ply:GetInfoNum("case_cl_pickup_on_hold", 0) or cvar_pick_on_hold:GetInt()
+    local itemID = CaseInventory:GetItemID(ent:GetClass())
+
+    if itemID ~= -1 and pickup_setting > 0 then
+        -- If the cvar is 1 then don't pickup if we're walking
+        -- If it's 2 then pick it up always
+        local pickup =
+            (pickup_setting == 1 and not ply:IsWalking() or pickup_setting == 2)
+            
+        if pickup then
+            CaseInventory:PickupWeapon(ply, ent)
+        end
+    end
+end)
 
 hook.Add("PlayerDisconnected", "CASE_PlayerDisconnected", function (ply)
     if cvar_inventory_mode:GetInt() == 1 then
