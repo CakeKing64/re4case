@@ -351,6 +351,13 @@ function CaseInventory:DropItem(inv, invId, count, player, sync)
     local itemInfo = CaseInventory.ItemRegister[inv.Items[invId].ItemID]
     local invInfo = inv.Items[invId]
 
+    -- Player tried to drop a weapon they don't have
+    -- I've found that Zhina of all things has some """weapons""" that can cause this
+    -- So it can have its own edge-case :)
+    if IsValid(player) and CaseInventory:IsWeapon(invInfo.ItemID) and not player:HasWeapon(itemInfo.Name) then
+        return false
+    end
+
     if inv.Items[invId].Count - dropCount == 0 or count == -1 then
         inv.Items[invId] = nil
     else
