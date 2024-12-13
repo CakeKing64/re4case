@@ -20,6 +20,8 @@ local CVARS = {
     0 -> Items can be walked over to be picked up
     1 -> Items must be +used to pickup (will still be picked up if in a vehicle)
     2 -> Items must be +used no matter what]], -1, 2),
+    case_weapon_validation = CreateConVar("case_sv_weapon_validation", "1", {FCVAR_ARCHIVE}, [[0 -> Don't do weapon validation checks (might, maybe increase performance)
+    1 -> Do weapon validation checks]], 0, 1)
 }
 
 
