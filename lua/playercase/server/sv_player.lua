@@ -71,6 +71,16 @@ hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent 
         if not ply:IsWalking() and (canUse ~= nil and canUse(ply, CaseInventory.ItemRegister[id], -1)) then
             return true
         end
+
+        -- See if the item is already in the pickup queue
+        -- If so, remove it
+        for k, v in pairs(CaseInventory.PickupQueue) do
+            if v.ENT == ent then
+                table.remove(CaseInventory.PickupQueue, k)
+                break
+            end    
+        end
+
         if CaseInventory:PickupItem(ply, id, 1) then
             ply:DropObject()
             ent:Remove()
