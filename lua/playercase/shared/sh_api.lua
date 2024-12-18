@@ -532,6 +532,7 @@ function CaseInventory:RegisterItem(info)
     for k, v in pairs(self.ItemRegister) do
         if v.Name == info.Name then
             self.ItemRegister[k] = info
+            info.ItemID = k
             exists = true 
             break
         end
@@ -541,8 +542,9 @@ function CaseInventory:RegisterItem(info)
         print("Overwrote item", info.Name)
         return true
     end
-
+    
     table.insert(self.ItemRegister, info)
+    info.ItemID = #self.ItemRegister
 
     return true
 end
