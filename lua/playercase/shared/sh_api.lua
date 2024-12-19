@@ -427,6 +427,10 @@ function CaseInventory:DropItem(inv, invId, count, player, sync)
         ent:SetPos(player:GetPos())
         ent:Spawn()
         self:SyncAmmo(player, sync)
+
+        if itemInfo.ItemType == CASE_ITEM_GRENADE and not CaseInventory:HasItem(inv, itemInfo.ItemID) then
+           player:StripWeapon(itemInfo.Name)
+        end
     end
     return true
 end
