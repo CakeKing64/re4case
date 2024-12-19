@@ -248,8 +248,10 @@ hook.Add("OnPlayerPhysicsPickup", "CASE_OnPlayerPhysicsPickup", function( ply, e
 
             -- Add to a queue to be added to the inventory next tick
             -- If the item is invalid by then it will be assumed to have been used
-            ply:DropObject()
-            table.insert(CaseInventory.PickupQueue, {Player=ply, ENT=ent, Timer=0, ItemID=itemID})
+            if CaseInventory:FindValidSpot(CaseInventory:Inv(ply), itemID) then
+                ply:DropObject()
+                table.insert(CaseInventory.PickupQueue, {Player=ply, ENT=ent, Timer=0, ItemID=itemID})
+            end
         end
     end
 end)
