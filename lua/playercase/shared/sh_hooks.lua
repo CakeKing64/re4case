@@ -9,6 +9,8 @@ end)
 hook.Add("InitPostEntity", "CASE_InitPostEntity", function ()
     hook.Run("CaseRegisterItems")
     CaseInventory:AutoGenerate()
+    CaseInventory:FinalizeItemRegister()
+    
     for k, v in ipairs(player.GetAll()) do
         CaseInventory:Sync(v)
     end

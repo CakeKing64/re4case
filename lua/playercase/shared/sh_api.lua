@@ -548,7 +548,6 @@ function CaseInventory:RegisterItem(info)
     end
     
     table.insert(self.ItemRegister, info)
-    info.ItemID = #self.ItemRegister
 
     return true
 end
@@ -1079,6 +1078,18 @@ function CaseInventory:AutoGenerate()
     end
 
 
+end
+
+--- Sorts item register and some other minor things
+function CaseInventory:FinalizeItemRegister()
+    table.sort(CaseInventory.ItemRegister, function (a, b)
+        return a.Name < b.Name
+    end)
+
+    -- Give the item info a way to reference its own id
+    for k, v in ipairs(CaseInventory.ItemRegister) do
+        v.ItemID = k
+    end
 end
 
 function CaseInventory:TryLocalize(string)
