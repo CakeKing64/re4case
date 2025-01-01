@@ -211,7 +211,6 @@ local itemsHL2 = {
         kit:Spawn()
         ply.CasePickup = kit
         kit:SetPos(ply:GetPos())
-        kit:Use(ply)
         return true
     end,
     function (ply) -- CanUse
@@ -230,7 +229,6 @@ local itemsHL2 = {
         vial:Spawn()
         ply.CasePickup = vial
         vial:SetPos(ply:GetPos())
-        vial:Use(ply)
         return true
     end,
     function (ply) -- CanUse
@@ -250,7 +248,6 @@ local itemsHL2 = {
         battery:Spawn()
         ply.CasePickup = battery
         battery:SetPos(ply:GetPos())
-        battery:Use(ply)
         return true
     end,    
     function (ply) -- CanUse
@@ -273,7 +270,6 @@ local itemsHL2 = {
         vial:Spawn()
         ply.CasePickup = vial
         vial:SetPos(ply:GetPos())
-        vial:Use(ply)
         return true
     end,
     function (ply) -- CanUse
