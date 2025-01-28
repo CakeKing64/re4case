@@ -56,3 +56,50 @@ hook.Add("Tick", "CASE_ServerTick", function ()
     end
 
 end)
+
+--[[
+    Cool sync packet structure
+
+    uint8 ItemCount
+    for ItemCount
+        uint32 ItemID
+        string Name
+]]
+gameevent.Listen("player_activate")
+hook.Add("player_activate", "CASE_PlayerActivate", function (data)
+    local remItemCount = 0
+    local curItemId = 1
+    local curLimitCheck = 0
+    local player = Player(data.userid)
+
+    for k, v in ipairs(CaseInventory.ItemRegister) do
+        remItemCount = remItemCount + 1
+    end
+
+    net.Start("CaseSyncIDs")
+    net.WriteUInt(math.min(remItemCount, 64), 8)
+
+    repeat
+        net.WriteUInt(CaseInventory.ItemRegister[curItemId].ItemID, 32)
+        net.WriteString(CaseInventory.ItemRegister[curItemId].Name)
+
+        curItemId = curItemId + 1
+        curLimitCheck = curLimitCheck + 1
+        remItemCount = remItemCount - 1
+        -- Send packet off and start a new one
+        if curLimitCheck == 64 or remItemCount == 0 then
+            curLimitCheck = 0
+            net.Send(player)
+            if remItemCount ~= 0 then
+                net.Start("CaseSyncIDs")
+                net.WriteUInt(math.min(remItemCount, 64), 8)
+            else -- All sent
+                net.Start("CaseSyncIDs")
+                net.WriteUInt(0, 8)
+                net.Send(player)
+            end
+        end
+    until (remItemCount == 0)
+
+    CaseInventory:Sync(player)
+end)

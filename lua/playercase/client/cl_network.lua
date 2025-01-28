@@ -107,3 +107,17 @@ net.Receive("CaseSync", function ()
     end
 
 end)
+
+net.Receive("CaseSyncIDs", function ()
+    local count = net.ReadUInt(8)
+    if count == 0 then
+        CaseInventory.ItemRegisterApply = true
+        return
+    end
+
+    for id=1, count do
+        local id = net.ReadUInt(32)
+        local name = net.ReadString()
+        CaseInventory.ItemRegisterLayout[id] = name
+    end
+end)

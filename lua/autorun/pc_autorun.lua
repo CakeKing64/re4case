@@ -37,9 +37,12 @@ CaseInventory.ItemRegister = {}
 CaseInventory.Inventories = {}
 CaseInventory.PickupQueue = {}
 
-if CLIENT and not CaseInventory.Ready then
+if CLIENT then
+    CaseInventory.ItemRegisterLayout = {}
+    CaseInventory.ItemRegisterApply = false
     CaseInventory.Ready = false
 end
+
 
 
 local server = {
@@ -106,4 +109,5 @@ _client(shared)
 if SERVER then
     util.AddNetworkString("CaseSync")         -- Server -> Client only full inventory sync
     util.AddNetworkString("CaseCommandEvent") -- Bidirectional commands
+    util.AddNetworkString("CaseSyncIDs")      -- Server -> Client sync item ids
 end

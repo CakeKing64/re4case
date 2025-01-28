@@ -1082,9 +1082,37 @@ end
 
 --- Sorts item register and some other minor things
 function CaseInventory:FinalizeItemRegister()
-    table.sort(CaseInventory.ItemRegister, function (a, b)
-        return a.Name < b.Name
-    end)
+
+    -- Apply the item IDs obtained from the server
+    if CLIENT then
+        local tempRegister = {}
+        for k, v in ipairs(CaseInventory.ItemRegister) do
+            tempRegister[k] = v
+            CaseInventory.ItemRegister[k] = nil
+        end
+
+        for newItemID, newItemName in pairs(CaseInventory.ItemRegisterLayout ) do
+            for k, v in pairs(tempRegister) do
+                if newItemName == v.Name then
+                    CaseInventory.ItemRegister[newItemID] = tempRegister[k]
+                    table.remove(tempRegister, k)
+                    break
+                end
+            end
+        end
+
+        -- As for anything left in the temp register, just slap it on the end
+        for _, v in pairs(tempRegister) do
+            table.insert(CaseInventory.ItemRegister, v)
+        end
+        
+    end
+
+    if SERVER then
+        table.sort(CaseInventory.ItemRegister, function (a, b)
+            return a.Name < b.Name
+        end)
+    end
 
     -- Give the item info a way to reference its own id
     for k, v in ipairs(CaseInventory.ItemRegister) do
@@ -1161,6 +1189,7 @@ function CaseInventory:PopulateNames()
         end
     end
 end
+
 
 
 function CaseInventory:DebugPrintLoadout(inv)
