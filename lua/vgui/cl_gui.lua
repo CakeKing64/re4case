@@ -183,6 +183,20 @@ local function _Drop(info)
     CaseGUI:CloseContext()
 end
 
+local function _DropHalf(info)
+    local count = info.Inv.Items[info.InvID].Count
+    count = math.ceil(count / 2)
+    CaseInventory.ClientNet.DropItem(info.InvID, count, false)
+    info.Inv.Items[info.InvID].Count = info.Inv.Items[info.InvID].Count - count
+
+
+    if info.Inv.Items[info.InvID].Count == 0 then
+        info.Inv.Items[info.InvID] = nil
+        CaseInventory:RefreshLoadout(info.Inv)
+        CaseGUI:CloseContext()
+    end
+end
+
 
 hook.Add("CaseFillContext", "CaseDefaultFillContext", function (list, info)
     local itemInfo = info.ItemInfo
@@ -195,6 +209,11 @@ hook.Add("CaseFillContext", "CaseDefaultFillContext", function (list, info)
     end
     
     if itemInfo.ItemType == CASE_ITEM_GENERIC or itemInfo.ItemType == CASE_ITEM_GRENADE then
+        CaseGUI:AddContext(list, "Drop 1", _Drop1)
+    end
+
+    if itemInfo.ItemType == CASE_ITEM_AMMO then
+        CaseGUI:AddContext(list, "Drop Half", _DropHalf)
         CaseGUI:AddContext(list, "Drop 1", _Drop1)
     end
 
