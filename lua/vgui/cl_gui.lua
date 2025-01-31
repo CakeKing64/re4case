@@ -253,6 +253,42 @@ function CaseGUI:GenerateInfo()
         InvID=CaseGUI.Context.Item}
 end
 
+-- Quick shortcut for using an item in an inventory with +use/E
+local function _windowOnKeyboardInput(self, keycode)
+    if CaseGUI.HoveredWindow == nil then
+        return false
+    end
+    local window = CaseGUI.HoveredWindow
+    if window == nil then
+        return false
+    end
+
+    local invId = window:GetMouseItem()
+    if invId == 0 then
+        return false
+    end
+
+    local invInfo = window:Inv().Items[invId]
+    local itemInfo = CaseInventory.ItemRegister[invInfo.ItemID]
+
+    local use = input.LookupBinding("use") == input.GetKeyName(keycode)
+    if use and CaseInventory:CanUse(LocalPlayer(), itemInfo, invId) then
+        CaseInventory.ClientNet.UseItem(invId, false) -- Request for the server to use the item
+        -- Cool line
+        local used, useCount = itemInfo.OnUse(LocalPlayer(), itemInfo, invId)
+        useCount = useCount and math.max(0, useCount) or 1
+        if used then
+            invInfo.Count = invInfo.Count - useCount
+            if invInfo.Count == 0 then
+                window:Inv().Items[invId] = nil
+                CaseInventory:RefreshLoadout(window:Inv())
+                CaseGUI:CloseContext()
+            end
+        end
+    end
+
+    return true
+end
 
 
 local function _createWindow(name, inv, parent, isMain, rtName)
@@ -270,6 +306,7 @@ local function _createWindow(name, inv, parent, isMain, rtName)
     window:MakePopup()
     --window:ShowCloseButton(false)
     window:SetDraggable(false)
+    window.OnKeyCodePressed = _windowOnKeyboardInput
     if parent then
         window:SetBackgroundBlur(true)
     end

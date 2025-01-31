@@ -478,6 +478,22 @@ function CaseInventory:UseItem(ply, invId, sync)
     return true, math.min(amount, caseCount)
 end
 
+---Quick check to see if an item can be used
+---@param player table
+---@param itemInfo table
+---@param invId? number
+function CaseInventory:CanUse(player, itemInfo, invId)
+    if itemInfo.OnUse == nil then
+        return false
+    end
+
+    if itemInfo.CanUse == nil then
+        return true
+    end
+
+    return itemInfo.CanUse(player, itemInfo, invId) 
+end
+
 ---Returns the itemID based off name
 ---@param name string
 ---@return integer -1 On not found
