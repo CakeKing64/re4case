@@ -187,9 +187,6 @@ end)
 
 hook.Add( "WeaponEquip", "CASE_WeaponEquip", function( weapon, ply )
 
-    if CASE_INVENTORY_DEBUG then
-        print(weapon.WorldModel)
-    end
     -- Check to see if the player has picked up an item but doesn't have it in their inventory
     local itemId = CaseInventory:GetItemID(weapon:GetClass())
     if itemId == -1 then

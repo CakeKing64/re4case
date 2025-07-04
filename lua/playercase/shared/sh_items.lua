@@ -382,6 +382,8 @@ local itemsPolyArms = {
     CaseWeapon("arc9_uplp_deagle", CaseRenderInfo("models/weapons/arc9/w_uplp_deagle.mdl", 4.5, {0, 180}, Vector(0, 4.5)), 3, 2),
     CaseWeapon("arc9_uplp_fn57", CaseRenderInfo("models/weapons/arc9/w_uplp_fn57.mdl", 4.5, {0, 180}, Vector(0,3.5)), 3, 2),
     CaseWeapon("arc9_uplp_m9", CaseRenderInfo("models/weapons/arc9/w_uplp_beretta.mdl", 4.5, {0, 180}, Vector(0, 4.5)), 3, 2),
+    CaseWeapon("arc9_uplp_rsh12", CaseRenderInfo("models/weapons/arc9/w_uplp_rsh12.mdl", 5, {0, 180}, Vector(0, 10)), 3, 2),
+
 
     -- ARs
     CaseWeapon("arc9_uplp_ak", CaseRenderInfo("models/weapons/arc9/w_uplp_ak.mdl",6, {0, 180}, Vector(0, -3)), 5, 2),

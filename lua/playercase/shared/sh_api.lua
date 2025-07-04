@@ -424,6 +424,7 @@ function CaseInventory:DropItem(inv, invId, count, player, sync)
             itemInfo.AmmoID, -- AmmoID
             dropCount-- Count
         )
+        ent:SetOwner(player) -- Probably useful for limiting ammo drops or something
         ent:SetPos(player:GetPos())
         ent:Spawn()
         self:SyncAmmo(player, sync)
