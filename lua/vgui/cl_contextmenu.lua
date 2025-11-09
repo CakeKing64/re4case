@@ -36,6 +36,14 @@ function PANEL:PlaceItems()
 end
 
 function PANEL:Think()
+
+    -- Make sure the item we're looking at is still valid
+    if CaseGUI.Context.InvID == -1 or
+        CaseGUI.Context.Parent == nil or
+        CaseGUI.Context.Parent:Inv().Items[CaseGUI.Context.InvID] == nil then
+        return
+    end
+
     for k, v in pairs(self.Menus:Top()) do
         if v.AvailCheck ~= nil then
             v.Button:SetEnabled( v.AvailCheck(CaseGUI:GenerateInfo()))
