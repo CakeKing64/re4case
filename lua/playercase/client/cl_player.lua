@@ -199,3 +199,8 @@ hook.Add( "OnPauseMenuShow", "CASE_OnyPauseMenuShow", function()
     end
 	return true
 end )
+
+
+concommand.Add("case_print_inv", function(ply)
+    PrintTable(CaseInventory:Inv(ply))
+end)

@@ -529,14 +529,20 @@ function invpanel:PaintLimited(w, h)
     surface.DrawRect(0, 0, w, h)
     self:DrawGrid(w, h)
 
+    render.SetAmbientLight(255, 255, 255)
     render.SuppressEngineLighting( true )
     local ambient = render.GetAmbientLightColor()
-    render.SetAmbientLight(255, 255, 255)
+
 
     for k, v in pairs(self:Inv().Items) do
         local info = CaseInventory.ItemRegister[v.ItemID]
         local held = (k == CaseGUI.HeldItem.InvID and self == CaseGUI.HeldItem.SourceWindow)
 
+        if info == nil then
+            -- This happens when a new mod is loaded in between maps
+            print("CASE: Invalid item id", v.ItemID)
+            continue
+        end
         if held then -- Draw at mouse position if held :)
             continue -- draw later so it can be over the top of everything
         else

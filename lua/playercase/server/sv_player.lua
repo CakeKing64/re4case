@@ -42,8 +42,6 @@ end
 
 hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent )
 
-    
-
     if ply.CasePickup == ent then
         ply.CasePickup = nil
         return true
@@ -60,7 +58,7 @@ hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent 
         local info = id ~= -1 and CaseInventory.ItemRegister[id] or {}
 
         if id == -1 or info.ItemType == CASE_ITEM_GLOW_ONLY or info.ItemType == CASE_ITEM_WEAPON or info.ItemType == CASE_ITEM_GRENADE then
-            return true
+            return
         end
 
         -- If the player is not holding walk and the item can be used
@@ -69,7 +67,7 @@ hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent 
         local canUse = CaseInventory.ItemRegister[id].CanUse
         
         if not ply:IsWalking() and (canUse ~= nil and canUse(ply, CaseInventory.ItemRegister[id], -1)) then
-            return true
+            return
         end
 
         -- See if the item is already in the pickup queue
@@ -206,6 +204,8 @@ hook.Add("OnPlayerPhysicsPickup", "CASE_OnPlayerPhysicsPickup", function( ply, e
         return
     end
 
+
+
     -- Allow the client to pick this value if the serverside version is -1
     local pickup_setting = cvar_pick_on_hold:GetInt() == -1 and math.Clamp(ply:GetInfoNum("case_cl_pickup_on_hold", 0), 0, 2) or cvar_pick_on_hold:GetInt()
     local itemID = CaseInventory:GetItemID(ent:GetClass())
@@ -215,6 +215,7 @@ hook.Add("OnPlayerPhysicsPickup", "CASE_OnPlayerPhysicsPickup", function( ply, e
         -- If it's 2 then pick it up always
         local pickup =
             (pickup_setting == 1 and not ply:IsWalking() or pickup_setting == 2)
+            
             
         if pickup then
             if CaseInventory:IsWeapon(itemID) then
@@ -235,13 +236,16 @@ hook.Add("OnPlayerPhysicsPickup", "CASE_OnPlayerPhysicsPickup", function( ply, e
 
             if info.CanUse ~= nil and info.CanUse(ply, itemID, -1) then
                 ply.CasePickup = ent
+                ent:SetPos(ply:GetPos())
                 return
             end
 
             if info.CanUse == nil then
                 ply.CasePickup = ent
+                ent:SetPos(ply:GetPos())
                 return
             end
+
 
             -- Add to a queue to be added to the inventory next tick
             -- If the item is invalid by then it will be assumed to have been used
