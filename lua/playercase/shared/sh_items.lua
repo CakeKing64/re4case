@@ -21,6 +21,7 @@ CASE_ITEM_GRENADE       = 2
 CASE_ITEM_GLOW_ONLY     = 3 -- Only used to show that ammo can be obtained, :Use will be called instead of adding to inventory
 CASE_ITEM_AMMO          = 4
 CASE_ITEM_AMMO_SPECIAL  = 5 -- Used for the caseammo entity to store any type of ammo
+CASE_ITEM_DO_NOT_HANDLE = 6 -- Used for fists and stuff for when it's not really something to go into the inventory
 
 ---@param name string
 ---@param sizeW number
@@ -145,6 +146,10 @@ end
 
 function CaseGlowOnly(name)
    return CaseItem(name, 0, 0, 0, CASE_ITEM_GLOW_ONLY, nil, nil, -1, {}, "") 
+end
+
+function CaseDoNotHandle(name)
+    return CaseItem(name, 0, 0, 0, CASE_ITEM_DO_NOT_HANDLE, nil, nil, -1, {}, "") 
 end
 
 -- Maybe move these to a different file?
@@ -342,7 +347,7 @@ local itemsHL2 = {
 }
 
 local itemsGMOD = {
-    CaseWeapon("weapon_fists", CaseRenderInfo(""), 3, 2),
+    CaseDoNotHandle("weapon_fists"),
     CaseWeapon("gmod_tool", CaseRenderInfo("models/weapons/w_toolgun.mdl", 3.5, {0, -90, 0}, Vector(0, 12)), 3, 2),
     CaseWeapon("gmod_camera", CaseRenderInfo("models/maxofs2d/camera.mdl", 3.5, {0, 210, 0}), 3, 2),
     CaseWeapon("weapon_physgun", CaseRenderInfo("models/weapons/w_physics.mdl", 4, {0, 0, 0}), 3, 2),

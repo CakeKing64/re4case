@@ -263,6 +263,13 @@ local function _windowOnKeyboardInput(self, keycode)
         return false
     end
 
+    -- i uh i uhm i um what????
+    -- not the best practice to just ignore it buuuuut
+    -- i don't care :)
+    if window.GetMouseItem == nil then
+        return
+    end
+
     local invId = window:GetMouseItem()
     if invId == 0 then
         return false

@@ -267,6 +267,12 @@ function CaseInventory:HasItem(inv, id)
 	return false
 end
 
+---comment
+---@param itemId integer
+function CaseInventory:ShouldHandle(itemId)
+
+end
+
 
 ---Returns what would kinda just be #ply.CaseInv.Items, but that doesn't work properly :(
 ---@param inv table
@@ -1043,7 +1049,7 @@ function CaseInventory:AutoGenerate()
 	-- We're about to push that big O to its limits fellas
 	-- Find out what is already registed and remove it from the todo list
 	for k, v in pairs(CaseInventory.ItemRegister) do
-		if v.ItemType ~= CASE_ITEM_WEAPON and v.ItemType ~= CASE_ITEM_GRENADE then
+		if v.ItemType ~= CASE_ITEM_WEAPON and v.ItemType ~= CASE_ITEM_GRENADE and v.ItemType ~= CASE_ITEM_DO_NOT_HANDLE then
 			continue
 		end
 		local i = 1
