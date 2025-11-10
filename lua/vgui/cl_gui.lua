@@ -250,7 +250,8 @@ end
 ---@return table?
 function CaseGUI:GenerateInfo()
 	if self.Context.Parent == nil or
-		CaseGUI.Context.InvID == nil then
+		CaseGUI.Context.InvID == nil or
+		self.Context.Parent:Inv().Items[CaseGUI.Context.InvID] == nil then
 		return nil	
 	end
 
