@@ -19,7 +19,12 @@ end
 
 function PANEL:DoClick()
     CaseGUI.PlaySound(self.Sound)
-    self.OnClick(CaseGUI:GenerateInfo())
+    local info = CaseGUI:GenerateInfo()
+    if info == nil then
+        return
+    end
+
+    self.OnClick(info)
 end
 
 function PANEL:Paint(w, h)

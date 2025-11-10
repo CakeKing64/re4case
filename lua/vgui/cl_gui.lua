@@ -232,7 +232,11 @@ function CaseGUI:FillContext(panel, parent)
 	local itemInfo = CaseInventory.ItemRegister[itemID]
 	local list = {}
 
-	hook.Call("CaseFillContext", nil, list, self:GenerateInfo())
+	local info = self:GenerateInfo()
+	if info ~= nil then
+		hook.Call("CaseFillContext", nil, list, info)		
+	end
+
 
 	-- All items have this :)
 	CaseGUI:AddContext(list,"Drop", _Drop)
@@ -243,8 +247,13 @@ function CaseGUI:FillContext(panel, parent)
 end
 
 ---Generates some info to pass to a context option
----@return table
+---@return table?
 function CaseGUI:GenerateInfo()
+	if self.Context.Parent == nil or
+		CaseGUI.Context.InvID == nil then
+		return nil	
+	end
+
 	local itemID = self.Context.Parent:Inv().Items[CaseGUI.Context.InvID].ItemID
 	local itemInfo = CaseInventory.ItemRegister[itemID]
 	return {
