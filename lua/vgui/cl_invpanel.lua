@@ -152,7 +152,39 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
 	local contextHover = CaseGUI.Context.Panel ~= nil and (CaseGUI.Context.Panel:IsHovered() or CaseGUI.Context.Panel:IsChildHovered())
 
 	if invId == CaseGUI.HeldItem.InvID  then
-		surface.SetDrawColor(Color(128, 128, 128, 128))
+		local canMove, willSwap = CaseInventory:MoveItem(
+			CaseGUI.HeldItem.SourceWindow:Inv(),
+			CaseGUI.HeldItem.InvID,
+			CaseGUI.HoveredWindow:Inv(),
+			CaseGUI.HeldItem.X,
+			CaseGUI.HeldItem.Y,
+			CaseGUI.HeldItem.Rotated,
+			true
+		)
+
+		-- wait i HATE performance
+		if not canMove then
+			--[[local mx, my = self:GetMouseSlot(true)
+			canMove, willSwap = CaseInventory:MoveItem(
+				CaseGUI.HeldItem.SourceWindow:Inv(),
+				CaseGUI.HeldItem.InvID,
+				CaseGUI.HoveredWindow:Inv(),
+				mx,
+				my,
+				CaseGUI.HeldItem.Rotated,
+				true
+			)]]
+		end
+
+		-- surface.SetDrawColor(Color(128, 128, 128, 128))
+		if canMove and not willSwap then
+			surface.SetDrawColor(Color(0, 128, 0, 128))
+		elseif canMove and willSwap then
+			surface.SetDrawColor(Color(0, 128, 128, 128))
+		else
+			surface.SetDrawColor(Color(128, 0, 0, 128))
+		end
+		
 	elseif CaseGUI.HeldItem.InvID == -1 and invId == self:GetMouseItem() and not contextHover then
 		surface.SetDrawColor(Color(128, 128, 128, 128))
 	else
@@ -401,7 +433,15 @@ function invpanel:OnMousePressed(keyCode)
 					CaseGUI.HeldItem.X,
 					CaseGUI.HeldItem.Y,
 					CaseGUI.HeldItem.Rotated
-				) then
+				) --[[ or CaseInventory:MoveItem(
+					CaseGUI.HeldItem.SourceWindow:Inv(),
+					CaseGUI.HeldItem.InvID,
+					self:Inv(),
+					mx,
+					my,
+					CaseGUI.HeldItem.Rotated
+				)]]
+				then
 					CaseGUI.PlaySound("ui/re4case/case_putdown.wav", "ui/re4case/case_unequip.wav")
 					CaseGUI.HeldItem.InvID = -1
 					return

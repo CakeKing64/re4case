@@ -1,6 +1,7 @@
 local cvar_drop_excess_ammo = 0
 local cvar_inventory_mode = 0
 local cvar_auto_generate = 0
+local cvar_enable_swap = 0
 
 if SERVER then
 	--[[
@@ -18,6 +19,7 @@ end
 if CLIENT then
 	cvar_inventory_mode = CreateConVar("case_sh_inventory_mode", "0", {FCVAR_REPLICATED})
 	cvar_auto_generate = CreateConVar("case_sh_auto_generate", "0", {FCVAR_REPLICATED})
+	cvar_enable_swap = CreateConVar("case_cl_enable_swapping", "1", {FCVAR_ARCHIVE})
 end
 
 
@@ -646,80 +648,427 @@ function CaseInventory:PlaceItem(inv, invId, info)
 	return true
 end
 
+---Helper function for checking overlaps
+---@param x1 integer
+---@param y1 integer
+---@param w1 integer
+---@param h1 integer
+---@param x2 integer
+---@param y2 integer
+---@param w2 integer
+---@param h2 integer
+---@return boolean
+function CaseInventory:Overlap(x1, y1, w1, h1, x2, y2, w2, h2)
+	return 	x1 < x2 + w2 and
+			x1 + w1 > x2 and
+			y1 < y2 + h2 and
+			y1 + h1 > y2
+end
+
+---Checks to see if any rotations are valid for moving into a spot
+---@param inv table
+---@param x integer
+---@param y integer
+---@param w integer
+---@param h integer
+---@param reqRotation boolean
+---@param filter table
+---@return integer -1 -> Invalid, 0 -> Valid, No rotation, 1 -> Valid, Rotated
+function CaseInventory:RotationCheck(inv, x, y, w, h, reqRotation, filter)
+	
+	local noRot = self:CheckLocation(inv, x, y, w, h, filter)
+	local rot = self:CheckLocation(inv, x, y, h, w, filter)
+
+	if not rot and not noRot then
+		return -1
+	end
+
+	if rot and reqRotation then
+		return 1
+	end
+
+	if noRot and not reqRotation then
+		return 0
+	end
+
+	-- Default to no rotation
+	return noRot and 0 or 1
+end
+
+function CaseInventory:SwapLogic(srcInv, srcId, tgtInv, tgtId, dstX, dstY, srcRot, checkOnly)
+	local srcItem = srcInv.Items[srcId]
+	local srcInfo = CaseInventory.ItemRegister[srcItem.ItemID]
+
+	local tgtItem = tgtInv.Items[tgtId]
+	local tgtInfo = CaseInventory.ItemRegister[tgtItem.ItemID]
+
+	local srcW, srcH = srcInfo.Size.W, srcInfo.Size.H
+
+	if srcRot then
+		srcW = srcInfo.Size.H
+		srcH = srcInfo.Size.W
+	end
+
+	local validSrc = self:CheckLocation(
+		tgtInv, dstX, dstY, srcW, srcH, {
+			0,
+			tgtId,
+			srcInv == tgtInv and srcId or nil
+		}
+	)
+
+	local validTgt = self:RotationCheck(srcInv,
+		srcItem.X,
+		srcItem.Y,
+		tgtInfo.Size.W,
+		tgtInfo.Size.H,
+		tgtItem.Rotated,
+		{	0,
+			srcId,
+			srcInv == tgtInv and tgtId or nil
+		})
+	
+	if not validSrc or validTgt == -1 then
+		return false
+	end
+
+	local tgtW, tgtH = tgtInfo.Size.W, tgtInfo.Size.H
+	if validTgt == 1 then
+		tgtW = tgtInfo.Size.H
+		tgtH = tgtInfo.Size.W
+	end
+
+	-- I'm gonna ask you to back that up with a source
+	local overlapResult = self:Overlap(
+		dstX,
+		dstY,
+		srcW,
+		srcH,
+		srcItem.X,
+		srcItem.Y,
+		tgtW,
+		tgtH
+	)
+
+	if overlapResult then
+		return false
+	elseif not checkOnly then
+		local newSrcId = 0
+		local newTgtId = 0
+
+		if tgtInv.Items[srcId] == nil or tgtInv == srcInv then -- Resuse the old id so it's easier on me :)
+			newSrcId = srcId
+		else
+			newSrcId = CaseInventory:FindFreeId(tgtInv)
+		end
+
+		if srcInv.Items[tgtId] == nil or tgtInv == srcInv then -- Resuse the old id so it's easier on me :)
+			newTgtId = tgtId
+		else
+			newTgtId = CaseInventory:FindFreeId(tgtInv)
+		end
+
+		local newTgtRotation = false
+
+		if validTgt == 1 then
+			newTgtRotation = true
+		end
+
+		local newSrcItem = CaseInventory:CreateItemInfo(
+			srcItem.ItemID,
+			srcItem.Count,
+			srcRot,
+			dstX,
+			dstY
+		)
+
+		local newTgtItem = CaseInventory:CreateItemInfo(
+			tgtItem.ItemID,
+			tgtItem.Count,
+			newTgtRotation,
+			srcItem.X,
+			srcItem.Y
+		)
+
+		tgtInv.Items[tgtId] = nil
+		srcInv.Items[srcId] = nil
+
+		tgtInv.Items[newSrcId] = newSrcItem
+		srcInv.Items[newTgtId] = newTgtItem
+
+
+
+		print("Logic Error!")
+		CaseInventory:RefreshLoadout(srcInv)
+		CaseInventory:RefreshLoadout(tgtInv)
+	end
+
+	return true
+end
+
+---Just try to force it (Internal)
+---@param srcInv table
+---@param srcId integer
+---@param tgtInv table
+---@param tgtId integer
+---@param checkOnly boolean
+---@param rotationInvert? integer
+function CaseInventory:SwapDirect(srcInv, srcId, tgtInv, tgtId, checkOnly, rotationInvert)
+	if rotationInvert == nil then
+		rotationInvert = 0
+	end
+
+	local srcItem = srcInv.Items[srcId]
+	local srcInfo = CaseInventory.ItemRegister[srcItem.ItemID]
+
+	local tgtItem = tgtInv.Items[tgtId]
+	local tgtInfo = CaseInventory.ItemRegister[tgtItem.ItemID]
+
+	local srcRot = srcItem.Rotated
+	local tgtRot = tgtItem.Rotated
+
+	if bit.band(rotationInvert, 0x1) ~= 0 then
+		srcRot = not srcRot
+	end
+
+	if bit.band(rotationInvert, 0x2) ~= 0 then
+		tgtRot = not tgtRot
+	end
+
+
+	local validSrc = self:RotationCheck(tgtInv,
+		tgtItem.X,
+		tgtItem.Y,
+		srcInfo.Size.W,
+		srcInfo.Size.H,
+		srcRot,
+		{	0,
+			tgtId,
+			srcInv == tgtInv and srcId or nil
+		})
+
+	local validTgt = self:RotationCheck(srcInv,
+		srcItem.X,
+		srcItem.Y,
+		tgtInfo.Size.W,
+		tgtInfo.Size.H,
+		tgtRot,
+		{	0,
+			srcId,
+			srcInv == tgtInv and tgtId or nil
+		})
+
+	if validSrc == -1 or validTgt == -1 then
+		return false
+	end
+
+	-- Flip the items around if needed
+	local srcW, srcH = srcInfo.Size.W, srcInfo.Size.H
+	if validSrc == 1 then
+		srcW = srcInfo.Size.H
+		srcH = srcInfo.Size.W
+	end
+
+	local tgtW, tgtH = tgtInfo.Size.W, tgtInfo.Size.H
+	if validTgt == 1 then
+		tgtW = tgtInfo.Size.H
+		tgtH = tgtInfo.Size.W
+	end
+
+	-- I'm gonna ask you to back that up with a source
+	local overlapResult = self:Overlap(
+		tgtItem.X,
+		tgtItem.Y,
+		srcW,
+		srcH,
+		srcItem.X,
+		srcItem.Y,
+		tgtW,
+		tgtH
+	)
+
+	if overlapResult then
+		-- That was everything i had, time to give up
+		if rotationInvert == 4 then
+			return false
+		else
+			return self:SwapDirect(srcInv, srcId, tgtInv, tgtId, checkOnly, rotationInvert + 1)
+		end
+	end
+
+	-- Do the thing, Shadow.
+	if not checkOnly then
+		local newSrcId = 0
+		local newTgtId = 0
+
+		if tgtInv.Items[srcId] == nil or tgtInv == srcInv then -- Resuse the old id so it's easier on me :)
+			newSrcId = srcId
+		else
+			newSrcId = CaseInventory:FindFreeId(tgtInv)
+		end
+
+		if srcInv.Items[tgtId] == nil or tgtInv == srcInv then -- Resuse the old id so it's easier on me :)
+			newTgtId = tgtId
+		else
+			newTgtId = CaseInventory:FindFreeId(tgtInv)
+		end
+
+		local newSrcRotation = false
+		local newTgtRotation = false
+
+		if validSrc == 1 then
+			newSrcRotation = true
+		end
+
+		if validTgt == 1 then
+			newTgtRotation = true
+		end
+
+		local newSrcItem = CaseInventory:CreateItemInfo(
+			srcItem.ItemID,
+			srcItem.Count,
+			newSrcRotation,
+			tgtItem.X,
+			tgtItem.Y
+		)
+
+		local newTgtItem = CaseInventory:CreateItemInfo(
+			tgtItem.ItemID,
+			tgtItem.Count,
+			newTgtRotation,
+			srcItem.X,
+			srcItem.Y
+		)
+
+		tgtInv.Items[tgtId] = nil
+		srcInv.Items[srcId] = nil
+
+		tgtInv.Items[newSrcId] = newSrcItem
+		srcInv.Items[newTgtId] = newTgtItem
+
+
+
+		
+		CaseInventory:RefreshLoadout(srcInv)
+		CaseInventory:RefreshLoadout(tgtInv)
+	end
+	return true
+end
+
+
 -- Move an item and swap it with something else if possible
----comment
 ---@param src table Source inventory
 ---@param srcId integer Source invId
 ---@param tgt table Target inventory
 ---@param tgtX integer Target X Cell
 ---@param tgtY integer Target Y Cell
 ---@param tgtRot boolean Target rotation
----@return boolean success Was the item moved?
-function CaseInventory:MoveItem(src, srcId, tgt, tgtX, tgtY, tgtRot)
-	local item = src.Items[srcId]
-	local info = CaseInventory.ItemRegister[item.ItemID]
-	local w = info.Size.W
-	local h = info.Size.H
+---@param checkOnly boolean? Don't actually move anything
+---@return boolean success, boolean wasSwapped 
+function CaseInventory:MoveItem(src, srcId, tgt, tgtX, tgtY, tgtRot, checkOnly)
+
+	if checkOnly == nil then
+		checkOnly = false
+	end
+
+	local srcItem = src.Items[srcId]
+	local srcInfo = CaseInventory.ItemRegister[srcItem.ItemID]
+	local srcW = srcInfo.Size.W
+	local srcH = srcInfo.Size.H
 
 	if tgtRot then
-		local _w, _h = w, h
-		w = _h
-		h = _w
+		local _w, _h = srcW, srcH
+		srcW = _h
+		srcH = _w
 	end
 
 
-	local foundItem = 0 -- See if we encounter any items on our trip
-	for _x = tgtX, tgtX + w-1 do
-		for _y = tgtY, tgtY + h-1 do
-			if tgt.Loadout[_x][_y] ~= 0 and tgt.Loadout[_x][_y] ~= foundItem then
-				if foundItem ~= 0 then
-					return false -- We can only swap one item :( (i'm lazy)
+	local foundItem = tgt.Loadout[tgtX][tgtY]
+	local foundSelf = false
+
+	if foundItem == 0 or (src == tgt and foundItem == srcId) then
+		for _x = tgtX, tgtX + srcW-1 do
+			for _y = tgtY, tgtY + srcH-1 do
+				if _x > tgt.Size[1] or _y > tgt.Size[2] then
+					continue
 				end
 
-				foundItem = tgt.Loadout[_x][_y]
+				local item = tgt.Loadout[_x][_y]
+				if item ~= 0 then
+					if src == tgt and item == srcId then
+						continue
+					else
+						foundItem = item
+						break
+					end
+					
+				end
 			end
 		end
 	end
 
-	local filter = {
-		0, foundItem
-	}
-
-	if src == tgt then -- Make sure to filter out the item itself
-		filter[#filter+1] = srcId 
+	if foundItem == 0 and foundSelf then
+		foundItem = srcId
 	end
-	filter = { 
-		0,
-		src == tgt and srcId or nil
-	}
-	--PrintTable(filter)
 
-	if self:CheckLocation(tgt, tgtX, tgtY, w, h, filter) then
-		local tgtId = 0
+	local swap = 
+		foundItem ~= 0 and not
+		(foundItem == srcId and src == tgt)
 		
-		if tgt.Items[srcId] == nil or tgt == src then -- Resuse the old id so it's easier on me :)
-			tgtId = srcId
-		else
-			tgtId = CaseInventory:FindFreeId(tgt)
+	if CLIENT then
+		if not cvar_enable_swap:GetBool() then
+			swap = false
 		end
-		local newItem = CaseInventory:CreateItemInfo(
-			item.ItemID,
-			item.Count,
-			tgtRot,
-			tgtX,
-			tgtY
-		)
-
-		src.Items[srcId] = nil
-		tgt.Items[tgtId] = newItem
-
-		
-		CaseInventory:RefreshLoadout(src)
-		CaseInventory:RefreshLoadout(tgt)
-		return true
-		--self:PlaceItem(ply.CaseInv.Loadout, id, info, {1,1, 255, 255})
 	end
-	return false
+
+	-- Time to perform a swap
+	if swap then
+		local dstItem = tgt.Items[foundItem]
+		local dstInfo = CaseInventory.ItemRegister[dstItem.ItemID]
+		local dstW = dstInfo.Size.W
+		local dstH = dstInfo.Size.H
+
+		local result = self:SwapLogic(src, srcId, tgt, foundItem, tgtX, tgtY, tgtRot, checkOnly) or 
+			self:SwapDirect(src, srcId, tgt, foundItem, checkOnly, 0)
+		return result, true
+	else -- No swap time :(
+		local tgtId = 0
+
+		-- Technically done by the found item check lol
+		if not self:CheckLocation(tgt, tgtX, tgtY, srcW, srcH, {
+			0,
+			src == tgt and srcId or nil}) 
+		then
+			return false, false
+		end
+		
+		if not checkOnly then
+			if tgt.Items[srcId] == nil or tgt == src then -- Resuse the old id so it's easier on me :)
+				tgtId = srcId
+			else
+				tgtId = CaseInventory:FindFreeId(tgt)
+			end
+
+			local newItem = CaseInventory:CreateItemInfo(
+				srcItem.ItemID,
+				srcItem.Count,
+				tgtRot,
+				tgtX,
+				tgtY
+			)
+
+			src.Items[srcId] = nil
+			tgt.Items[tgtId] = newItem
+			
+
+			
+			CaseInventory:RefreshLoadout(src)
+			CaseInventory:RefreshLoadout(tgt)
+		end 
+		return true, false
+	end
+
+	return false, swap
 end
 
 ---Combines stacks of items together
