@@ -185,9 +185,7 @@ function CaseInventory:AddItemToInventory(inv, itemId, count, sync)
 		)
 		local newItemId = self:FindFreeId(inv)
 
-		if CASE_INVENTORY_DEBUG then
-			newItem.Name = self.ItemRegister[itemId].Name
-		end
+		newItem.Name = self.ItemRegister[itemId].Name
 
 		local placedItem, x, y, rotated = CaseInventory:FindValidSpot(inv, itemId)
 
