@@ -203,7 +203,6 @@ hook.Add( "WeaponEquip", "CASE_WeaponEquip", function( weapon, ply )
 
 	local info = CaseInventory.ItemRegister[itemId]
 	if info.ItemType == CASE_ITEM_DO_NOT_HANDLE then
-		print("hello!")
 		return
 	end
 

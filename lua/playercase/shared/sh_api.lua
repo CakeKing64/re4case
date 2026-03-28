@@ -569,7 +569,6 @@ function CaseInventory:RegisterItem(info)
 	end
 
 	if exists then
-		print("Overwrote item", info.Name)
 		return true
 	end
 	
