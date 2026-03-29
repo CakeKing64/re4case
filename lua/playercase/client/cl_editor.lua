@@ -7,6 +7,7 @@ CaseEditor.Panel = nil
 CaseEditor.WeaponList = nil
 CaseEditor.ApplyButton = nil
 CaseEditor.ResetButton = nil
+CaseEditor.Filter = nil
 CaseEditor.Model = nil
 CaseEditor.Scale = nil
 CaseEditor.Offset = nil
@@ -14,23 +15,19 @@ CaseEditor.Size = nil
 CaseEditor.Rotation = nil
 CaseEditor.CurrentID = 1
 
+
 function CaseEditor:Populate(panel)
 
 	-- Add a combo box and slap all the weapon names in it
 	CaseEditor.WeaponList = vgui.Create("DComboBox")
 
-	for i in ipairs(CaseInventory.ItemRegister) do
-		local type = CaseInventory.ItemRegister[i].ItemType
-
-		if type == CASE_ITEM_GLOW_ONLY or type == CASE_ITEM_DO_NOT_HANDLE or type == CASE_ITEM_AMMO_SPECIAL then
-			continue
-		end
-		
-		CaseEditor.WeaponList:AddChoice(
-			CaseInventory.ItemRegister[i].Name .. " (" .. CaseInventory.ItemRegister[i].PrintName .. ")",
-			i -- Store the index just because
-		)
+	CaseEditor.Filter = panel:TextEntry("Filter")
+	CaseEditor.Filter.OnTextChanged = function ()
+		CaseEditor:FilterChanged(CaseEditor.Filter:GetText())
 	end
+
+
+
 	CaseEditor.WeaponList.OnSelect = function (_, _, _, data)
 		CaseEditor:WeaponChanged(data, true)
 	end
@@ -48,15 +45,16 @@ function CaseEditor:Populate(panel)
 		CaseEditor:ResetInfo()
 	end
 
+
+
 	CaseEditor.Model = panel:TextEntry("Model")
 	CaseEditor.Size = panel:TextEntry("Size")
 	CaseEditor.Scale = panel:TextEntry("Scale")
 	CaseEditor.Offset = panel:TextEntry("Offset")
 	CaseEditor.Rotation = panel:TextEntry("Rotation")
 
-
-	-- And finally setup everything
-	CaseEditor.WeaponList:ChooseOptionID(1)
+	
+	CaseEditor:FilterChanged("")
 end
 
 local function GetValue(val, default)
@@ -155,6 +153,42 @@ function CaseEditor:ResetInfo()
 		CaseEditor.CurrentID,
 		true
 	)
+end
+
+function CaseEditor:FilterChanged(filter)
+
+	local foundWeapon = false
+	CaseEditor.WeaponList:CloseMenu()
+	CaseEditor.WeaponList:Clear()
+
+	for i in ipairs(CaseInventory.ItemRegister) do
+		local type = CaseInventory.ItemRegister[i].ItemType
+
+		if type == CASE_ITEM_GLOW_ONLY or type == CASE_ITEM_DO_NOT_HANDLE or type == CASE_ITEM_AMMO_SPECIAL then
+			continue
+		end
+
+		local name = string.lower(CaseInventory.ItemRegister[i].Name ~= nil and CaseInventory.ItemRegister[i].Name or "")
+		local printName = string.lower(CaseInventory.ItemRegister[i].PrintName ~= nil and CaseInventory.ItemRegister[i].PrintName or "")
+		local fitlerLower = string.lower(filter)
+
+		local found = filter == "" or (string.find(name, fitlerLower) or string.find(printName, fitlerLower))
+
+		if found then
+			foundWeapon = true
+			CaseEditor.WeaponList:AddChoice(
+				CaseInventory.ItemRegister[i].Name .. " (" .. CaseInventory.ItemRegister[i].PrintName .. ")",
+				i -- Store the index just because
+			)
+		end
+	end
+
+	-- nothing found, just throw everything back on
+	if not foundWeapon then
+		CaseEditor:FilterChanged("")
+	else
+		CaseEditor.WeaponList:ChooseOptionID(1)
+	end
 end
 
 
