@@ -86,4 +86,60 @@ net.Receive("CaseCommandEvent", function (len, ply)
         local sync = net.ReadBool()
         commands.MergeItems(ply, srcID, destID, sync)
     end
+
+    if cmd == CASE_COMMAND_SYNC_OVERRIDES then
+        -- Admin only thing, now die
+        if not ply:IsAdmin() then
+            return
+        end
+
+        local itemID = net.ReadUInt(16)
+		local delete = net.ReadBool()
+
+		if delete then
+			CaseInventory:SetOverride(itemID, true)
+			CaseInventory:SendOverride(itemID) -- Replicate this
+			return
+		end
+
+        local model = net.ReadString()
+
+        local size = {
+            net.ReadInt(16),
+            net.ReadInt(16)
+        }
+
+		local scale = net.ReadFloat()
+
+        local offset = {
+            net.ReadFloat(),
+            net.ReadFloat(),
+            net.ReadFloat()
+        }
+        
+        local rotation = {
+            net.ReadFloat(),
+            net.ReadFloat(),
+            net.ReadFloat()
+        }
+
+		-- Store it away
+		CaseInventory:SetOverride(itemID, false, model, size, scale, offset, rotation)
+
+		-- Now time to replicate this to all clients
+		CaseInventory:SendOverride(itemID)
+
+		-- Save everything to disk
+		CaseInventory:SaveOverrides()
+    end
+
+	if cmd == CASE_COMMAND_REQUEST_OVERRIDES then
+		if ply.HasSyncedOverrides == nil or not ply.HasSyncedOverrides then
+			-- Only allow this once
+			ply.HasSyncedOverrides = true
+			for k, v in pairs(CaseInventory.RegisterOverrides) do
+				CaseInventory:SendOverride(k, ply)
+			end
+		end
+	end
 end)

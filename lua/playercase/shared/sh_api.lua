@@ -33,7 +33,7 @@ function CaseInventory:PickupWeapon(ply, wpn)
 	end
 
 	local wpnId = CaseInventory:GetItemID(wpn:GetClass())
-	local info = CaseInventory.ItemRegister[wpnId]
+	local info = CaseInventory:GetItemInfo(wpnId)
 	local count = CaseInventory:ItemCount(CaseInventory:Inv(ply), wpnId)
 
 	-- Do a count check here just for grenades :)
@@ -84,7 +84,7 @@ function CaseInventory:PickupAmmo(ply, ammoID, count, dropIfCantPickup)
 	local rem = count
 	local res = true 
 	local id = self:GetItemFromAmmo(ammoID)
-	local info = CaseInventory.ItemRegister[id]
+	local info = CaseInventory:GetItemInfo(id)
 	
 	if id == -1 then
 		return false, 0
@@ -161,7 +161,7 @@ function CaseInventory:AddItemToInventory(inv, itemId, count, sync)
 		return false, 0
 	end
 
-	max = self.ItemRegister[itemId].MaxCount
+	max = CaseInventory:GetItemInfo(itemId).MaxCount
 
 	
 	-- Check to see if we already have an instance of this item
@@ -185,7 +185,7 @@ function CaseInventory:AddItemToInventory(inv, itemId, count, sync)
 		)
 		local newItemId = self:FindFreeId(inv)
 
-		newItem.Name = self.ItemRegister[itemId].Name
+		newItem.Name = CaseInventory:GetItemInfo(itemId).Name
 
 		local placedItem, x, y, rotated = CaseInventory:FindValidSpot(inv, itemId)
 
@@ -216,7 +216,7 @@ end
 ---@param itemID integer
 ---@return boolean found, number? x, number? y, boolean? rotated 
 function CaseInventory:FindValidSpot(inv, itemID)
-	local info = CaseInventory.ItemRegister[itemID]
+	local info = CaseInventory:GetItemInfo(itemID)
 	for y=1, inv.Size[2] do
 		for x=1, inv.Size[1] do
 			for r=1,2 do -- Attempt both rotations per slot, first horiz then vert
@@ -355,7 +355,7 @@ function CaseInventory:DropItem(inv, invId, count, player, sync)
 	
 	local dropCount = count ~= -1 and math.min(count, inv.Items[invId].Count) or inv.Items[invId].Count
 
-	local itemInfo = CaseInventory.ItemRegister[inv.Items[invId].ItemID]
+	local itemInfo = CaseInventory:GetItemInfo(inv.Items[invId].ItemID)
 	local invInfo = inv.Items[invId]
 
 	-- Player tried to drop a weapon they don't have
@@ -453,7 +453,7 @@ function CaseInventory:UseItem(ply, invId, sync)
 		return false, 0
 	end
 
-	local item = CaseInventory.ItemRegister[CaseInventory:Inv(ply).Items[invId].ItemID]
+	local item = CaseInventory:GetItemInfo(CaseInventory:Inv(ply).Items[invId].ItemID)
 	if item.OnUse == nil then
 		return false, 0
 	end
@@ -512,6 +512,177 @@ function CaseInventory:GetItemID(name)
 		end
 	end
 	return -1
+end
+
+---Returns item info from either the register or the override register
+---@param id number
+---@return table
+function CaseInventory:GetItemInfo(id)
+	if CaseInventory.RegisterOverrides[id] ~= nil then
+		return CaseInventory.RegisterOverrides[id]
+	end
+
+	return CaseInventory.ItemRegister[id]
+end
+
+---Loads data from data/caseoverrides.txt
+function CaseInventory:LoadOverrides()
+	if CLIENT then
+		return
+	end
+
+	-- Can't load what isn't real
+	if not file.Exists("caseinv/overrides.json", "DATA") then
+		return
+	end
+	
+	local overrides = util.JSONToTable(file.Read("caseinv/overrides.json", "DATA"))
+
+	
+	for k, v in pairs(overrides) do
+		local itemID = CaseInventory:GetItemID(k)
+		if itemID == -1 then
+			CaseInventory.GhostOverrides[k] = v
+		else
+
+			CaseInventory:SetOverride(
+				itemID,
+				false,
+				v.Model,
+				v.Size,
+				v.Scale,
+				v.Offset,
+				v.Rotations
+			)
+
+			-- Send it out just for singleplayer
+			CaseInventory:SendOverride(itemID)
+		end
+	end
+end
+
+function CaseInventory:SaveOverrides()
+	local saveTable = {}
+
+	for k, v in pairs(CaseInventory.RegisterOverrides) do
+		saveTable[v.Name] = {}
+		saveTable[v.Name].Size = {v.Size.W, v.Size.H}
+		saveTable[v.Name].Model = v.Model
+		saveTable[v.Name].Rotations = v.RenderInfo.Rotations
+		saveTable[v.Name].Scale = v.RenderInfo.Scale
+		saveTable[v.Name].Offset = {}
+		saveTable[v.Name].Offset[1] = v.RenderInfo.Offset.X
+		saveTable[v.Name].Offset[2] = v.RenderInfo.Offset.Y
+		saveTable[v.Name].Offset[3] = v.RenderInfo.Offset.Z
+	end
+
+	-- Also save the stuff that isn't actually used
+	for k, v in pairs(CaseInventory.GhostOverrides) do
+		saveTable[k] = v
+	end
+
+	file.Write("caseinv/overrides.json", util.TableToJSON(saveTable))
+end
+
+---Syncs an override to a client
+---@param itemID any
+function CaseInventory:SendOverride(itemID, ply)
+	if not SERVER then
+		return
+	end
+
+	local function DefaultVar(var, default)
+		if var == nil then
+			return default
+		end
+		return var
+	end
+
+	net.Start("CaseSyncOverride")
+		net.WriteUInt(itemID, 16)
+
+		local info = CaseInventory.RegisterOverrides[itemID]
+
+		net.WriteBool(info == nil) -- Delete?
+
+		if info ~= nil then
+			net.WriteString(DefaultVar(info.RenderInfo.Model, ""))
+
+			-- Write size
+			net.WriteInt(DefaultVar(info.Size.W, 1), 16)
+			net.WriteInt(DefaultVar(info.Size.H, 1), 16)
+
+			-- Write scale
+			net.WriteFloat(DefaultVar(info.RenderInfo.Scale, 1))
+
+			-- Write offset
+			net.WriteFloat(DefaultVar(info.RenderInfo.Offset.X, 0))
+			net.WriteFloat(DefaultVar(info.RenderInfo.Offset.Y, 0))
+			net.WriteFloat(DefaultVar(info.RenderInfo.Offset.Z, 0))
+
+			-- Write rotation
+			net.WriteFloat(DefaultVar(info.RenderInfo.Rotations[1], 0))
+			net.WriteFloat(DefaultVar(info.RenderInfo.Rotations[2], 0))
+			net.WriteFloat(DefaultVar(info.RenderInfo.Rotations[3], 0))
+		end
+
+
+	if ply == nil then
+		net.Broadcast()
+	else
+		net.Send(ply)
+	end
+end
+
+---comment
+---@param itemID number
+---@param delete boolean
+---@param model string?
+---@param size table?
+---@param scale number?
+---@param offset table?
+---@param rotation table?
+function CaseInventory:SetOverride(itemID, delete, model, size, scale, offset, rotation)
+
+	if delete then
+		CaseInventory.RegisterOverrides[itemID] = nil
+		return
+	end
+
+	if CaseInventory.ItemRegister[itemID] == nil then
+		return
+	end
+
+	-- Copy over the actual registry real quick
+	CaseInventory.RegisterOverrides[itemID] = table.Copy(CaseInventory.ItemRegister[itemID])
+
+	-- Override the size
+	CaseInventory.RegisterOverrides[itemID].Size.W = size[1]
+	CaseInventory.RegisterOverrides[itemID].Size.H = size[2]
+
+	-- Model
+	CaseInventory.RegisterOverrides[itemID].RenderInfo.Model = model
+
+	-- Scale
+	CaseInventory.RegisterOverrides[itemID].RenderInfo.Scale = scale
+
+	-- Offset
+	CaseInventory.RegisterOverrides[itemID].RenderInfo.Offset = Vector(offset[1], offset[2], offset[3])
+
+	-- Rotation
+	CaseInventory.RegisterOverrides[itemID].RenderInfo.Rotations = rotation
+end
+
+---Uploads an override to the server
+---@param itemID number
+---@param model string
+---@param size table
+---@param offset table
+---@param rotation table
+function CaseInventory:SubmitOverride(itemID, model, size, offset, rotation)
+	if SERVER then
+		return
+	end
 end
 
 ---Creates an item info table :)
@@ -585,7 +756,7 @@ function CaseInventory:SyncAmmo(ply, sync)
 		sync = true
 	end
 	for k, v in pairs(CaseInventory:Inv(ply).Items) do
-		local info = self.ItemRegister[v.ItemID]
+		local info = CaseInventory:GetItemInfo(v.ItemID)
 
 		if info.AmmoID ~= -1 then
 			plyCurAmmo[info.AmmoID] = nil
@@ -616,7 +787,7 @@ end
 ---@param info table
 ---@return boolean itemPlaced Could the item be placed in the inventory?
 function CaseInventory:PlaceItem(inv, invId, info)
-	local itemInfo = CaseInventory.ItemRegister[info.ItemID]
+	local itemInfo = CaseInventory:GetItemInfo(info.ItemID)
 	
 
 	if itemInfo == nil then
@@ -694,10 +865,10 @@ end
 
 function CaseInventory:SwapLogic(srcInv, srcId, tgtInv, tgtId, dstX, dstY, srcRot, checkOnly)
 	local srcItem = srcInv.Items[srcId]
-	local srcInfo = CaseInventory.ItemRegister[srcItem.ItemID]
+	local srcInfo = CaseInventory:GetItemInfo(srcItem.ItemID)
 
 	local tgtItem = tgtInv.Items[tgtId]
-	local tgtInfo = CaseInventory.ItemRegister[tgtItem.ItemID]
+	local tgtInfo = CaseInventory:GetItemInfo(tgtItem.ItemID)
 
 	local srcW, srcH = srcInfo.Size.W, srcInfo.Size.H
 
@@ -816,10 +987,10 @@ function CaseInventory:SwapDirect(srcInv, srcId, tgtInv, tgtId, checkOnly, rotat
 	end
 
 	local srcItem = srcInv.Items[srcId]
-	local srcInfo = CaseInventory.ItemRegister[srcItem.ItemID]
+	local srcInfo = CaseInventory:GetItemInfo(srcItem.ItemID)
 
 	local tgtItem = tgtInv.Items[tgtId]
-	local tgtInfo = CaseInventory.ItemRegister[tgtItem.ItemID]
+	local tgtInfo = CaseInventory:GetItemInfo(tgtItem.ItemID)
 
 	local srcRot = srcItem.Rotated
 	local tgtRot = tgtItem.Rotated
@@ -969,7 +1140,7 @@ function CaseInventory:MoveItem(src, srcId, tgt, tgtX, tgtY, tgtRot, checkOnly)
 	end
 
 	local srcItem = src.Items[srcId]
-	local srcInfo = CaseInventory.ItemRegister[srcItem.ItemID]
+	local srcInfo = CaseInventory:GetItemInfo(srcItem.ItemID)
 	local srcW = srcInfo.Size.W
 	local srcH = srcInfo.Size.H
 
@@ -1021,7 +1192,7 @@ function CaseInventory:MoveItem(src, srcId, tgt, tgtX, tgtY, tgtRot, checkOnly)
 	-- Time to perform a swap
 	if swap then
 		local dstItem = tgt.Items[foundItem]
-		local dstInfo = CaseInventory.ItemRegister[dstItem.ItemID]
+		local dstInfo = CaseInventory:GetItemInfo(dstItem.ItemID)
 		local dstW = dstInfo.Size.W
 		local dstH = dstInfo.Size.H
 
@@ -1092,7 +1263,7 @@ function CaseInventory:MergeItem(srcInv, destInv, srcID, destID, sync)
 
 	local itemFrom = srcInv.Items[srcID]
 	local itemTo = destInv.Items[destID]
-	local itemInfo = CaseInventory.ItemRegister[itemTo.ItemID]
+	local itemInfo = CaseInventory:GetItemInfo(itemTo.ItemID)
 
 	if itemTo.Count == itemInfo.MaxCount then
 		return false, 0, 0
@@ -1488,6 +1659,8 @@ function CaseInventory:FinalizeItemRegister()
 	for k, v in ipairs(CaseInventory.ItemRegister) do
 		v.ItemID = k
 	end
+
+	CaseInventory:LoadOverrides()
 end
 
 function CaseInventory:TryLocalize(string)
@@ -1509,7 +1682,7 @@ end
 ---@param itemID integer
 ---@return boolean
 function CaseInventory:IsWeapon(itemID)
-	local item = CaseInventory.ItemRegister[itemID]
+	local item = CaseInventory:GetItemInfo(itemID)
 	if item == nil then
 		return false
 	end
@@ -1521,7 +1694,7 @@ end
 ---@param itemID integer
 ---@return boolean
 function CaseInventory:IsAmmo(itemID)
-	local item = CaseInventory.ItemRegister[itemID]
+	local item = CaseInventory:GetItemInfo(itemID)
 	if item == nil then
 		return false
 	end
@@ -1533,7 +1706,7 @@ end
 ---@param itemID integer
 ---@return boolean
 function CaseInventory:IsItem(itemID)
-	local item = CaseInventory.ItemRegister[itemID]
+	local item = CaseInventory:GetItemInfo(itemID)
 	if item == nil then
 		return false
 	end

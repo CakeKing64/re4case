@@ -229,7 +229,7 @@ end)
 ---@param itm integer
 function CaseGUI:FillContext(panel, parent)
 	local itemID = self.Context.Parent:Inv().Items[CaseGUI.Context.InvID].ItemID
-	local itemInfo = CaseInventory.ItemRegister[itemID]
+	local itemInfo = CaseInventory:GetItemInfo(itemID)
 	local list = {}
 
 	local info = self:GenerateInfo()
@@ -256,7 +256,7 @@ function CaseGUI:GenerateInfo()
 	end
 
 	local itemID = self.Context.Parent:Inv().Items[CaseGUI.Context.InvID].ItemID
-	local itemInfo = CaseInventory.ItemRegister[itemID]
+	local itemInfo = CaseInventory:GetItemInfo(itemID)
 	return {
 		Menu=self.Context.Panel,
 		ItemID=itemID,
@@ -288,7 +288,7 @@ local function _windowOnKeyboardInput(self, keycode)
 	end
 
 	local invInfo = window:Inv().Items[invId]
-	local itemInfo = CaseInventory.ItemRegister[invInfo.ItemID]
+	local itemInfo = CaseInventory:GetItemInfo(invInfo.ItemID)
 
 	local use = input.LookupBinding("use") == input.GetKeyName(keycode)
 	if use and CaseInventory:CanUse(LocalPlayer(), itemInfo, invId) then

@@ -38,7 +38,7 @@ hook.Add("PreDrawHalos", "CASE_PreDrawHalos", function ()
 			return
 		end
 
-		local itemInfo = CaseInventory.ItemRegister[itemID]
+		local itemInfo = CaseInventory:GetItemInfo(itemID)
 		local drawColor = Color(0, 255, 0)
 
 		-- Weapons will just give ammo if we already have one
@@ -198,4 +198,12 @@ end )
 
 concommand.Add("case_print_inv", function(ply)
 	PrintTable(CaseInventory:Inv(ply))
+end)
+
+concommand.Add("case_print_registry", function(ply)
+	PrintTable(CaseInventory.ItemRegister)
+end)
+
+concommand.Add("case_print_overrides", function(ply)
+	PrintTable(CaseInventory.RegisterOverrides)
 end)

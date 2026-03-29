@@ -405,8 +405,10 @@ local itemsPolyArms = {
 --[[
     Bases are here to make the autogeneration not spit them out
 ]]
-local itemBases = {
-    CaseWeapon("arc9_base", CaseRenderInfo(""), 3, 2),
+
+local function itemBases()
+    return {
+        CaseWeapon("arc9_base", CaseRenderInfo(""), 3, 2),
     CaseWeapon("arc9_base_nade", CaseRenderInfo("models/weapons/w_pistol.mdl"), 3, 2),
     CaseWeapon("arc9_uplp_grenade_base", CaseRenderInfo("models/weapons/w_eq_fraggrenade.mdl"), 3, 2),
     CaseWeapon("tfa_sword_advanced_base", CaseRenderInfo(""), 3, 2),
@@ -425,12 +427,9 @@ local itemBases = {
 
     CaseWeapon("tfa_nmrimelee_base", CaseRenderInfo("models/weapons/w_pistol.mdl"), 3, 2),
     CaseWeapon("tfa_nmrih_base_3d", CaseRenderInfo("models/weapons/w_pistol.mdl"), 3, 2),
-    CaseWeapon("tfa_nmrih_base_fa", CaseRenderInfo("models/weapons/w_pistol.mdl"), 3, 2),
-
-   -- CaseAmmo(game.GetAmmoID("tfbow_arrow"), CaseRenderInfo("models/weapons/w_tfa_arrow.mdl"), 4, 1, 15),
-
-    
-}
+    CaseWeapon("tfa_nmrih_base_fa", CaseRenderInfo("models/weapons/w_pistol.mdl"), 3, 2)
+    }
+end
 
 local function itemsNMRiH()
     return {
@@ -542,8 +541,30 @@ hook.Add("CaseRegisterItems", "CaseDefaultItemRegister", function ()
     _registerItemTable(itemsMMODReplacement())
     
 
+    local nmrih = false
+    local otherBase = false
+
+    for k, v in ipairs(engine.GetAddons()) do
+        if not v.mounted then
+            continue
+        end
+
+        if not nmrih and ( v.wsid == "828059724" or v.wsid == "2849966415" ) then
+            _registerItemTable(itemsNMRiH())
+            nmrih = true
+            otherBase = true
+        end
+
+        if v.wsid == "3098824960" then
+            otherBase = true
+            _registerItemTable(itemsPolyArms)
+        end
+
+    end
+
     -- Modded weapons 'n stuff
-    _registerItemTable(itemBases)
-    _registerItemTable(itemsPolyArms)
-    _registerItemTable(itemsNMRiH())
+    if otherBase then
+        _registerItemTable(itemBases())
+    end
+
 end)

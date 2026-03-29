@@ -120,7 +120,7 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
 	local screenW, screenH = _CaseUIGetScaledSize()
 	local scaleW, scaleH = _CaseUIGetScaledDiff()
 	local posX, posY = self:LocalToScreen(self:GetPos())
-	local itemInfo = CaseInventory.ItemRegister[itemID]
+	local itemInfo = CaseInventory:GetItemInfo(itemID)
 	local renderInfo = itemInfo.RenderInfo
 	local model = CaseGUI.ModelCache[renderInfo.Model]
 
@@ -338,7 +338,7 @@ end
 
 function invpanel:UpdateItemPos(mx, my)
 	local v = CaseGUI.HeldItem.SourceWindow:Inv().Items[CaseGUI.HeldItem.InvID]
-	local info = CaseInventory.ItemRegister[v.ItemID]
+	local info = CaseInventory:GetItemInfo(v.ItemID)
 	local itemW, itemH = info.Size.W, info.Size.H
 
 
@@ -476,7 +476,7 @@ function invpanel:OnMousePressed(keyCode)
 				CaseGUI.Context.Panel = vgui.Create("CaseInvContext")
 				local posX, posY = self:LocalToScreen(self:GetPos())
 				local itemX, itemY = self:Inv().Items[itm].X, self:Inv().Items[itm].Y
-				local itemInfo = CaseInventory.ItemRegister[self:Inv().Items[itm].ItemID]
+				local itemInfo = CaseInventory:GetItemInfo(self:Inv().Items[itm].ItemID)
 				
 				local scaleW, scaleH = _CaseUIGetScaledDiff()
 				local _x, _y, _w, _h = 
@@ -551,7 +551,7 @@ function invpanel:Think()
 
 	if CaseGUI.HeldItem.InvID ~= -1 and CaseGUI.HoveredWindow == self then
 		local v = CaseGUI.HeldItem.SourceWindow:Inv().Items[CaseGUI.HeldItem.InvID]
-		local info = CaseInventory.ItemRegister[v.ItemID]
+		local info = CaseInventory:GetItemInfo(v.ItemID)
 		local mx, my = self:GetMouseSlot(true)
 		self:UpdateItemPos(mx, my)
 	end
@@ -576,7 +576,7 @@ function invpanel:PaintLimited(w, h)
 
 
 	for k, v in pairs(self:Inv().Items) do
-		local info = CaseInventory.ItemRegister[v.ItemID]
+		local info = CaseInventory:GetItemInfo(v.ItemID)
 		local held = (k == CaseGUI.HeldItem.InvID and self == CaseGUI.HeldItem.SourceWindow)
 
 		if info == nil then
@@ -594,7 +594,7 @@ function invpanel:PaintLimited(w, h)
 
 	if CaseGUI.HeldItem.InvID ~= -1 and CaseGUI.HoveredWindow == self then
 		local v = CaseGUI.HeldItem.SourceWindow:Inv().Items[CaseGUI.HeldItem.InvID]
-		local info = CaseInventory.ItemRegister[v.ItemID]
+		local info = CaseInventory:GetItemInfo(v.ItemID)
 		local mx, my = self:GetMouseSlot(true)
 
 		if mx and my then -- Don't draw if model would be out of the grid
@@ -652,7 +652,7 @@ function invpanel:Paint(w, h)
 		end
 		
 		if itm ~= 0 then
-			local name = CaseInventory.ItemRegister[realID].PrintName or "" -- or if someone opens the case frame 0 or something
+			local name = CaseInventory:GetItemInfo(realID).PrintName or "" -- or if someone opens the case frame 0 or something
 			local sW, sH = self:GetSize()
 			local tW, tH = CaseInvBitmapTextSize(name, 35)
 

@@ -55,7 +55,7 @@ hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent 
 		ply.UseCommand = 2
 
 		local id = CaseInventory:GetItemID(ent:GetClass())
-		local info = id ~= -1 and CaseInventory.ItemRegister[id] or {}
+		local info = id ~= -1 and CaseInventory:GetItemInfo(id) or {}
 
 		if id == -1 or info.ItemType == CASE_ITEM_GLOW_ONLY or
 			info.ItemType == CASE_ITEM_WEAPON or
@@ -67,9 +67,9 @@ hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent 
 		-- If the player is not holding walk and the item can be used
 		-- Use it in the overworld then :)
 		-- If not pick it up
-		local canUse = CaseInventory.ItemRegister[id].CanUse
+		local canUse = CaseInventory:GetItemInfo(id).CanUse
 		
-		if not ply:IsWalking() and (canUse ~= nil and canUse(ply, CaseInventory.ItemRegister[id], -1)) then
+		if not ply:IsWalking() and (canUse ~= nil and canUse(ply, CaseInventory:GetItemInfo(id), -1)) then
 			return
 		end
 
@@ -107,7 +107,7 @@ hook.Add("PlayerCanPickupWeapon", "CASE_PlayerCanPickupWeapon", function( ply, e
 			return false
 		end
 
-		local info = CaseInventory.ItemRegister[itemId]
+		local info = CaseInventory:GetItemInfo(itemId)
 
 		-- Do nuffin about it
 		if info.ItemType == CASE_ITEM_DO_NOT_HANDLE then
@@ -139,7 +139,7 @@ hook.Add("PlayerAmmoChanged", "CASE_PlayerAmmoChanged", function (ply, ammoID, o
 	local count = 0
 
 	for k, v in pairs(CaseInventory:Inv(ply).Items) do
-		local info = CaseInventory.ItemRegister[v.ItemID]
+		local info = CaseInventory:GetItemInfo(v.ItemID)
 
 		if info.AmmoID == ammoID then
 			count = count + v.Count
@@ -201,7 +201,7 @@ hook.Add( "WeaponEquip", "CASE_WeaponEquip", function( weapon, ply )
 		return
 	end
 
-	local info = CaseInventory.ItemRegister[itemId]
+	local info = CaseInventory:GetItemInfo(itemId)
 	if info.ItemType == CASE_ITEM_DO_NOT_HANDLE then
 		return
 	end
@@ -240,7 +240,7 @@ hook.Add("OnPlayerPhysicsPickup", "CASE_OnPlayerPhysicsPickup", function( ply, e
 
 
 
-			local info = CaseInventory.ItemRegister[itemID]
+			local info = CaseInventory:GetItemInfo(itemID)
 			-- Anti infinite loop:tm:
 			-- Don't try to pickup if already in the queue
 			for k, v in ipairs(CaseInventory.PickupQueue) do

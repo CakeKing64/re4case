@@ -20,6 +20,7 @@ hook.Add("InitPostEntity", "CASE_InitPostEntity", function ()
 
     if CLIENT then
         CaseInventory:RefreshLoadout(CaseInv())
+        CaseInventory.ClientNet.RequestOverrides()
     end
 end)
 
