@@ -135,7 +135,13 @@ net.Receive("CaseCommandEvent", function (len, ply)
 				continue
 			end
 
-			CaseInventory:Sync(v)
+			-- See if everything will still fit in the inventory
+			-- if not throw it on the ground
+			for k, v in pairs(CaseInventory:Inv(ply).Items) do
+				if not CaseInventory:PlaceItem(CaseInventory:Inv(ply), k, v) then
+					CaseInventory:DropItem(CaseInventory:Inv(ply), k, -1, ply, false)
+				end
+			end
 		end
 
 		-- Save everything to disk

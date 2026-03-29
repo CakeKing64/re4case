@@ -1523,7 +1523,7 @@ function CaseInventory:Sync(ply)
 
 	for k, v in pairs(CaseInventory:Inv(ply).Items) do
 		if not CaseInventory:PlaceItem(CaseInventory:Inv(ply), k, v) then -- This probably means the case shrunk
-			CaseInventory:DropItem(CaseInventory:Inv(ply), k, -1, ply, false)
+			--CaseInventory:DropItem(CaseInventory:Inv(ply), k, -1, ply, false)
 		end
 	end
 
