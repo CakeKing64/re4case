@@ -129,6 +129,15 @@ net.Receive("CaseCommandEvent", function (len, ply)
 		-- Now time to replicate this to all clients
 		CaseInventory:SendOverride(itemID)
 
+		-- As a little bonus if items can't fit now drop them on the floor
+		for k, v in ipairs(player.GetAll()) do
+			if not IsValid(v) then
+				continue
+			end
+
+			CaseInventory:Sync(v)
+		end
+
 		-- Save everything to disk
 		CaseInventory:SaveOverrides()
     end
