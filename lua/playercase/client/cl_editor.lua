@@ -20,6 +20,12 @@ function CaseEditor:Populate(panel)
 	CaseEditor.WeaponList = vgui.Create("DComboBox")
 
 	for i in ipairs(CaseInventory.ItemRegister) do
+		local type = CaseInventory.ItemRegister[i].ItemType
+
+		if type == CASE_ITEM_GLOW_ONLY or type == CASE_ITEM_DO_NOT_HANDLE or type == CASE_ITEM_AMMO_SPECIAL then
+			continue
+		end
+		
 		CaseEditor.WeaponList:AddChoice(
 			CaseInventory.ItemRegister[i].Name .. " (" .. CaseInventory.ItemRegister[i].PrintName .. ")",
 			i -- Store the index just because
