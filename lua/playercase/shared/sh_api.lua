@@ -567,7 +567,7 @@ function CaseInventory:SaveOverrides()
 	for k, v in pairs(CaseInventory.RegisterOverrides) do
 		saveTable[v.Name] = {}
 		saveTable[v.Name].Size = {v.Size.W, v.Size.H}
-		saveTable[v.Name].Model = v.Model
+		saveTable[v.Name].Model = v.RenderInfo.Model
 		saveTable[v.Name].Rotations = v.RenderInfo.Rotations
 		saveTable[v.Name].Scale = v.RenderInfo.Scale
 		saveTable[v.Name].Offset = {}
