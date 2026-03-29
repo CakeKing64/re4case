@@ -1514,16 +1514,22 @@ end
 
 ---Sync the player inventory over the network
 ---@param ply table
-function CaseInventory:Sync(ply)
+---@param performDrop boolean?
+function CaseInventory:Sync(ply, performDrop)
 	if CLIENT then
 		return
 	end
+
+	if performDrop == nil then
+		performDrop = false
+	end
+
 	-- If any items were removed we have to place them back :)
 	self:ClearLoadout(CaseInventory:Inv(ply))
 
 	for k, v in pairs(CaseInventory:Inv(ply).Items) do
-		if not CaseInventory:PlaceItem(CaseInventory:Inv(ply), k, v) then -- This probably means the case shrunk
-			--CaseInventory:DropItem(CaseInventory:Inv(ply), k, -1, ply, false)
+		if not CaseInventory:PlaceItem(CaseInventory:Inv(ply), k, v) and performDrop then -- This probably means the case shrunk
+			CaseInventory:DropItem(CaseInventory:Inv(ply), k, -1, ply, false)
 		end
 	end
 
