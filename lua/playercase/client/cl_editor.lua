@@ -105,18 +105,27 @@ function CaseEditor:ApplyChanges()
 	
 
 	for word in string.gmatch(CaseEditor.Size:GetText(), '([^ ]+)') do
+		if word == "" then
+			continue
+		end
 		size[i] = tonumber(word)
 		i = i + 1
 	end
 
 	i = 1
 	for word in string.gmatch(CaseEditor.Offset:GetText(), '([^ ]+)') do
+		if word == "" then
+			continue
+		end
 		offset[i] = tonumber(word)
 		i = i + 1
 	end
 
 	i = 1
 	for word in string.gmatch(CaseEditor.Rotation:GetText(), '([^ ]+)') do
+		if word == "" then
+			continue
+		end
 		rotation[i] = tonumber(word)
 		i = i + 1
 	end
