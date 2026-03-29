@@ -48,8 +48,8 @@ CaseInventory.ClientNet = {
 			net.WriteString(modelName)
 
 			-- Write size
-			net.WriteInt(size[1] ~= nil and size[1] or 1, 16)
-			net.WriteInt(size[2] ~= nil and size[2] or 1, 16)
+			net.WriteUInt(size[1] ~= nil and size[1] or 1, 16)
+			net.WriteUInt(size[2] ~= nil and size[2] or 1, 16)
 
 			-- Write scale
 			net.WriteFloat(scale ~= nil and scale or 1)

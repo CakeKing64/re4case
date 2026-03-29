@@ -105,9 +105,18 @@ net.Receive("CaseCommandEvent", function (len, ply)
         local model = net.ReadString()
 
         local size = {
-            net.ReadInt(16),
-            net.ReadInt(16)
+            net.ReadUInt(16),
+            net.ReadUInt(16)
         }
+
+		-- Only size needs to be checked as the others are visual only
+		if size[1] <= 0 then
+			size[1] = 1
+		end
+
+		if size[2] <= 0 then
+			size[2] = 1
+		end
 
 		local scale = net.ReadFloat()
 
