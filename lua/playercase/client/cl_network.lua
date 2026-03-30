@@ -190,5 +190,5 @@ net.Receive("CaseSyncOverride", function ()
 		net.ReadFloat()
 	}
 
-	CaseInventory:SetOverride(itemID, false, model, size, scale, offset, rotation)
+	CaseInventory:SetOverride(itemID, false, size, CaseRenderInfo(model, scale, rotation, offset))
 end)

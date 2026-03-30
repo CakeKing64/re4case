@@ -548,11 +548,8 @@ function CaseInventory:LoadOverrides()
 			CaseInventory:SetOverride(
 				itemID,
 				false,
-				v.Model,
 				v.Size,
-				v.Scale,
-				v.Offset,
-				v.Rotations
+				CaseRenderInfo(v.Model, v.Scale, v.Rotations, v.Offset)
 			)
 
 			-- Send it out just for singleplayer
