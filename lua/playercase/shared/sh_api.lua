@@ -516,9 +516,22 @@ end
 
 ---Returns item info from either the register or the override register
 ---@param id number
----@return table
+---@return table?
 function CaseInventory:GetItemInfo(id)
+
+	if CaseInventory.ItemRegister[id] == nil then
+		return nil
+	end
+	
 	if CaseInventory.RegisterOverrides[id] ~= nil then
+		local reg = CaseInventory.RegisterOverrides[id]
+
+		-- Apply this stuff now
+		if reg.NeedsUpdating ~= nil and reg.NeedsUpdating then
+			reg.NeedsUpdating = false
+			reg = table.Copy(reg) -- Make a copy rq
+			CaseInventory:SetOverride(id, false, reg.Size, reg.RenderInfo)
+		end
 		return CaseInventory.RegisterOverrides[id]
 	end
 
@@ -634,11 +647,8 @@ end
 ---comment
 ---@param itemID number
 ---@param delete boolean
----@param model string?
 ---@param size table?
----@param scale number?
----@param offset table?
----@param rotation table?
+---@param renderInfo table?
 function CaseInventory:SetOverride(itemID, delete, size, renderInfo)
 
 	if delete then
@@ -646,16 +656,26 @@ function CaseInventory:SetOverride(itemID, delete, size, renderInfo)
 		return
 	end
 
+
 	if CaseInventory.ItemRegister[itemID] == nil then
-		return
+		CaseInventory.RegisterOverrides[itemID] = {}
+		CaseInventory.RegisterOverrides[itemID].Size = {}
+		CaseInventory.RegisterOverrides[itemID].RenderInfo = {}
+		CaseInventory.RegisterOverrides[itemID].NeedsUpdating = true -- Store it away for later :(
+	else
+		CaseInventory.RegisterOverrides[itemID] = table.Copy(CaseInventory.ItemRegister[itemID])
 	end
 
 	-- Copy over the actual registry real quick
-	CaseInventory.RegisterOverrides[itemID] = table.Copy(CaseInventory.ItemRegister[itemID])
+	
 
 	-- Override the size
-	CaseInventory.RegisterOverrides[itemID].Size.W = size[1]
-	CaseInventory.RegisterOverrides[itemID].Size.H = size[2]
+	if size.W == nil then
+		CaseInventory.RegisterOverrides[itemID].Size.W = size[1]
+		CaseInventory.RegisterOverrides[itemID].Size.H = size[2]
+	else
+		CaseInventory.RegisterOverrides[itemID].Size = size
+	end
 
 	-- Model
 	CaseInventory.RegisterOverrides[itemID].RenderInfo = renderInfo

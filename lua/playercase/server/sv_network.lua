@@ -149,6 +149,7 @@ net.Receive("CaseCommandEvent", function (len, ply)
 		CaseInventory:SaveOverrides()
     end
 
+	--[[
 	if cmd == CASE_COMMAND_REQUEST_OVERRIDES then
 		if ply.HasSyncedOverrides == nil or not ply.HasSyncedOverrides then
 			-- Only allow this once
@@ -158,4 +159,5 @@ net.Receive("CaseCommandEvent", function (len, ply)
 			end
 		end
 	end
+	]]
 end)
