@@ -105,6 +105,11 @@ hook.Add("Think", "CASE_Think", function ()
 	if not CaseInventory.Ready then
 		CaseInventory.Ready = true
 		CaseInventory:PopulateNames()
+
+		-- Force update all items
+		for k, v in pairs(CaseInventory.ItemRegister) do
+			CaseInventory:GetItemInfo(k)
+		end
 	end
 
 	_checkInput("Left", MOUSE_LEFT)

@@ -530,7 +530,8 @@ function CaseInventory:GetItemInfo(id)
 		if reg.NeedsUpdating ~= nil and reg.NeedsUpdating then
 			reg.NeedsUpdating = false
 			reg = table.Copy(reg) -- Make a copy rq
-			CaseInventory:SetOverride(id, false, reg.Size, reg.RenderInfo)
+
+			CaseInventory:SetOverride(id, reg)
 		end
 		return CaseInventory.RegisterOverrides[id]
 	end
@@ -560,9 +561,12 @@ function CaseInventory:LoadOverrides()
 
 			CaseInventory:SetOverride(
 				itemID,
-				false,
-				v.Size,
-				CaseRenderInfo(v.Model, v.Scale, v.Rotations, v.Offset)
+				{
+					Size=v.Size,
+					Blacklist=v.Blacklist,
+					MaxCount=v.MaxCount,
+					RenderInfo=CaseRenderInfo(v.Model, v.Scale, v.Rotations, v.Offset)
+				}
 			)
 
 			-- Send it out just for singleplayer
@@ -584,6 +588,8 @@ function CaseInventory:SaveOverrides()
 		saveTable[v.Name].Offset[1] = v.RenderInfo.Offset.X
 		saveTable[v.Name].Offset[2] = v.RenderInfo.Offset.Y
 		saveTable[v.Name].Offset[3] = v.RenderInfo.Offset.Z
+		saveTable[v.Name].Blacklist = v.ItemType == CASE_ITEM_DO_NOT_HANDLE
+		saveTable[v.Name].MaxCount = v.MaxCount
 	end
 
 	-- Also save the stuff that isn't actually used
@@ -634,6 +640,12 @@ function CaseInventory:SendOverride(itemID, ply)
 			net.WriteFloat(DefaultVar(info.RenderInfo.Rotations[1], 0))
 			net.WriteFloat(DefaultVar(info.RenderInfo.Rotations[2], 0))
 			net.WriteFloat(DefaultVar(info.RenderInfo.Rotations[3], 0))
+
+			-- Write max count
+			net.WriteUInt(DefaultVar(info.MaxCount, 1), 16)
+
+			-- Write blacklist
+			net.WriteBool(info.ItemType == CASE_ITEM_DO_NOT_HANDLE)
 		end
 
 
@@ -646,22 +658,25 @@ end
 
 ---comment
 ---@param itemID number
----@param delete boolean
----@param size table?
----@param renderInfo table?
-function CaseInventory:SetOverride(itemID, delete, size, renderInfo)
+---@param info table?
+function CaseInventory:SetOverride(itemID, info)
 
-	if delete then
+	if info == nil then
 		CaseInventory.RegisterOverrides[itemID] = nil
 		return
 	end
 
+	local function GetDefault(val, default)
+		if val == nil then return default end
+		return val
+	end
 
 	if CaseInventory.ItemRegister[itemID] == nil then
 		CaseInventory.RegisterOverrides[itemID] = {}
 		CaseInventory.RegisterOverrides[itemID].Size = {}
 		CaseInventory.RegisterOverrides[itemID].RenderInfo = {}
 		CaseInventory.RegisterOverrides[itemID].NeedsUpdating = true -- Store it away for later :(
+		CaseInventory.RegisterOverrides[itemID].Blacklist = info.Blacklist
 	else
 		CaseInventory.RegisterOverrides[itemID] = table.Copy(CaseInventory.ItemRegister[itemID])
 	end
@@ -670,15 +685,23 @@ function CaseInventory:SetOverride(itemID, delete, size, renderInfo)
 	
 
 	-- Override the size
-	if size.W == nil then
-		CaseInventory.RegisterOverrides[itemID].Size.W = size[1]
-		CaseInventory.RegisterOverrides[itemID].Size.H = size[2]
+	if info.Size.W == nil then
+		CaseInventory.RegisterOverrides[itemID].Size.W = GetDefault(info.Size[1], 1)
+		CaseInventory.RegisterOverrides[itemID].Size.H = GetDefault(info.Size[2], 1)
 	else
-		CaseInventory.RegisterOverrides[itemID].Size = size
+		CaseInventory.RegisterOverrides[itemID].Size = info.Size
 	end
 
-	-- Model
-	CaseInventory.RegisterOverrides[itemID].RenderInfo = renderInfo
+	-- Render info
+	CaseInventory.RegisterOverrides[itemID].RenderInfo = info.RenderInfo
+
+	-- MaxCount
+	CaseInventory.RegisterOverrides[itemID].MaxCount = math.max(GetDefault(info.MaxCount, 1), 1) -- No less than 1
+
+	-- Blacklist
+	if (info.Blacklist and CaseInventory.RegisterOverrides[itemID].ItemType == CASE_ITEM_WEAPON) or (info.ItemType == CASE_ITEM_DO_NOT_HANDLE) then
+		CaseInventory.RegisterOverrides[itemID].ItemType = CASE_ITEM_DO_NOT_HANDLE
+	end
 end
 
 ---Uploads an override to the server

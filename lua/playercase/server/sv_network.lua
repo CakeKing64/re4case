@@ -97,7 +97,7 @@ net.Receive("CaseCommandEvent", function (len, ply)
 		local delete = net.ReadBool()
 
 		if delete then
-			CaseInventory:SetOverride(itemID, true)
+			CaseInventory:SetOverride(itemID, nil)
         else
             local model = net.ReadString()
 
@@ -129,8 +129,16 @@ net.Receive("CaseCommandEvent", function (len, ply)
                 net.ReadFloat()
             }
 
+			local maxCount = net.ReadUInt(16)
+			local blacklist = net.ReadBool()
+
             -- Store it away
-            CaseInventory:SetOverride(itemID, false, size, CaseRenderInfo(model, scale, rotation, offset, 0))
+            CaseInventory:SetOverride(itemID, {
+				Size=size,
+				MaxCount=maxCount,
+				Blacklist=blacklist,
+				RenderInfo=CaseRenderInfo(model, scale, rotation, offset, 0)
+			})
         end -- END NO DELETE
 
 		-- Now time to replicate this to all clients

@@ -12,8 +12,12 @@ CaseEditor.Model = nil
 CaseEditor.Scale = nil
 CaseEditor.Offset = nil
 CaseEditor.Size = nil
+CaseEditor.Count = nil
+CaseEditor.Blacklist = nil
 CaseEditor.Rotation = nil
 CaseEditor.CurrentID = 1
+
+CaseEditor.IsWeapon = false
 
 
 function CaseEditor:Populate(panel)
@@ -53,6 +57,9 @@ function CaseEditor:Populate(panel)
 	CaseEditor.Offset = panel:TextEntry("Offset")
 	CaseEditor.Rotation = panel:TextEntry("Rotation")
 
+	CaseEditor.Blacklist = panel:CheckBox("Blacklisted")
+	CaseEditor.Count 	= panel:TextEntry("Max Count")
+
 	
 	CaseEditor:FilterChanged("")
 end
@@ -64,6 +71,8 @@ end
 
 function CaseEditor:WeaponChanged(itemID, useGetItemInfo)
 	local register = nil
+
+	local realType = CaseInventory.ItemRegister[itemID].ItemType
 	
 	if useGetItemInfo then
 		register = CaseInventory:GetItemInfo(itemID)
@@ -74,6 +83,7 @@ function CaseEditor:WeaponChanged(itemID, useGetItemInfo)
 	if not register then
 		return
 	end
+
 	CaseEditor.CurrentID = itemID
 	
 	CaseEditor.Model:SetText(register.RenderInfo.Model)
@@ -81,6 +91,28 @@ function CaseEditor:WeaponChanged(itemID, useGetItemInfo)
 	CaseEditor.Scale:SetText(GetValue(register.RenderInfo.Scale, 1.0))
 	CaseEditor.Offset:SetText("" .. GetValue(register.RenderInfo.Offset.X, 0) .. " " .. GetValue(register.RenderInfo.Offset.Y, 0) .. " " .. GetValue(register.RenderInfo.Offset.Z, 0))
 	CaseEditor.Rotation:SetText("" .. GetValue(register.RenderInfo.Rotations[1], 0) .. " " .. GetValue(register.RenderInfo.Rotations[2], 0) .. " " .. GetValue(register.RenderInfo.Rotations[3], 0))
+
+	if realType == CASE_ITEM_WEAPON then
+		CaseEditor.Count:SetEnabled(false)
+		CaseEditor.Count:SetText("")
+
+		CaseEditor.Blacklist:SetEnabled(true)
+		CaseEditor.Blacklist:SetChecked(register.ItemType == CASE_ITEM_DO_NOT_HANDLE)
+
+		print(register.ItemType)
+		print(realType)
+		CaseEditor.IsWeapon = true
+	else
+		CaseEditor.Count:SetText("" .. GetValue(register.MaxCount))
+		CaseEditor.Count:SetEnabled(true)
+		CaseEditor.Blacklist:SetEnabled(false)
+		CaseEditor.Blacklist:SetChecked(false)
+
+		CaseEditor.IsWeapon = false
+	end
+
+
+
 
 end
 
@@ -106,6 +138,7 @@ function CaseEditor:ApplyChanges()
 	}
 
 	local scale = tonumber(CaseEditor.Scale:GetText())
+	
 	
 
 	for word in string.gmatch(CaseEditor.Size:GetText(), '([^ ]+)') do
@@ -134,11 +167,17 @@ function CaseEditor:ApplyChanges()
 		i = i + 1
 	end
 
+	local maxCount = CaseEditor.IsWeapon and 1 or tonumber(CaseEditor.Count:GetText())
+	local blacklist = CaseEditor.Blacklist:GetChecked()
+
 	CaseInventory.ClientNet.UpdateOverride(
 		CaseEditor.CurrentID,
-		false,
-		size,
-		CaseRenderInfo(model, scale, rotation, offset, 0)
+		{
+			Size=size,
+			MaxCount=maxCount ~= nil and maxCount or 1,
+			Blacklist=blacklist,
+			RenderInfo=CaseRenderInfo(model, scale, rotation, offset, 0)
+		}
 	)
 end
 
@@ -148,7 +187,7 @@ function CaseEditor:ResetInfo()
 	-- Delete the item from the overrides
 	CaseInventory.ClientNet.UpdateOverride(
 		CaseEditor.CurrentID,
-		true
+		nil
 	)
 end
 

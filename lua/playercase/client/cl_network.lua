@@ -33,36 +33,43 @@ CaseInventory.ClientNet = {
 		end
 		net.SendToServer()
 	end,
-	UpdateOverride = function (itemID, delete, size, renderInfo)
+	UpdateOverride = function (itemID, info)
 		net.Start("CaseCommandEvent")
 		net.WriteUInt(CASE_COMMAND_SYNC_OVERRIDES, 4)
 			net.WriteUInt(itemID, 16)
-			net.WriteBool(delete)
+			net.WriteBool(info == nil)
 
 			-- Break the packet off here
-			if delete then
+			if info == nil then
 				net.SendToServer()
 				return
 			end
 
-			net.WriteString(renderInfo.Model)
+
+			net.WriteString(info.RenderInfo.Model)
 
 			-- Write size
-			net.WriteUInt(size[1] ~= nil and size[1] or 1, 16)
-			net.WriteUInt(size[2] ~= nil and size[2] or 1, 16)
+			net.WriteUInt(info.Size[1] ~= nil and info.Size[1] or 1, 16)
+			net.WriteUInt(info.Size[2] ~= nil and info.Size[2] or 1, 16)
 
 			-- Write scale
-			net.WriteFloat(renderInfo.Scale)
+			net.WriteFloat(info.RenderInfo.Scale)
 
 			-- Write offset
-			net.WriteFloat(renderInfo.Offset.X)
-			net.WriteFloat(renderInfo.Offset.Y)
-			net.WriteFloat(renderInfo.Offset.Z)
+			net.WriteFloat(info.RenderInfo.Offset.X)
+			net.WriteFloat(info.RenderInfo.Offset.Y)
+			net.WriteFloat(info.RenderInfo.Offset.Z)
 
 			-- Write rotation
-			net.WriteFloat(renderInfo.Rotations[1])
-			net.WriteFloat(renderInfo.Rotations[2])
-			net.WriteFloat(renderInfo.Rotations[3])
+			net.WriteFloat(info.RenderInfo.Rotations[1])
+			net.WriteFloat(info.RenderInfo.Rotations[2])
+			net.WriteFloat(info.RenderInfo.Rotations[3])
+
+			-- Write max count
+			net.WriteUInt(info.MaxCount, 16)
+			
+			-- Write blacklist
+			net.WriteBool(info.Blacklist)
 
 		net.SendToServer()
 	end,
@@ -165,7 +172,7 @@ net.Receive("CaseSyncOverride", function ()
 	local delete = net.ReadBool()
 
 	if delete then
-		CaseInventory:SetOverride(itemID, true)
+		CaseInventory:SetOverride(itemID, nil)
 		return
 	end
 
@@ -190,5 +197,14 @@ net.Receive("CaseSyncOverride", function ()
 		net.ReadFloat()
 	}
 
-	CaseInventory:SetOverride(itemID, false, size, CaseRenderInfo(model, scale, rotation, offset))
+	local maxCount = net.ReadUInt(16)
+	local blacklist = net.ReadBool()
+
+	CaseInventory:SetOverride(itemID, {
+		Size=size,
+		MaxCount=maxCount,
+		Blacklist=blacklist,
+		RenderInfo=CaseRenderInfo(model, scale, rotation, offset)
+	})
+
 end)
