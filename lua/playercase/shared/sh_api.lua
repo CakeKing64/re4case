@@ -642,7 +642,7 @@ end
 ---@param scale number?
 ---@param offset table?
 ---@param rotation table?
-function CaseInventory:SetOverride(itemID, delete, model, size, scale, offset, rotation)
+function CaseInventory:SetOverride(itemID, delete, size, renderInfo)
 
 	if delete then
 		CaseInventory.RegisterOverrides[itemID] = nil
@@ -661,16 +661,7 @@ function CaseInventory:SetOverride(itemID, delete, model, size, scale, offset, r
 	CaseInventory.RegisterOverrides[itemID].Size.H = size[2]
 
 	-- Model
-	CaseInventory.RegisterOverrides[itemID].RenderInfo.Model = model
-
-	-- Scale
-	CaseInventory.RegisterOverrides[itemID].RenderInfo.Scale = scale
-
-	-- Offset
-	CaseInventory.RegisterOverrides[itemID].RenderInfo.Offset = Vector(offset[1], offset[2], offset[3])
-
-	-- Rotation
-	CaseInventory.RegisterOverrides[itemID].RenderInfo.Rotations = rotation
+	CaseInventory.RegisterOverrides[itemID].RenderInfo = renderInfo
 end
 
 ---Uploads an override to the server

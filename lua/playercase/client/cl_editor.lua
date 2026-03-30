@@ -137,11 +137,8 @@ function CaseEditor:ApplyChanges()
 	CaseInventory.ClientNet.UpdateOverride(
 		CaseEditor.CurrentID,
 		false,
-		model,
 		size,
-		scale,
-		offset,
-		rotation
+		CaseRenderInfo(model, scale, rotation, offset, 0)
 	)
 end
 

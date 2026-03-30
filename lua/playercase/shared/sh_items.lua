@@ -61,9 +61,17 @@ end
 ---@param diffMode integer? 0 -> Use xDiff > yDiff, 1 -> Force yDiff, 2 -> Force xDiff
 ---@return table
 function CaseRenderInfo(model, scale, rotVec, offset, diffMode)
+    if type(offset) == "table" then
+        offset = Vector(
+            offset[1] ~= nil and offset[1] or 0,
+            offset[2] ~= nil and offset[2] or 0,
+            offset[3] ~= nil and offset[3] or 0
+        )
+    end
+
     return {
         Model = model or "",
-        Scale = scale, -- Ok to be nil
+        Scale = scale or 1, -- Ok to be nil
         Rotations = rotVec or {0, 0, 0},
         DiffMode = diffMode or 0,
         Offset = offset or Vector(0, 0)

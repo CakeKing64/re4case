@@ -33,7 +33,7 @@ CaseInventory.ClientNet = {
 		end
 		net.SendToServer()
 	end,
-	UpdateOverride = function (itemID, delete, modelName, size, scale, offset, rotation)
+	UpdateOverride = function (itemID, delete, size, renderInfo)
 		net.Start("CaseCommandEvent")
 		net.WriteUInt(CASE_COMMAND_SYNC_OVERRIDES, 4)
 			net.WriteUInt(itemID, 16)
@@ -45,24 +45,24 @@ CaseInventory.ClientNet = {
 				return
 			end
 
-			net.WriteString(modelName)
+			net.WriteString(renderInfo.Model)
 
 			-- Write size
 			net.WriteUInt(size[1] ~= nil and size[1] or 1, 16)
 			net.WriteUInt(size[2] ~= nil and size[2] or 1, 16)
 
 			-- Write scale
-			net.WriteFloat(scale ~= nil and scale or 1)
+			net.WriteFloat(renderInfo.Scale)
 
 			-- Write offset
-			net.WriteFloat(offset[1] ~= nil and offset[1] or 1)
-			net.WriteFloat(offset[2] ~= nil and offset[2] or 1)
-			net.WriteFloat(offset[3] ~= nil and offset[3] or 1)
+			net.WriteFloat(renderInfo.Offset.X)
+			net.WriteFloat(renderInfo.Offset.Y)
+			net.WriteFloat(renderInfo.Offset.Z)
 
 			-- Write rotation
-			net.WriteFloat(rotation[1] ~= nil and rotation[1] or 1)
-			net.WriteFloat(rotation[2] ~= nil and rotation[2] or 1)
-			net.WriteFloat(rotation[3] ~= nil and rotation[3] or 1)
+			net.WriteFloat(renderInfo.Rotations[1])
+			net.WriteFloat(renderInfo.Rotations[2])
+			net.WriteFloat(renderInfo.Rotations[3])
 
 		net.SendToServer()
 	end,

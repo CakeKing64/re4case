@@ -130,7 +130,7 @@ net.Receive("CaseCommandEvent", function (len, ply)
             }
 
             -- Store it away
-            CaseInventory:SetOverride(itemID, false, model, size, scale, offset, rotation)
+            CaseInventory:SetOverride(itemID, false, size, CaseRenderInfo(model, scale, rotation, offset, 0))
         end -- END NO DELETE
 
 		-- Now time to replicate this to all clients
