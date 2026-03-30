@@ -98,42 +98,40 @@ net.Receive("CaseCommandEvent", function (len, ply)
 
 		if delete then
 			CaseInventory:SetOverride(itemID, true)
-			CaseInventory:SendOverride(itemID) -- Replicate this
-			return
-		end
+        else
+            local model = net.ReadString()
 
-        local model = net.ReadString()
+            local size = {
+                net.ReadUInt(16),
+                net.ReadUInt(16)
+            }
 
-        local size = {
-            net.ReadUInt(16),
-            net.ReadUInt(16)
-        }
+            -- Only size needs to be checked as the others are visual only
+            if size[1] <= 0 then
+                size[1] = 1
+            end
 
-		-- Only size needs to be checked as the others are visual only
-		if size[1] <= 0 then
-			size[1] = 1
-		end
+            if size[2] <= 0 then
+                size[2] = 1
+            end
 
-		if size[2] <= 0 then
-			size[2] = 1
-		end
+            local scale = net.ReadFloat()
 
-		local scale = net.ReadFloat()
+            local offset = {
+                net.ReadFloat(),
+                net.ReadFloat(),
+                net.ReadFloat()
+            }
+            
+            local rotation = {
+                net.ReadFloat(),
+                net.ReadFloat(),
+                net.ReadFloat()
+            }
 
-        local offset = {
-            net.ReadFloat(),
-            net.ReadFloat(),
-            net.ReadFloat()
-        }
-        
-        local rotation = {
-            net.ReadFloat(),
-            net.ReadFloat(),
-            net.ReadFloat()
-        }
-
-		-- Store it away
-		CaseInventory:SetOverride(itemID, false, model, size, scale, offset, rotation)
+            -- Store it away
+            CaseInventory:SetOverride(itemID, false, model, size, scale, offset, rotation)
+        end -- END NO DELETE
 
 		-- Now time to replicate this to all clients
 		CaseInventory:SendOverride(itemID)
