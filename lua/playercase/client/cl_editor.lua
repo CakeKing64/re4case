@@ -239,7 +239,7 @@ function CaseEditor:CopyToClipboard()
 	local maxCount = CaseEditor.IsWeapon and 1 or tonumber(CaseEditor.Count:GetText())
 	local blacklist = CaseEditor.Blacklist:GetChecked()
 
-	local copyString = ""
+	local copyString = "no code for this item type yet :("
 	local renderInfo = string.format("CaseRenderInfo(\"%s\", %g, {%g, %g, %g}, Vector(%g, %g, %g))",
 			model,
 			scale,
@@ -271,6 +271,8 @@ function CaseEditor:CopyToClipboard()
 		local ammoName = game.GetAmmoName(CaseInventory.ItemRegister[CaseEditor.CurrentID].AmmoID)
 		copyString = string.format("CaseAmmo(game.GetAmmoID(\"%s\"), %s, %g, %g, %g)", ammoName, renderInfo, size[1], size[2], maxCount)
 	end
+
+	-- TODO: Add grenade check, good luck with item check chucklefuck
 	
 	SetClipboardText(copyString)
 end
