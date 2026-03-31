@@ -1701,6 +1701,10 @@ function CaseInventory:FinalizeItemRegister()
 end
 
 function CaseInventory:TryLocalize(string)
+	if string == nil then
+		return ""
+	end
+	
 	local attempt0 = language.GetPhrase(string)
 	local attempt1 = language.GetPhrase("#" .. string)
 
@@ -1762,7 +1766,13 @@ function CaseInventory:PopulateNames()
 		if v.ItemType == CASE_ITEM_WEAPON or v.ItemType == CASE_ITEM_GRENADE then
 			local info = weapons.Get(v.Name)
 			if info ~= nil then
-				v.PrintName = CaseInventory:TryLocalize(info.PrintName)
+				if info.PrintName ~= nil then
+					v.PrintName = CaseInventory:TryLocalize(info.PrintName)
+				elseif info.ClassName ~= nil then
+					v.PrintName = CaseInventory:TryLocalize(info.ClassName)
+				else
+					v.PrintName = ""
+				end
 			else
 				v.PrintName = ""
 			end

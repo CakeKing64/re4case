@@ -99,8 +99,6 @@ function CaseEditor:WeaponChanged(itemID, useGetItemInfo)
 		CaseEditor.Blacklist:SetEnabled(true)
 		CaseEditor.Blacklist:SetChecked(register.ItemType == CASE_ITEM_DO_NOT_HANDLE)
 
-		print(register.ItemType)
-		print(realType)
 		CaseEditor.IsWeapon = true
 	else
 		CaseEditor.Count:SetText("" .. GetValue(register.MaxCount))
