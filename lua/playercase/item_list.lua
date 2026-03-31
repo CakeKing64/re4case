@@ -144,6 +144,7 @@ local itemsHL2 = {
 
 	CaseGlowOnly("ent_caseammo"),
 	CaseGlowOnly("ent_caseupgrade"),
+	CaseGlowOnly("ent_caseupgrade_s"),
 	CaseGlowOnly("ent_caseupgrade_m"),
 	CaseGlowOnly("ent_caseupgrade_l"),
 	CaseGlowOnly("ent_caseupgrade_xl"),

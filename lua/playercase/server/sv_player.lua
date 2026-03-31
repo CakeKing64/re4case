@@ -174,7 +174,8 @@ end)
 
 hook.Add("PlayerSpawn", "CASE_PlayerSpawn", function(plr, trans)
 	if not trans then
-		CaseInventory:Inv(plr, CaseInventory:GenerateInventory(CASE_INVENTORY_SIZE_DEFAULT[1], CASE_INVENTORY_SIZE_DEFAULT[2], plr))
+		local defSize = CaseInventory:GetDefaultCaseSize()
+		CaseInventory:Inv(plr, CaseInventory:GenerateInventory(defSize[1], defSize[2], plr))
 	end
 	CaseInventory:Sync(plr)
 end)

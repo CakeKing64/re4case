@@ -11,6 +11,4 @@ ENT.Purpose = "Upgrading your fine case sir?"
 ENT.Spawnable = true
 
 ENT.Model = "models/props_c17/SuitCase001a.mdl"
-ENT.CaseSize = {
-    15, 10
-}
+ENT.CaseSize = CASE_SIZES.XXL

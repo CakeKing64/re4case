@@ -21,7 +21,8 @@ local CVARS = {
     1 -> Items must be +used to pickup (will still be picked up if in a vehicle)
     2 -> Items must be +used no matter what]], -1, 2),
     case_weapon_validation = CreateConVar("case_sv_weapon_validation", "1", {FCVAR_ARCHIVE}, [[0 -> Don't do weapon validation checks (might, maybe increase performance)
-    1 -> Do weapon validation checks]], 0, 1)
+    1 -> Do weapon validation checks]], 0, 1),
+    case_default_size = CreateConVar("case_sh_default_size", "s", {FCVAR_ARCHIVE}, "The default case size players will span with as a letter (S, M, L, XL, XXL) or two numbers")
 }
 
 

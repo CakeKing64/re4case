@@ -2,6 +2,7 @@ local cvar_drop_excess_ammo = 0
 local cvar_inventory_mode = 0
 local cvar_auto_generate = 0
 local cvar_enable_swap = 0
+local cvar_default_case_size = 0
 
 if SERVER then
 	--[[
@@ -14,12 +15,14 @@ if SERVER then
 	cvar_inventory_mode = CaseInventory:GetCVAR("case_inventory_mode")
 	cvar_drop_excess_ammo = CaseInventory:GetCVAR("case_drop_excess_ammo")
 	cvar_auto_generate = CaseInventory:GetCVAR("case_auto_generate")
+	cvar_default_case_size = CaseInventory:GetCVAR("case_default_size")
 end
 
 if CLIENT then
 	cvar_inventory_mode = CreateConVar("case_sh_inventory_mode", "0", {FCVAR_REPLICATED})
 	cvar_auto_generate = CreateConVar("case_sh_auto_generate", "0", {FCVAR_REPLICATED})
 	cvar_enable_swap = CreateConVar("case_cl_enable_swapping", "1", {FCVAR_ARCHIVE})
+	cvar_default_case_size = CreateConVar("case_sh_default_size", "1", {FCVAR_REPLICATED})
 end
 
 
@@ -1399,6 +1402,8 @@ end
 ---@return table
 function CaseInventory:Inv(ply, toSet)
 
+	local defSize = CaseInventory:GetDefaultCaseSize()
+
 	-- Basic mode
 	-- Inventory data is stored on the player
 	-- Good for singleplayer campaigns/single level multiplayer ones
@@ -1408,7 +1413,7 @@ function CaseInventory:Inv(ply, toSet)
 				LocalPlayer().CaseInv = toSet
 			end
 			if LocalPlayer().CaseInv == nil then
-				LocalPlayer().CaseInv = CaseInventory:GenerateInventory(CASE_INVENTORY_SIZE_DEFAULT[1], CASE_INVENTORY_SIZE_DEFAULT[2], ply)
+				LocalPlayer().CaseInv = CaseInventory:GenerateInventory(defSize[1], defSize[2], ply)
 			end
 			return LocalPlayer().CaseInv
 		end
@@ -1422,7 +1427,7 @@ function CaseInventory:Inv(ply, toSet)
 		end
 
 		if ply.CaseInv == nil then
-			ply.CaseInv = CaseInventory:GenerateInventory(CASE_INVENTORY_SIZE_DEFAULT[1], CASE_INVENTORY_SIZE_DEFAULT[2], ply)
+			ply.CaseInv = CaseInventory:GenerateInventory(defSize[1], defSize[2], ply)
 		end
 
 		return ply.CaseInv
@@ -1439,7 +1444,7 @@ function CaseInventory:Inv(ply, toSet)
 			end
 
 			if CaseInventory.ClientInventory == nil then
-				CaseInventory.ClientInventory = CaseInventory:GenerateInventory(CASE_INVENTORY_SIZE_DEFAULT[1], CASE_INVENTORY_SIZE_DEFAULT[2], ply)
+				CaseInventory.ClientInventory = CaseInventory:GenerateInventory(defSize[1], defSize[2], ply)
 			end
 			return CaseInventory.ClientInventory
 		end
@@ -1453,7 +1458,7 @@ function CaseInventory:Inv(ply, toSet)
 		end
 
 		if CaseInventory.Inventories[ply:SteamID64()] == nil then
-			ply.CaseInv = CaseInventory:GenerateInventory(CASE_INVENTORY_SIZE_DEFAULT[1], CASE_INVENTORY_SIZE_DEFAULT[2], ply)
+			ply.CaseInv = CaseInventory:GenerateInventory(defSize[1], defSize[2], ply)
 		end
 
 		return CaseInventory.Inventories[ply:SteamID64()]
@@ -1474,6 +1479,31 @@ end
 ---@return table
 function CaseInv(ply, toSet)
 	return CaseInventory:Inv(ply, toSet)
+end
+
+---Gets what size the default case should be
+---@return table
+function CaseInventory:GetDefaultCaseSize()
+	-- Check if this is just straight up a usable size
+	local type = string.upper(cvar_default_case_size:GetString())
+
+	for k, v in pairs(CASE_SIZES) do
+		if type == k then
+			return v
+		end
+	end
+
+	local i = 1
+	local size = CASE_INVENTORY_SIZE_DEFAULT
+	for word in string.gmatch(type, '([^ ]+)') do
+		if word == "" then
+			continue
+		end
+		size[i] = math.max(tonumber(word), 1)
+		i = i + 1
+	end
+
+	return size
 end
 
 ---Resets the loadout table for a player

@@ -6,6 +6,14 @@ CASE_INVENTORY_DEBUG = false
 CASE_INVENTORY_SIZE_DEFAULT = {
 	10, 6
 }
+
+CASE_SIZES = {
+	S = {10, 6},
+	M = {11, 7},
+	L = {12, 8},
+	XL = {15, 8},
+	XXL = {15, 10}
+}
 --[[
 	For each item stored in inventory (in order)
 	uint8 X
