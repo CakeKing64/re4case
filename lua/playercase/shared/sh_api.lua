@@ -90,6 +90,11 @@ function CaseInventory:PickupAmmo(ply, ammoID, count, dropIfCantPickup)
 		return false, 0
 	end
 
+	-- well uh
+	if info.ItemType == CASE_ITEM_DO_NOT_HANDLE then
+		return false, 0
+	end
+
 	while res and rem > 0 do
 		res, rem = self:AddItemToInventory(CaseInventory:Inv(ply), id, rem, false) -- Hold off on syncing for now
 	end
@@ -699,7 +704,7 @@ function CaseInventory:SetOverride(itemID, info)
 	CaseInventory.RegisterOverrides[itemID].MaxCount = math.max(GetDefault(info.MaxCount, 1), 1) -- No less than 1
 
 	-- Blacklist
-	if (info.Blacklist and CaseInventory.RegisterOverrides[itemID].ItemType == CASE_ITEM_WEAPON) or (info.ItemType == CASE_ITEM_DO_NOT_HANDLE) then
+	if (info.Blacklist) or (info.ItemType == CASE_ITEM_DO_NOT_HANDLE) then
 		CaseInventory.RegisterOverrides[itemID].ItemType = CASE_ITEM_DO_NOT_HANDLE
 	end
 end

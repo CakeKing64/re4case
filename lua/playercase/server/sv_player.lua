@@ -140,8 +140,14 @@ hook.Add("PlayerAmmoChanged", "CASE_PlayerAmmoChanged", function (ply, ammoID, o
 
 	for k, v in pairs(CaseInventory:Inv(ply).Items) do
 		local info = CaseInventory:GetItemInfo(v.ItemID)
-
+		
 		if info.AmmoID == ammoID then
+
+			-- Wait we don't want to actually touch this
+			if info.ItemType == CASE_ITEM_DO_NOT_HANDLE then
+				return
+			end
+
 			count = count + v.Count
 		end
 	end
