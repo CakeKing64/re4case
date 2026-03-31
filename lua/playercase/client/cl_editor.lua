@@ -49,6 +49,11 @@ function CaseEditor:Populate(panel)
 		CaseEditor:ResetInfo()
 	end
 
+	CaseEditor.CopyAsCode = panel:Button("Copy As Lua Code")
+	CaseEditor.CopyAsCode.DoClick = function ()
+		CaseEditor:CopyToClipboard()
+	end
+
 
 
 	CaseEditor.Model = panel:TextEntry("Model")
@@ -59,6 +64,7 @@ function CaseEditor:Populate(panel)
 
 	CaseEditor.Blacklist = panel:CheckBox("Blacklisted")
 	CaseEditor.Count 	= panel:TextEntry("Max Count")
+	
 
 	
 	CaseEditor:FilterChanged("")
@@ -177,6 +183,96 @@ function CaseEditor:ApplyChanges()
 			RenderInfo=CaseRenderInfo(model, scale, rotation, offset, 0)
 		}
 	)
+end
+
+function CaseEditor:CopyToClipboard()
+	local i = 1
+
+	local model = CaseEditor.Model:GetText()
+	local size = {
+		1,
+		1
+	}
+
+	local offset = {
+		0,
+		0,
+		0
+	}
+
+	local rotation = {
+		0,
+		0,
+		0
+	}
+
+	local scale = tonumber(CaseEditor.Scale:GetText())
+	
+	
+
+	for word in string.gmatch(CaseEditor.Size:GetText(), '([^ ]+)') do
+		if word == "" then
+			continue
+		end
+		size[i] = tonumber(word)
+		i = i + 1
+	end
+
+	i = 1
+	for word in string.gmatch(CaseEditor.Offset:GetText(), '([^ ]+)') do
+		if word == "" then
+			continue
+		end
+		offset[i] = tonumber(word)
+		i = i + 1
+	end
+
+	i = 1
+	for word in string.gmatch(CaseEditor.Rotation:GetText(), '([^ ]+)') do
+		if word == "" then
+			continue
+		end
+		rotation[i] = tonumber(word)
+		i = i + 1
+	end
+
+	local maxCount = CaseEditor.IsWeapon and 1 or tonumber(CaseEditor.Count:GetText())
+	local blacklist = CaseEditor.Blacklist:GetChecked()
+
+	local copyString = ""
+	local renderInfo = string.format("CaseRenderInfo(\"%s\", %g, {%g, %g, %g}, Vector(%g, %g, %g))",
+			model,
+			scale,
+			rotation[1],
+			rotation[2],
+			rotation[3],
+			offset[1],
+			offset[2],
+			offset[3]
+		)
+		
+
+	local itemType = CaseInventory.ItemRegister[CaseEditor.CurrentID].ItemType
+	local itemName = CaseInventory.ItemRegister[CaseEditor.CurrentID].Name
+
+	if blacklist then
+		itemType = CASE_ITEM_DO_NOT_HANDLE
+	end
+
+	if blacklist then
+		copyString = "CaseDoNotHandle(\"" .. itemName .. "\")"
+	end
+
+	if itemType == CASE_ITEM_WEAPON then
+		copyString = string.format("CaseWeapon(\"%s\", %s, %g, %g)", itemName, renderInfo, size[1], size[2])
+	end
+
+	if itemType == CASE_ITEM_AMMO then
+		local ammoName = game.GetAmmoName(CaseInventory.ItemRegister[CaseEditor.CurrentID].AmmoID)
+		copyString = string.format("CaseAmmo(game.GetAmmoID(\"%s\"), %s, %g, %g, %g)", ammoName, renderInfo, size[1], size[2], maxCount)
+	end
+	
+	SetClipboardText(copyString)
 end
 
 function CaseEditor:ResetInfo()

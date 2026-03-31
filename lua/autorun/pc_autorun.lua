@@ -92,7 +92,8 @@ local client = {
 local shared = {
 	"shared/sh_api.lua",
 	"shared/sh_items.lua",
-	"shared/sh_hooks.lua"
+	"shared/sh_hooks.lua",
+	"item_list.lua"
 }
 
 
