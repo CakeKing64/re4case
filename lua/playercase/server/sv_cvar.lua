@@ -9,7 +9,7 @@ local CVARS = {
     case_auto_generate = CreateConVar("case_sh_auto_generate", "1", {FCVAR_ARCHIVE, FCVAR_REPLICATED}, [[0-> Don't auto generate weapons
     1 -> Auto generates ammo/weapons
     2 -> Auto generate and dump some lua code to replicate]], 0, 2),
-
+    case_default_size = CreateConVar("case_sh_default_size", "s", {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "The default case size players will span with as a letter (S, M, L, XL, XXL) or two numbers (16 16)"),
     -- These ones are kinda customization kinda not
     -- So the server can let clients pick or just enforce one of them
     case_pickup_on_hold = CreateConVar("case_sv_pickup_on_hold", "-1", {FCVAR_ARCHIVE}, [[-1 -> Allow clients to set this value
@@ -22,7 +22,6 @@ local CVARS = {
     2 -> Items must be +used no matter what]], -1, 2),
     case_weapon_validation = CreateConVar("case_sv_weapon_validation", "1", {FCVAR_ARCHIVE}, [[0 -> Don't do weapon validation checks (might, maybe increase performance)
     1 -> Do weapon validation checks]], 0, 1),
-    case_default_size = CreateConVar("case_sh_default_size", "s", {FCVAR_ARCHIVE}, "The default case size players will span with as a letter (S, M, L, XL, XXL) or two numbers")
 }
 
 

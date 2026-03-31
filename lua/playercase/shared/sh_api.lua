@@ -1499,7 +1499,12 @@ function CaseInventory:GetDefaultCaseSize()
 		if word == "" then
 			continue
 		end
-		size[i] = math.max(tonumber(word), 1)
+		local num = tonumber(word)
+		if num == nil then
+			continue
+		end
+
+		size[i] = math.max(num, 1)
 		i = i + 1
 	end
 
