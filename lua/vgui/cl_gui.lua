@@ -1,3 +1,5 @@
+local cvar_blur_bg = CreateClientConVar("case_cl_blur_bg", "1", true, false, "Blur the background for the UI", 0, 1)
+
 local ogWidth, ogHeight = 1920, 1080 -- not my screen size, hopefully that makes it better for testing????
 __CASE_UI_CELL_SIZE = 64 -- #define
 __CASE_UI_BORDER = 32
@@ -326,7 +328,7 @@ local function _createWindow(name, inv, parent, isMain, rtName)
 	--window:ShowCloseButton(false)
 	window:SetDraggable(false)
 	window.OnKeyCodePressed = _windowOnKeyboardInput
-	if parent then
+	if parent and cvar_blur_bg:GetBool() then
 		window:SetBackgroundBlur(true)
 	end
 
