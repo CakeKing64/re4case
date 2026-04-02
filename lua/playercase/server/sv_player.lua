@@ -16,7 +16,7 @@ local function _canPickup(ply, ent)
 
 	-- Either use or be in a vehicle
 	if pickup_mode == 1 and 
-		(use or ply:InVehicle())
+		(use or ply:InVehicle()) and ply.CasePickupDelay <= 0
 	then
 		return true
 	end
@@ -33,7 +33,7 @@ local function _canPickup(ply, ent)
 
 	-- An item was :Give()'d to a player :)
 	-- Pos check to skip some shenanigoons
-	if cvar_frame0:GetBool() and CurTime() - ent:GetCreationTime() == 0 and ent:GetPos() == ply:GetPos()then
+	if cvar_frame0:GetBool() and CurTime() - ent:GetCreationTime() == 0 and ent:GetPos() == ply:GetPos() then
 		return true
 	end
 
@@ -41,7 +41,6 @@ local function _canPickup(ply, ent)
 end
 
 hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent )
-
 	if ply.CasePickup == ent then
 		ply.CasePickup = nil
 		return true
@@ -227,7 +226,6 @@ hook.Add("OnPlayerPhysicsPickup", "CASE_OnPlayerPhysicsPickup", function( ply, e
 	end
 
 
-
 	-- Allow the client to pick this value if the serverside version is -1
 	local pickup_setting = cvar_pick_on_hold:GetInt() == -1 and math.Clamp(ply:GetInfoNum("case_cl_pickup_on_hold", 0), 0, 2) or cvar_pick_on_hold:GetInt()
 	local itemID = CaseInventory:GetItemID(ent:GetClass())
@@ -284,3 +282,20 @@ hook.Add("PlayerDisconnected", "CASE_PlayerDisconnected", function (ply)
 		CaseInventory.Inventories[ply:SteamID64()] = nil
 	end
 end)
+
+
+concommand.Add( "case_pickup", function(ply, cmd, args, argStr)
+	local lookTarget = ply:GetEyeTrace().Entity
+
+	-- Not looking at anything
+	if not IsValid(lookTarget) then
+		return
+	end
+
+	-- Too far away
+	if ply:GetPos():Distance(lookTarget:GetPos()) > 75 then
+		return
+	end
+
+	CaseInventory:PickupEntity(ply, lookTarget, true)
+end )

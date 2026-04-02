@@ -63,6 +63,60 @@ function CaseInventory:PickupWeapon(ply, wpn)
 	return true
 end
 
+---
+---@param ply table
+---@param ent table
+---@param doUse boolean
+function CaseInventory:PickupEntity(ply, ent, doUse)
+	if not IsValid(ply) or not IsValid(ent) then
+		return false
+	end
+
+	local itemID = CaseInventory:GetItemID(ent:GetClass())
+	local itemInfo = CaseInventory:GetItemInfo(itemID)
+
+	if itemID == -1 or itemInfo == nil then
+		return false
+	end
+
+	-- Weapons are the easiest to deal with
+	if ent:IsWeapon() then
+		-- If we already have the weapon 
+		CaseInventory:PickupWeapon(ply, ent)
+		return
+	end
+
+	-- It's an ammo type, also just absorb it
+	if itemInfo.ItemType == CASE_ITEM_GLOW_ONLY then
+		ent:Use(ply, ply)
+	end
+
+	-- An actual item
+	if itemInfo.ItemType == CASE_ITEM_GENERIC then
+		local use = false
+
+		if not doUse then
+			use = false
+		else
+			if itemInfo.CanUse ~= nil then
+				use = itemInfo.CanUse(ply)
+			end
+		end
+
+		if use then
+			ply.CasePickup = ent
+			ent:SetPos(ply:GetPos())
+		else
+			if CaseInventory:PickupItem(ply, itemID, 1) then
+				ent:Remove()
+			end
+			
+		end
+		return
+	end
+	
+end
+
 ---TODO
 ---@param ply table
 ---@param itmId integer
