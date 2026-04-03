@@ -297,5 +297,5 @@ concommand.Add( "case_pickup", function(ply, cmd, args, argStr)
 		return
 	end
 
-	CaseInventory:PickupEntity(ply, lookTarget, true)
+	CaseInventory:PickupEntity(ply, lookTarget, false)
 end )
