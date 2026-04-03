@@ -355,6 +355,10 @@ local function _createWindow(name, inv, parent, isMain, rtName)
 end
 
 function CaseGUI.OpenInventory()
+	if CaseGUI.IsOpen then
+		return
+	end
+
 	local scaleW, scaleH = _CaseUIGetScaledDiff()
 	local mwX, mwY = 0, 0 
 	CaseGUI.MainWindow = _createWindow("MainWindow", CaseInv(LocalPlayer()), true, true, "MainWindow")
