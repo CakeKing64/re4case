@@ -85,6 +85,27 @@ hook.Add("CreateMove", "testMouseWheel", function(cmd)
 		mStatus.Down = 1
 	end
 
+	local keyLeft = nil
+	local keyRight= nil
+	
+	local bind = input.LookupBinding( "+moveleft")
+	if bind ~= nil then
+		keyLeft = input.GetKeyCode(bind)
+	end
+
+	bind = input.LookupBinding( "+moveright")
+	if bind ~= nil then
+		keyRight = input.GetKeyCode(bind)
+	end
+
+	if input.WasKeyPressed(keyLeft) then
+		mStatus.Up = 1
+	end
+
+	if input.WasKeyPressed(keyRight) then
+		mStatus.Down = 1
+	end
+
 
 	-- Allow closing the case with the same button used to open it
 	if CaseGUI.IsOpen and CaseGUI.ReadyToClose then
