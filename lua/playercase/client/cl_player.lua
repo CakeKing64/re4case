@@ -91,18 +91,22 @@ hook.Add("CreateMove", "testMouseWheel", function(cmd)
 	local bind = input.LookupBinding( "+moveleft")
 	if bind ~= nil then
 		keyLeft = input.GetKeyCode(bind)
+	else
+		keyLeft = KEY_A
 	end
 
 	bind = input.LookupBinding( "+moveright")
 	if bind ~= nil then
 		keyRight = input.GetKeyCode(bind)
+	else
+		keyRight = KEY_D
 	end
 
-	if input.WasKeyPressed(keyLeft) then
+	if input.WasKeyPressed(keyLeft) or input.WasKeyPressed(KEY_A) then
 		mStatus.Up = 1
 	end
 
-	if input.WasKeyPressed(keyRight) then
+	if input.WasKeyPressed(keyRight) or input.WasKeyPressed(KEY_D) then
 		mStatus.Down = 1
 	end
 
