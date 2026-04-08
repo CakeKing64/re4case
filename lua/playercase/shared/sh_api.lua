@@ -1867,7 +1867,7 @@ function CaseInventory:PopulateNames()
 				else
 					v.PrintName = ""
 				end
-			else
+			elseif v.PrintName == nil then
 				v.PrintName = ""
 			end
 		end
