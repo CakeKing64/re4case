@@ -105,6 +105,18 @@ hook.Add("PlayerCanPickupWeapon", "CASE_PlayerCanPickupWeapon", function( ply, e
 		return
 	end
 
+		
+	local itemId = CaseInventory:GetItemID(ent:GetClass())
+	if itemId == -1 then
+		return false
+	end
+
+	if not CaseInventory:HasItem(CaseInventory:Inv(ply), itemId) then
+		if not CaseInventory:FindValidSpot(CaseInventory:Inv(ply), itemId) then
+			return false
+		end
+	end
+
 	if AllowPickup(ply, ent) then
 		return true
 	end

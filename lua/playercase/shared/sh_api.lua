@@ -1047,7 +1047,7 @@ function CaseInventory:SwapLogic(srcInv, srcId, tgtInv, tgtId, dstX, dstY, srcRo
 
 
 
-		print("Logic Error!")
+		print("RE4Case: Swap logic error!")
 		CaseInventory:RefreshLoadout(srcInv)
 		CaseInventory:RefreshLoadout(tgtInv)
 	end

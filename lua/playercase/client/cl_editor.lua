@@ -291,7 +291,10 @@ function CaseEditor:ResetInfo()
 	)
 end
 
-function CaseEditor:FilterChanged(filter)
+function CaseEditor:FilterChanged(filter, all)
+	if all == nil then
+		all = false
+	end
 
 	local foundWeapon = false
 	CaseEditor.WeaponList:CloseMenu()
@@ -308,7 +311,7 @@ function CaseEditor:FilterChanged(filter)
 		local printName = string.lower(CaseInventory.ItemRegister[i].PrintName ~= nil and CaseInventory.ItemRegister[i].PrintName or "")
 		local fitlerLower = string.lower(filter)
 
-		local found = filter == "" or (string.find(name, fitlerLower) or string.find(printName, fitlerLower))
+		local found = all or (string.find(name, fitlerLower) or string.find(printName, fitlerLower))
 
 		if found then
 			foundWeapon = true
@@ -319,11 +322,19 @@ function CaseEditor:FilterChanged(filter)
 		end
 	end
 
+	-- Wait we really found nothing...
+	if not foundWeapon and all then
+		CaseEditor.ApplyButton:SetEnabled(false)
+		CaseEditor.ResetButton:SetEnabled(false)
+	end
+
 	-- nothing found, just throw everything back on
 	if not foundWeapon then
-		CaseEditor:FilterChanged("")
+		CaseEditor:FilterChanged("", true)
 	else
 		CaseEditor.WeaponList:ChooseOptionID(1)
+		CaseEditor.ApplyButton:SetEnabled(true)
+		CaseEditor.ResetButton:SetEnabled(true)
 	end
 end
 
