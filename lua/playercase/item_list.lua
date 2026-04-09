@@ -247,10 +247,6 @@ local itemsGMOD = {
 	CaseWeapon("weapon_base", CaseRenderInfo("models/weapons/w_357.mdl"), 3, 2),
 }
 
-local itemsHLS = {
-	CaseWeapon("weapon_glock_hl1", CaseRenderInfo(), 3, 2),
-}
-
 -- https://steamcommunity.com/sharedfiles/filedetails/?id=1606822274
 -- MMod Weapon Replacement #1
 table.insert(ItemList, {{"1606822274"}, function()
@@ -682,7 +678,6 @@ end})
 local function _RegisterItems()
 	_registerItemTable(itemsGMOD)
 	_registerItemTable(itemsHL2)
-	_registerItemTable(itemsHLS)
 
 	-- 
 	for _, addon in ipairs(engine.GetAddons()) do
@@ -710,4 +705,3 @@ end
 hook.Add("CaseRegisterItems", "CaseDefaultItemRegister", function ()
 	_RegisterItems()
 end)
-_RegisterItems()

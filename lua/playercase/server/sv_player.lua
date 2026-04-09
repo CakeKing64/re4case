@@ -40,88 +40,113 @@ local function _canPickup(ply, ent)
 	return false
 end
 
-hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent )
+local function HandleItem(ent)
+	if not IsValid(ent) then
+		return false
+	end
 
+	local itemID = CaseInventory:GetItemID(ent:GetClass())
+	if itemID == -1 then
+		return false
+	end
+
+	local itemInfo = CaseInventory:GetItemInfo(itemID)
+	if itemInfo == nil or itemInfo.ItemType == CASE_ITEM_DO_NOT_HANDLE then
+		return false
+	end
+	return true
+end
+
+local function AllowPickup(ply, ent)
+	-- This will always trigger a pickup
 	if ply.CasePickup == ent then
-		ply.CasePickup = nil
+		return true
+	end
+	local pickup_mode = cvar_pickup_mode:GetInt() == -1 and math.Clamp(ply:GetInfoNum("case_cl_pickup_mode", 1), 0, 2) or cvar_pickup_mode:GetInt()
+
+
+	-- Either use or be in a vehicle
+	if pickup_mode == 1 and 
+		(use or ply:InVehicle()) and ply.CasePickupDelay <= 0
+	then
 		return true
 	end
 
-	if ply.UseCommand == nil then
-		ply.UseCommand = 0
+	-- Pickup when walked over
+	if pickup_mode == 0 and ply.CasePickupDelay <= 0 then
+		return true
 	end
 
-	if _canPickup(ply, ent) then
-		ply.UseCommand = 2
+	-- Must interact with the item, being in a vehicle doesn't count
+	if pickup_mode == 2 and use then
+		return true
+	end
 
-		local id = CaseInventory:GetItemID(ent:GetClass())
-		local info = id ~= -1 and CaseInventory:GetItemInfo(id) or {}
+	-- Entity was created this frame
+	if cvar_frame0:GetBool() and CurTime() - ent:GetCreationTime() == 0 and ent:GetPos() == ply:GetPos() then
+		return true
+	end
+end
 
-		if id == -1 or info.ItemType == CASE_ITEM_GLOW_ONLY or
-			info.ItemType == CASE_ITEM_WEAPON or
-			info.ItemType == CASE_ITEM_GRENADE or
-			info.ItemType == CASE_ITEM_DO_NOT_HANDLE then
-			return
-		end
+hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent )
+	if not HandleItem(ent) then
+		return
+	end
 
-		-- If the player is not holding walk and the item can be used
-		-- Use it in the overworld then :)
-		-- If not pick it up
-		local canUse = CaseInventory:GetItemInfo(id).CanUse
-		
-		if not ply:IsWalking() and (canUse ~= nil and canUse(ply, CaseInventory:GetItemInfo(id), -1)) then
-			return
-		end
-
-		-- See if the item is already in the pickup queue
-		-- If so, remove it
-		for k, v in pairs(CaseInventory.PickupQueue) do
-			if v.ENT == ent then
-				table.remove(CaseInventory.PickupQueue, k)
-				break
-			end    
-		end
-
-		if CaseInventory:PickupItem(ply, id, 1) then
-			ply:DropObject()
-			ent:Remove()
-		end
+	if AllowPickup(ply, ent) then
+		return true
 	end
 
 	return false
 end )
 
 hook.Add("PlayerCanPickupWeapon", "CASE_PlayerCanPickupWeapon", function( ply, ent)
-	if ply.UseCommand == nil then
-		ply.UseCommand = 0
+	if not HandleItem(ent) then
+		return
 	end
 
-
-	if _canPickup(ply, ent) then
-		ply.UseCommand = 2
-		ply.CasePickup = nil
-		
-
-		local itemId = CaseInventory:GetItemID(ent:GetClass())
-		if itemId == -1 then
-			return false
-		end
-
-		local info = CaseInventory:GetItemInfo(itemId)
-
-		-- Do nuffin about it
-		if info.ItemType == CASE_ITEM_DO_NOT_HANDLE then
-			return
-		end
-
-		-- Weapons will (should) give ammo when picked up so if we already have a copy let it be obtained anyway
-		if CaseInventory:HasItem(CaseInventory:Inv(ply), itemId) or CaseInventory:FindValidSpot(CaseInventory:Inv(ply), itemId) then
-			return
-		end
+	if AllowPickup(ply, ent) then
+		return true
 	end
 
 	return false
 end)
+
+
+hook.Add("OnPlayerPhysicsPickup", "CASE_OnPlayerPhysicsPickup", function( ply, ent )
+	if not HandleItem(ent) then
+		return
+	end
+
+	if ply.CasePickup == ent then
+		return true
+	end
+
+	return false
+end)
+
+
+hook.Add( "WeaponEquip", "CASE_WeaponEquip", function( weapon, ply )
+	-- Check to see if the player has picked up an item but doesn't have it in their inventory
+	local itemId = CaseInventory:GetItemID(weapon:GetClass())
+	if itemId == -1 then
+		return
+	end
+
+	local info = CaseInventory:GetItemInfo(itemId)
+	if info.ItemType == CASE_ITEM_DO_NOT_HANDLE then
+		return
+	end
+
+	if not CaseInventory:HasItem(CaseInventory:Inv(ply), itemId) then
+		if not CaseInventory:AddItemToInventory(CaseInventory:Inv(ply), itemId, 1, true) then
+			ply:DropWeapon(weapon, ply:GetPos(), Vector(0,0,0))
+		end
+	end
+end )
+
+
+
 
 hook.Add( "StartCommand", "CASE_StartCommand", function( ply, cmd)
 	if cmd:KeyDown(IN_USE) then
@@ -200,83 +225,7 @@ hook.Add("PlayerDroppedWeapon", "CASE_PlayerDroppedWeapon", function (owner, wpn
 	end
 end)
 
-hook.Add( "WeaponEquip", "CASE_WeaponEquip", function( weapon, ply )
 
-	-- Check to see if the player has picked up an item but doesn't have it in their inventory
-	local itemId = CaseInventory:GetItemID(weapon:GetClass())
-	if itemId == -1 then
-		return
-	end
-
-	local info = CaseInventory:GetItemInfo(itemId)
-	if info.ItemType == CASE_ITEM_DO_NOT_HANDLE then
-		return
-	end
-
-	if not CaseInventory:HasItem(CaseInventory:Inv(ply), itemId) then
-		if not CaseInventory:AddItemToInventory(CaseInventory:Inv(ply), itemId, 1, true) then
-			ply:DropWeapon(weapon, ply:GetPos(), Vector(0,0,0))
-		end
-	end
-end )
-
--- For if you just slightly miss picking up an item
-hook.Add("OnPlayerPhysicsPickup", "CASE_OnPlayerPhysicsPickup", function( ply, ent )
-	if not IsValid(ent) then
-		return
-	end
-
-
-	-- Allow the client to pick this value if the serverside version is -1
-	local pickup_setting = cvar_pick_on_hold:GetInt() == -1 and math.Clamp(ply:GetInfoNum("case_cl_pickup_on_hold", 0), 0, 2) or cvar_pick_on_hold:GetInt()
-	local itemID = CaseInventory:GetItemID(ent:GetClass())
-
-	if itemID ~= -1 and pickup_setting > 0 then
-		-- If the cvar is 1 then don't pickup if we're walking
-		-- If it's 2 then pick it up always
-		local pickup =
-			(pickup_setting == 1 and not ply:IsWalking() or pickup_setting == 2)
-			
-			
-		if pickup then
-			if CaseInventory:IsWeapon(itemID) then
-				CaseInventory:PickupWeapon(ply, ent)
-				return
-			end
-
-
-
-			local info = CaseInventory:GetItemInfo(itemID)
-			-- Anti infinite loop:tm:
-			-- Don't try to pickup if already in the queue
-			for k, v in ipairs(CaseInventory.PickupQueue) do
-				if v.ENT == ent then
-					return
-				end
-			end
-
-			if info.CanUse ~= nil and info.CanUse(ply, itemID, -1) then
-				ply.CasePickup = ent
-				ent:SetPos(ply:GetPos())
-				return
-			end
-
-			if info.CanUse == nil then
-				ply.CasePickup = ent
-				ent:SetPos(ply:GetPos())
-				return
-			end
-
-
-			-- Add to a queue to be added to the inventory next tick
-			-- If the item is invalid by then it will be assumed to have been used
-			if CaseInventory:FindValidSpot(CaseInventory:Inv(ply), itemID) then
-				ply:DropObject()
-				table.insert(CaseInventory.PickupQueue, {Player=ply, ENT=ent, Timer=0, ItemID=itemID})
-			end
-		end
-	end
-end)
 
 hook.Add("PlayerDisconnected", "CASE_PlayerDisconnected", function (ply)
 	if cvar_inventory_mode:GetInt() == 1 then
@@ -285,6 +234,7 @@ hook.Add("PlayerDisconnected", "CASE_PlayerDisconnected", function (ply)
 end)
 
 hook.Add("PlayerUse", "CASE_PlayerUse", function(ply, ent)
+	
 	if not IsValid(ent) then
 		return false -- what
 	end
@@ -293,14 +243,16 @@ hook.Add("PlayerUse", "CASE_PlayerUse", function(ply, ent)
 	if itemInfo == nil then
 		return -- let something else handle it
 	end
+	
 
 	if itemInfo.ItemType == CASE_ITEM_DO_NOT_HANDLE then
 		return -- same as above
 	end
-
+		
 	if ply.UseCommand ~= 1 then
 		return false
 	end
+
 
 	if CaseInventory:PickupEntity(ply, ent, not ply:IsWalking()) then
 		return false

@@ -63,7 +63,7 @@ function CaseInventory:PickupWeapon(ply, wpn)
 	return true
 end
 
----
+---Generic pickup for ents
 ---@param ply table
 ---@param ent table
 ---@param doUse boolean
@@ -74,7 +74,6 @@ function CaseInventory:PickupEntity(ply, ent, doUse)
 
 	local itemID = CaseInventory:GetItemID(ent:GetClass())
 	local itemInfo = CaseInventory:GetItemInfo(itemID)
-
 	if itemID == -1 or itemInfo == nil then
 		return false
 	end
@@ -88,6 +87,7 @@ function CaseInventory:PickupEntity(ply, ent, doUse)
 
 	-- It's an ammo type, also just absorb it
 	if itemInfo.ItemType == CASE_ITEM_GLOW_ONLY then
+		ply.CasePickup = ent
 		ent:Use(ply, ply)
 	end
 
@@ -106,6 +106,7 @@ function CaseInventory:PickupEntity(ply, ent, doUse)
 		if use then
 			ply.CasePickup = ent
 			ent:SetPos(ply:GetPos())
+			ent:Use(ply, ply)
 		else
 			if CaseInventory:PickupItem(ply, itemID, 1) then
 				ent:Remove()
