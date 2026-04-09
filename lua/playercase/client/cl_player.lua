@@ -50,9 +50,9 @@ hook.Add("PreDrawHalos", "CASE_PreDrawHalos", function ()
 
 		if itemInfo.ItemType == CASE_ITEM_GENERIC or itemInfo.ItemType == CASE_ITEM_GRENADE then
 			local freeSpace = false
-			local canUse = false
+			local canUse = itemInfo.OnUse ~= nil and CaseInventory:CanUse(LocalPlayer(), itemID)
 
-			if itemInfo.ItemType == CASE_ITEM_GENERIC and not LocalPlayer():KeyDown(IN_WALK) and itemInfo.CanUse(LocalPlayer(), itemInfo, -1) then
+			if itemInfo.ItemType == CASE_ITEM_GENERIC and not LocalPlayer():KeyDown(IN_WALK) and canUse then
 				canUse = true
 				drawColor = Color(0, 0, 255)
 			end

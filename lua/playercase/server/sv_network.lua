@@ -132,12 +132,14 @@ net.Receive("CaseCommandEvent", function (len, ply)
 			local maxCount = net.ReadUInt(16)
 			local blacklist = net.ReadBool()
 
+            local skin = net.ReadUInt(8)
+
             -- Store it away
             CaseInventory:SetOverride(itemID, {
 				Size=size,
 				MaxCount=maxCount,
 				Blacklist=blacklist,
-				RenderInfo=CaseRenderInfo(model, scale, rotation, offset, 0)
+				RenderInfo=CaseRenderInfo(model, scale, rotation, offset, 0, skin)
 			})
         end -- END NO DELETE
 

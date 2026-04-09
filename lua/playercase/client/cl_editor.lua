@@ -15,6 +15,7 @@ CaseEditor.Size = nil
 CaseEditor.Count = nil
 CaseEditor.Blacklist = nil
 CaseEditor.Rotation = nil
+CaseEditor.Skin = nil
 CaseEditor.CurrentID = 1
 
 CaseEditor.IsWeapon = false
@@ -57,6 +58,7 @@ function CaseEditor:Populate(panel)
 
 
 	CaseEditor.Model = panel:TextEntry("Model")
+	CaseEditor.Skin = panel:TextEntry("Model Skin")
 	CaseEditor.Size = panel:TextEntry("Size")
 	CaseEditor.Scale = panel:TextEntry("Scale")
 	CaseEditor.Offset = panel:TextEntry("Offset")
@@ -97,6 +99,7 @@ function CaseEditor:WeaponChanged(itemID, useGetItemInfo)
 	CaseEditor.Scale:SetText(GetValue(register.RenderInfo.Scale, 1.0))
 	CaseEditor.Offset:SetText("" .. GetValue(register.RenderInfo.Offset.X, 0) .. " " .. GetValue(register.RenderInfo.Offset.Y, 0) .. " " .. GetValue(register.RenderInfo.Offset.Z, 0))
 	CaseEditor.Rotation:SetText("" .. GetValue(register.RenderInfo.Rotations[1], 0) .. " " .. GetValue(register.RenderInfo.Rotations[2], 0) .. " " .. GetValue(register.RenderInfo.Rotations[3], 0))
+	CaseEditor.Skin:SetText("" .. GetValue(register.RenderInfo.Skin, 0))
 
 	if realType == CASE_ITEM_WEAPON then
 		CaseEditor.Count:SetEnabled(false)
@@ -121,6 +124,8 @@ function CaseEditor:ApplyChanges()
 	local i = 1
 
 	local model = CaseEditor.Model:GetText()
+	local skin = tonumber(CaseEditor.Skin:GetText())
+
 	local size = {
 		1,
 		1
@@ -177,7 +182,7 @@ function CaseEditor:ApplyChanges()
 			Size=size,
 			MaxCount=maxCount ~= nil and maxCount or 1,
 			Blacklist=blacklist,
-			RenderInfo=CaseRenderInfo(model, scale, rotation, offset, 0)
+			RenderInfo=CaseRenderInfo(model, scale, rotation, offset, 0, skin)
 		}
 	)
 end
@@ -186,6 +191,7 @@ function CaseEditor:CopyToClipboard()
 	local i = 1
 
 	local model = CaseEditor.Model:GetText()
+	local skin = tonumber(CaseEditor.Skin:GetText())
 	local size = {
 		1,
 		1
@@ -237,7 +243,7 @@ function CaseEditor:CopyToClipboard()
 	local blacklist = CaseEditor.Blacklist:GetChecked()
 
 	local copyString = "no code for this item type yet :("
-	local renderInfo = string.format("CaseRenderInfo(\"%s\", %g, {%g, %g, %g}, Vector(%g, %g, %g))",
+	local renderInfo = string.format("CaseRenderInfo(\"%s\", %g, {%g, %g, %g}, Vector(%g, %g, %g), 0, %g)",
 			model,
 			scale,
 			rotation[1],
@@ -245,7 +251,8 @@ function CaseEditor:CopyToClipboard()
 			rotation[3],
 			offset[1],
 			offset[2],
-			offset[3]
+			offset[3],
+			skin
 		)
 		
 

@@ -12,6 +12,38 @@ local function _registerItemTable(tbl)
 	end
 end
 
+local function _canUseHealth(ply)
+	if ply:Health() >= ply:GetMaxHealth() then
+		return false
+	end
+	return true
+end
+
+local function _canUseArmor(ply)
+	if ply:Armor() >= ply:GetMaxArmor() then
+		return false
+	end
+	return true
+end
+
+local function _canUseAlways()
+	return true
+end
+
+local function _useGeneric(ply, info)
+	if CLIENT then
+		return true
+	end
+
+	local kit = ents.Create(info.Name)
+	kit:Spawn()
+	ply.CasePickup = kit
+	kit:SetPos(ply:GetPos())
+	kit:Use(ply, ply)
+
+	return true
+end
+
 -- Each entry should be setup like this
 -- List of workshop ids that trigger it, function to call
 local ItemList = {
@@ -215,6 +247,10 @@ local itemsGMOD = {
 	CaseWeapon("weapon_base", CaseRenderInfo("models/weapons/w_357.mdl"), 3, 2),
 }
 
+local itemsHLS = {
+	CaseWeapon("weapon_glock_hl1", CaseRenderInfo(), 3, 2),
+}
+
 -- https://steamcommunity.com/sharedfiles/filedetails/?id=1606822274
 -- MMod Weapon Replacement #1
 table.insert(ItemList, {{"1606822274"}, function()
@@ -226,7 +262,7 @@ end})
 
 -- https://steamcommunity.com/sharedfiles/filedetails/?id=2035609495
 -- MMod Weapon Replacement #2
-table.insert(ItemList, {{"1606822274"}, function()
+table.insert(ItemList, {{"2035609495"}, function()
 	return {
 		CaseWeapon("weapon_physcannon",CaseRenderInfo("models/weapons/w_physics.mdl", 3.5, {0, 0, 0}, Vector(0, 5)), 5, 2, "Gravity Gun"),
 		CaseWeapon("weapon_smg1",CaseRenderInfo("models/weapons/w_smg1.mdl",6, {0,180,0}, Vector(0,-7,0)), 3, 2, "SMG"),
@@ -394,9 +430,259 @@ table.insert(ItemList, {{"3098824960"}, function ()
 	}
 end})
 
+-- Crunchy
+table.insert(ItemList, {{"2690914262"}, function ()
+	local function _canUseCrunchyHealth(ply)
+		if ply:Health() >= 250 then
+			return false
+		end
+		return true
+	end
+
+	local function _canUseCrunchyArmor(ply)
+		if ply:Armor() >= 250 then
+			return false
+		end
+		return true
+	end
+
+	local function _canUseZombie(ply)
+		if ply:Armor() >= 500 then
+			return false
+		end
+		return true
+	end
+
+	return {
+		
+		-- Armor
+		CaseConsumable("csgo_armor_full", "Armor - Full", CaseRenderInfo("models/crunchy/props/csgo_props/upgrade_dz_armor_helmet.mdl", 3, {20, 45}, Vector(0, -2.5, 3), 0), 3, 2, 1, _useGeneric, _canUseArmor),
+		CaseConsumable("csgo_armor_medium", "Armor - Medium", CaseRenderInfo("models/crunchy/props/csgo_props/upgrade_dz_armor.mdl", 3, {180}), 2, 3, 1,  _useGeneric, _canUseArmor),
+		CaseConsumable("contagion_armor_heavy", "Armor - Heavy", CaseRenderInfo("models/crunchy/props/contagion_props/armor/gjel.mdl", 2.5, {0, 180}), 2, 3, 1, _useGeneric, _canUseArmor),
+		CaseConsumable("contagion_armor_helmet", "Armor - Helmet", CaseRenderInfo("models/crunchy/props/contagion_props/armor/ulach.mdl", 4, {0, 45}), 2, 2, 2, _useGeneric, _canUseArmor),
+		CaseConsumable("contagion_armor_light", "Armor - Light", CaseRenderInfo("models/crunchy/props/contagion_props/armor/ar_thorcrv.mdl", 2.7, {0, 180}, Vector(0, 0, 2)), 2, 3, 1, _useGeneric, _canUseArmor),
+		CaseConsumable("eft_armor_pack", "Armor Booster", CaseRenderInfo("models/crunchy/props/eft_props/armorrepair.mdl", 3.5, {0, 180}, Vector(0, 0, 1.5)), 3, 2, 2, _useGeneric, _canUseCrunchyArmor),
+		CaseConsumable("fear_armor", "Armor", CaseRenderInfo("models/crunchy/props/fear_props/armor.mdl", 3.5, {70, 90}, Vector(0, -2, 9)), 2, 3, 2, _useGeneric, _canUseArmor),
+		CaseConsumable("fear_armor_injector", "Armor Injector", CaseRenderInfo("models/crunchy/props/fear_props/armor_injector.mdl", 4, {0, 180}, Vector(0, 5, 2.4)), 2, 2, 2, _useGeneric, _canUseArmor),
+		CaseConsumable("nmrih_armor_police", "Police Vest", CaseRenderInfo("models/crunchy/props/nmrih_props/police_vest.mdl", 0.425, {0, 180, 90}, Vector(0, -10, 11)), 3, 2, 1, _useGeneric, _canUseArmor),
+		CaseConsumable("stalker_armor_exo", "Armor Exosuit", CaseRenderInfo("models/crunchy/props/stalker_props/lone_exo.mdl", 3, {90, 90}, Vector(0, -1, 7)), 4, 5, 1, _useGeneric, _canUseAlways),
+		CaseConsumable("stalker_armor_small", "Helmet", CaseRenderInfo("models/crunchy/props/stalker_props/hardhat.mdl", 3.2, {25,180,0}, Vector(0, 0.25, 0)), 2, 2, 1, _useGeneric, _canUseArmor),
+		CaseConsumable("stalker_armor_small_2", "Helmet (Tactical)", CaseRenderInfo("models/crunchy/props/stalker_props/mili_battlehelm.mdl", 3.2, {25,180,0}, Vector(0, 0.25, 1)), 2, 2, 1, _useGeneric, _canUseArmor),
+		CaseConsumable("stalker_armor_medium", "Armor Medium", CaseRenderInfo("models/crunchy/props/stalker_props/cs_light.mdl", 3.5, {0, 0, -90}, Vector(0, -2, 2)), 3, 2, 1, _useGeneric, _canUseArmor),
+		CaseConsumable("stalker_armor_large", "Armor Large", CaseRenderInfo("models/crunchy/props/stalker_props/cs_heavy.mdl", 4, {0, 0, -90}, Vector(0, 0, 1)), 3, 2, 1, _useGeneric, _canUseArmor),
+		CaseConsumable("uh_battery", "Battery", CaseRenderInfo("models/crunchy/props/underhell_props/pg_battery.mdl", 2), 1, 1, 4, _useGeneric, _canUseArmor),
+		CaseConsumable("uh_battery_pack", "Battery Pack", CaseRenderInfo("models/crunchy/props/underhell_props/pg_battery_pack.mdl", 5, {90, 90, 0}, Vector(0, 0, 1)), 1, 1, 2, _useGeneric, _canUseArmor),
+		CaseConsumable("uh_helmet", "Armor - Helmet", CaseRenderInfo("models/crunchy/props/underhell_props/helmet.mdl", 4, {0, 180}, Vector(0, -6)), 2, 2, 1, _useGeneric, _canUseArmor),
+		CaseConsumable("uh_kevlar", "Armor - Vest", CaseRenderInfo("models/crunchy/props/underhell_props/kevlar.mdl", 2.5, {0, 180}), 2, 3, 1, _useGeneric, _canUseArmor),
+		CaseConsumable("zps_kevlar", "Kevlar Vest", CaseRenderInfo("models/crunchy/props/zps_props/kevlar.mdl", 2.8, {0, 90, -90}, Vector(0, -1.1, 3)), 2, 3, 1, _useGeneric, _canUseArmor),
+		CaseConsumable("zps_medkit", "Medkit", CaseRenderInfo("models/crunchy/props/zps_props/healthkit.mdl", 2.4, {-90}, Vector(0, 0, 2)), 3, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("zps_medkit_classic", "Medkit (Classic)", CaseRenderInfo("models/crunchy/props/zps_props/healkit.mdl", 2.4, {-90}, Vector(0, 0, 2)), 3, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("zps_painkillers", "Painkillers", CaseRenderInfo("models/crunchy/props/zps_props/pills.mdl", 1.5, {0, -140}), 1, 2, 1, _useGeneric, _canUseHealth),
+		
+		-- Health
+
+		CaseConsumable("contagion_medical_kit", "Medkit", CaseRenderInfo("models/crunchy/props/contagion_props/w_first_aid.mdl", 4, {270}), 2, 2, 2, _useGeneric, _canUseHealth),
+		CaseConsumable("contagion_medical_pain_reliever", "Pain Reliever", CaseRenderInfo("models/crunchy/props/contagion_props/medicine_bottle_0.mdl", 9, {0, 45}), 1, 2, 3, _useGeneric, _canUseHealth),
+		CaseConsumable("contagion_medical_stimulants", "Stimulants", CaseRenderInfo("models/crunchy/props/contagion_props/medicine_bottle_2.mdl", 7.9, {0, 120}, Vector(0, 0, -2)), 1, 2, 2, _useGeneric, _canUseHealth),
+		CaseConsumable("contagion_medical_bag", "Surgeon's Bag", CaseRenderInfo("models/crunchy/props/contagion_props/health_pack.mdl", 1.9, {0, 0}, Vector(0, 0, 1)), 3, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("eft_bandage", "Medical Bandage", CaseRenderInfo("models/crunchy/props/eft_props/bandage.mdl", 1.9, {0, 270, 90}, Vector(0, 0, 0.75)), 1, 2, 3, _useGeneric, _canUseHealth),
+		CaseConsumable("eft_bandage_army", "Army Bandage", CaseRenderInfo("models/crunchy/props/eft_props/armybandage.mdl", 1.9, {0, 270, 90}, Vector(0, 0, 0.75)), 1, 2, 3, _useGeneric, _canUseHealth),
+		CaseConsumable("eft_medical_pile", "Medical Booster", CaseRenderInfo("models/crunchy/props/eft_props/medpile.mdl", 4, {-45, 0}, Vector(0, 0, 1)), 2, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("eft_medkit", "Medkit", CaseRenderInfo("models/crunchy/props/eft_props/carmedkit.mdl", 3.5, {90}, Vector(0, 0.4, 1.5)), 2, 2, 3, _useGeneric, _canUseHealth),
+		CaseConsumable("eft_medkit_army", "Medkit - Army", CaseRenderInfo("models/crunchy/props/eft_props/ifak.mdl", 3, {0, 270, 90}, Vector(0, 0,2.5)), 2, 2, 3, _useGeneric, _canUseHealth),
+		CaseConsumable("eft_medkit_grizzly", "Medkit - Grizzly", CaseRenderInfo("models/crunchy/props/eft_props/grizzly.mdl", 3.75, {90, 0}, Vector(0, 0, 4.4)), 3, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("fear_health_injector", "Health Injector", CaseRenderInfo("models/crunchy/props/fear_props/health_injector.mdl", 4, {0, 180}, Vector(0, 5, 2.4)), 2, 2, 2, _useGeneric, _canUseHealth),
+		CaseConsumable("fear_medkit", "Medkit", CaseRenderInfo("models/crunchy/props/fear_props/healthkit.mdl",2, {-90 ,0}, Vector(0, 0, 0)), 3, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("nmrih_medical_bandages", "Medical Bandages", CaseRenderInfo("models/crunchy/props/nmrih_props/item_bandages.mdl", 1.7, {0, 160}, Vector(0, 1, 0)), 1, 2, 3, _useGeneric, _canUseHealth),
+		CaseConsumable("nmrih_medical_pills", "Medical Painkillers", CaseRenderInfo("models/crunchy/props/nmrih_props/item_phalanx.mdl", 1.7, {}, Vector(0, -.25)), 1, 2, 2, _useGeneric, _canUseHealth),
+		CaseConsumable("nmrih_medkit", "Medkit", CaseRenderInfo("models/crunchy/props/nmrih_props/item_firstaid.mdl", 3.25, {}, Vector(0, 0, 2)), 3, 2, 2, _useGeneric, _canUseHealth),
+		CaseConsumable("other_bandages", "Bandages", CaseRenderInfo("models/crunchy/props/random_props/bandages.mdl", 3, {90, 90}, Vector(0, 0, 2)), 1, 2, 3, _useGeneric, _canUseHealth),
+		CaseConsumable("other_blood_bag", "Blood Bag", CaseRenderInfo("models/crunchy/props/random_props/medical_blood.mdl", 4.6, {-90, 0, 90}, Vector(0, 5, -2.8)), 1, 2, 2, _useGeneric, _canUseHealth),
+		CaseConsumable("other_medkit_green", "Medkit (Green)", CaseRenderInfo("models/crunchy/props/random_props/healthkit.mdl", 2.5, {-90}, Vector(0, 0, 3)), 3, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("other_medkit_hdtf", "Medkit (Red)", CaseRenderInfo("models/crunchy/props/underhell_props/healthkit.mdl", 2.5, {-90}, Vector(0, 0, 3) ), 3, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("other_medkit_pack_large", "Medpack (Large)", CaseRenderInfo("models/crunchy/props/random_props/backpack_2_m.mdl", 2.5, {180, 0, 180}, Vector(0, 2.5)), 2, 3, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("other_medkit_pack_medium", "Medpack (Medium)", CaseRenderInfo("models/crunchy/props/random_props/backpack_1_m.mdl", 2.5, {180, 0, 180}, Vector(0, 2.5)), 2, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("other_morphine", "Morphine Shot", CaseRenderInfo("models/crunchy/props/random_props/prop_morphine.mdl", 0.75, {0, 0, 90}, Vector(0, -5, 4)), 1, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("other_pills", "Painkillers", CaseRenderInfo("models/crunchy/props/random_props/hdtf_pills.mdl", 2, {0,90}), 1, 2, 2, _useGeneric, _canUseHealth),
+		CaseConsumable("other_splint", "Splint", CaseRenderInfo("models/crunchy/props/random_props/splint.mdl", 3.5, {-90, -90}, Vector(0, -2.5, 3)), 1, 2, 3, _useGeneric, _canUseHealth),
+		CaseConsumable("re2_first_aid_med", "First-Aid Med", CaseRenderInfo("models/crunchy/props/re8_props/re8_village_first_aid_med.mdl", 2, {0, 80}), 1, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("re2_aid_spray", "First-Aid Spray", CaseRenderInfo("models/crunchy/props/re4_props/firstaidspray.mdl", 1.15, {0, 90}), 1, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("re2_herb", "Green Herb", CaseRenderInfo("models/crunchy/props/re2_props/re2_remake_herbs.mdl", 2.5, {0, 90}, Vector(0, 1)), 1, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("re4_aid_spray", "First-Aid Spray", CaseRenderInfo("models/crunchy/props/re4_props/firstaidspray.mdl", 1.25, {0, 90}), 1, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("re4_herb_green", "Herb (Green)", CaseRenderInfo("models/crunchy/props/re4_props/herb.mdl", 1.5), 1, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("re4_herb_red", "Herb (Red)", CaseRenderInfo("models/crunchy/props/re4_props/herb_red.mdl", 1.5), 1, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("re4_herb_yellow", "Herb (Yellow)", CaseRenderInfo("models/crunchy/props/re4_props/herb_yellow.mdl", 1.5), 1, 2, 1, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("re4_herb_green_mix", "Mixed Herb (G + G)", CaseRenderInfo("models/crunchy/props/re4_props/herb_green_mix.mdl", 4, {-90}), 1,1 , 1, _useGeneric, _canUseHealth),
+		CaseConsumable("re4_herb_triple_mix", "Mixed Herb (G + R + B)", CaseRenderInfo("models/crunchy/props/re4_props/herb_mix_triple.mdl", 4, {-90}), 1, 1, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("re4_herb_green_red_mix", "Mixed Herb (G + R)", CaseRenderInfo("models/crunchy/props/re4_props/herb_green_red_mix.mdl", 4, {-90}), 1, 1, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("serious_sam_health_bag", "Medical Bag", CaseRenderInfo("models/crunchy/props/serioussam_props/health_large.mdl", 3), 3, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("serious_sam_health_bandages", "Medical Bandages", CaseRenderInfo("models/crunchy/props/serioussam_props/health_small.mdl", 4), 2, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("serious_sam_health_case", "Medical Case", CaseRenderInfo("models/crunchy/props/serioussam_props/health_extralarge.mdl", 2.5, {25, 180, 0}, Vector(0, 0, 2)), 3, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("serious_sam_health_kit", "Medical Kit", CaseRenderInfo("models/crunchy/props/serioussam_props/health_medium.mdl", 2.5), 2, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("serious_sam_health_pills", "Medical Pills", CaseRenderInfo("models/crunchy/props/serioussam_props/health_extrasmall.mdl", 2, {0, 90}), 1, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("stalker_medical_bandage", "Medical Bandage", CaseRenderInfo("models/crunchy/props/stalker_props/bint.mdl", 2.5, {0, 90, 90}, Vector(0, 1.2)), 1, 2, 2, _useGeneric, _canUseHealth),
+		CaseConsumable("stalker_medkit_large", "Medkit (Large)", CaseRenderInfo("models/crunchy/props/stalker_props/medkit_high.mdl", 4, {270, 0, 90}, Vector(0, 0, 1)), 2, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("stalker_medkit_medium", "Medkit (Medium)", CaseRenderInfo("models/crunchy/props/stalker_props/medkit_med.mdl", 4, {270, 0, 90}, Vector(0, 0, 1)), 2, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("stalker_medkit_small", "Medkit (Small)", CaseRenderInfo("models/crunchy/props/stalker_props/medkit_low.mdl", 4, {270, 0, 90}, Vector(0, 0, 1)), 2, 2, 2, _useGeneric, _canUseHealth),
+		CaseConsumable("uh_bandages", "Bandages", CaseRenderInfo("models/crunchy/props/underhell_props/pg_bandage.mdl", 2), 1, 2, 2, _useGeneric, _canUseHealth),
+		CaseConsumable("uh_medspray", "Medical Spray", CaseRenderInfo("models/crunchy/props/underhell_props/medspray.mdl", 1.5, {0, 100}), 1, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("uh_medkit", "Medkit", CaseRenderInfo("models/crunchy/props/underhell_props/healthkit.mdl", 2, {-90}, Vector(0, 0, 3)), 3, 2, 1, _useGeneric, _canUseHealth),
+		CaseConsumable("uh_painkillers", "Painkillers", CaseRenderInfo("models/crunchy/props/underhell_props/painkillers.mdl", 1.7, {0, -90}), 1, 2, 1, _useGeneric, _canUseHealth),
+
+		
+		-- Food (Max 250 HP)
+		CaseConsumable("contagion_food_gin", "Gin", CaseRenderInfo("models/crunchy/props/contagion_props/food/gin_bottle.mdl", 2, {0, 180}), 1, 2, 2, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("contagion_food_beans", "Can of Beans", CaseRenderInfo("models/crunchy/props/contagion_props/food/baked_beans.mdl", 2, {0, 180, 0}), 1, 2, 3, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("contagion_food_soup", "Can of Soup", CaseRenderInfo("models/crunchy/props/contagion_props/food/canned_soup.mdl", 2, {0, 0, 0}), 1, 2, 3, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("contagion_food_chips", "Chips", CaseRenderInfo("models/crunchy/props/contagion_props/food/bag_of_chips.mdl", 4, {-90, 00, -90}, Vector(0, 1.75, -1)), 1, 2, 3, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("contagion_food_peanuts", "Peanuts", CaseRenderInfo("models/crunchy/props/contagion_props/food/bag_of_peanuts.mdl", 2.25, {0, -90, 90}, Vector(0, 0.25, 2)), 1, 2, 3, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("contagion_food_rations", "Ration Kit", CaseRenderInfo("models/crunchy/props/contagion_props/food/food_ration.mdl", 4, {0, 180, 25}, Vector(0, 1, 1)), 2, 2, 2, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("contagion_food_sardines", "Sardines", CaseRenderInfo("models/crunchy/props/contagion_props/food/sardine_can_open.mdl", 2.75, {90, 90}, Vector(0, 0, 1)), 1, 2, 3, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("contagion_food_water", "Water", CaseRenderInfo("models/crunchy/props/contagion_props/plastic_bottle_1.mdl", 4, {0, 180}, {0, 0, -1.5}), 1, 2, 3, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("eft_food_mre", "Army MRE", CaseRenderInfo("models/crunchy/props/eft_props/mre.mdl", 3.5, {90, 90}, Vector(0, 0, 1)), 1, 2, 1, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("eft_food_mre_white", "Army MRE", CaseRenderInfo("models/crunchy/props/eft_props/mre.mdl", 3.5, {90, 90}, Vector(0, 0, 1), 0, 1), 1, 2, 1, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("eft_food_beefstew", "Beef Stew", CaseRenderInfo("models/crunchy/props/eft_props/beefstew.mdl", 2.2, {0, -20}), 1, 2, 3, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("eft_food_beefstew_family", "Beef Stew (Family Size)", CaseRenderInfo("models/crunchy/props/eft_props/beefstew2.mdl", 3.5, {0, 180}), 2, 2, 3, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("eft_food_canned_fish", "Canned Herring", CaseRenderInfo("models/crunchy/props/eft_props/herring.mdl", 2.5, {0, 120}), 2, 1, 3, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("eft_food_peas", "Canned Peas", CaseRenderInfo("models/crunchy/props/eft_props/peas.mdl", 2.3, {0, -55}, Vector(0)), 1, 2, 3, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("eft_food_squash", "Canned Squash", CaseRenderInfo("models/crunchy/props/eft_props/squash.mdl", 2, {0, 80}, Vector(0, 0.25)), 1, 2, 3, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("eft_food_hotrod", "Hotrod Energy Drink", CaseRenderInfo("models/crunchy/props/eft_props/hotrod.mdl", 1.5, {0, 70}), 1, 2, 2, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("eft_food_juice", "Juice", CaseRenderInfo("models/crunchy/props/eft_props/juice.mdl", 1.5, {0, 180}), 1, 2, 3, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("eft_food_oatmeal", "Oatmeal", CaseRenderInfo("models/crunchy/props/eft_props/oatmeal.mdl", 2.5, {0, 180}, Vector(0, -1.25)), 1, 2, 4, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("eft_food_water", "Water Bottle", CaseRenderInfo("models/crunchy/props/eft_props/waterbottle.mdl", 1.5, {0, 180}), 1, 2, 3, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("nmrih_food_candy", "Candy Bars", CaseRenderInfo("models/crunchy/props/nmrih_props/food/nmrih_grocery_food1c.mdl", 0.9, {0, 0}), 2, 1, 4, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("nmrih_food_oatmeal", "Oatmeal", CaseRenderInfo("models/crunchy/props/nmrih_props/food/nmrih_grocery_food1b.mdl", 0.9, {0, 0}), 2, 2, 6, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("nmrih_food_pasta", "Pasta", CaseRenderInfo("models/crunchy/props/nmrih_props/food/nmrih_grocery_food1i.mdl", 1.2, {0, 0}), 2, 2, 6, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("nmrih_food_pasta_small", "Pasta (Small)", CaseRenderInfo("models/crunchy/props/nmrih_props/food/nmrih_grocery_food1f.mdl", 0.7, {0, 0}), 2, 1, 4, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("nmrih_food_protein", "Protein Bars", CaseRenderInfo("models/crunchy/props/nmrih_props/food/nmrih_grocery_food1h.mdl", 1.1, {0, 0}), 2, 2, 6, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("nmrih_food_tea", "Tea", CaseRenderInfo("models/crunchy/props/nmrih_props/food/nmrih_grocery_food1e.mdl", 1.5, {0, 0}), 1, 2, 4, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("other_coffee_thermos", "Thermos (Coffee)", CaseRenderInfo("models/crunchy/props/random_props/thermos.mdl", 1.5, {0, -30}), 1, 2, 2, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("stalker_food_bread", "Bread", CaseRenderInfo("models/crunchy/props/stalker_props/bread.mdl"), 2, 1, 3, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("stalker_food_energydrink", "Energy Drink", CaseRenderInfo("models/crunchy/props/stalker_props/energy-drink.mdl", 1.5), 1, 2, 3, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("stalker_food_energydrink_water", "Water", CaseRenderInfo("models/crunchy/props/stalker_props/energy-drink.mdl", 1.5, {0, -25}, Vector(), 0, 1), 1, 2, 3, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("stalker_food_ration", "Ration", CaseRenderInfo("models/crunchy/props/stalker_props/konservi.mdl", 2.9, {-25}, Vector(2, 0, 0.25)), 2, 1, 3, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("stalker_food_sausage", "Sausage", CaseRenderInfo("models/crunchy/props/stalker_props/kolbasa.mdl", 2.5, {25, 0, 240}, Vector(0, 1, 3)), 2, 1, 4, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("uh_food_apple", "Apple", CaseRenderInfo("models/crunchy/props/underhell_props/pg_apple.mdl", 4), 1, 1, 3, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("uh_food_burrito", "Burrito Pack", CaseRenderInfo("models/crunchy/props/underhell_props/pg_burrito_pack.mdl", 3.5, {90, 90, 0}), 1, 2, 2, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("uh_food_choco", "Chocolate", CaseRenderInfo("models/crunchy/props/underhell_props/pg_choco_bar.mdl", 1.5, {90, 180}), 2, 1, 4, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("uh_food_sandwich", "Sandwich", CaseRenderInfo("models/crunchy/props/underhell_props/pg_sandwich.mdl", 3.5, {0, 0, 90}, Vector(0, 0, -1)), 2, 1, 2, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("uh_food_tortellini", "Tortellini", CaseRenderInfo("models/crunchy/props/underhell_props/pg_tortellinis.mdl", 0.8, {180, 0, 180}), 1, 2, 2, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("uh_food_water", "Water", CaseRenderInfo("models/crunchy/props/underhell_props/water_bottle.mdl", 1.5), 1, 2, 2, _useGeneric, _canUseCrunchyHealth),
+
+		--Not Actually food but it gets you to 250
+		CaseConsumable("zps_inoculator", "Inoculator Booster Shot", CaseRenderInfo("models/crunchy/props/zps_props/w_inoculator.mdl", 5, {0, 180}, Vector(0, 6.7)), 2, 2, 1, _useGeneric, _canUseCrunchyHealth),
+
+		-- Hello, we are about to launch an all-out attach on your houze. (Max 500 health)
+		CaseConsumable("meat_arm1", "Arm 1", CaseRenderInfo("models/crunchy/props/fallout_props/arm1.mdl", 1.1, {180, 180}, Vector(0, 0, 15)), 1, 3, 1, _useGeneric, _canUseZombie),
+		CaseConsumable("meat_arm2", "Arm 2", CaseRenderInfo("models/crunchy/props/fallout_props/gorearm.mdl", 1.1, {180, 90}, Vector(0, 0, 25)), 1, 3, 1, _useGeneric, _canUseZombie),
+		CaseConsumable("meat_chunk1", "Meat Chunk 1", CaseRenderInfo("models/crunchy/props/fallout_props/gorelegb02.mdl", 3, {}, Vector(0, 0, -5)), 2, 2, 1, _useGeneric, _canUseZombie),
+		CaseConsumable("meat_chunk2", "Meat Chunk 2", CaseRenderInfo("models/crunchy/props/fallout_props/gorelegb03.mdl", 2, {}, Vector(0, 0, -9)), 2, 2, 1, _useGeneric, _canUseZombie),
+		CaseConsumable("meat_head", "Head", CaseRenderInfo("models/crunchy/props/fallout_props/gorehead.mdl", 3.2, {0, 67}), 2, 2, 1, _useGeneric, _canUseZombie),
+		CaseConsumable("meat_leg1" , "Leg 1", CaseRenderInfo("models/crunchy/props/fallout_props/leg1.mdl", 1.1), 1, 3, 1, _useGeneric, _canUseZombie),
+		CaseConsumable("meat_leg2", "Leg 2", CaseRenderInfo("models/crunchy/props/fallout_props/goreleg.mdl", 1.5), 1, 3, 1, _useGeneric, _canUseZombie),
+		CaseConsumable("meat_torso", "Torso", CaseRenderInfo("models/crunchy/props/fallout_props/goretorso.mdl", 1.75), 2, 3, 1, _useGeneric, _canUseZombie),
+
+		-- Ammo
+		CaseGlowOnly("contagion_ammo_magnum"),
+		CaseGlowOnly("contagion_ammo_magnum_large"),
+		CaseGlowOnly("contagion_ammo_shotgun"),
+		CaseGlowOnly("contagion_ammo_rifle"),
+		CaseGlowOnly("contagion_ammo_arrows"),
+		CaseGlowOnly("contagion_ammo_m79"),
+		CaseGlowOnly("contagion_ammo_m79_pack"),
+		CaseGlowOnly("contagion_ammo_pistol"),
+		CaseGlowOnly("contagion_ammo_smg"),
+		CaseGlowOnly("contagion_ammo_sniper"),
+		CaseGlowOnly("loose_ammo_shotgun"),
+		CaseGlowOnly("loose_ammo_rifle"),
+		CaseGlowOnly("loose_ammo_m79"),
+		CaseGlowOnly("loose_ammo_magnum_pistol"),
+		CaseGlowOnly("loose_ammo_magnum_revolver"),
+		CaseGlowOnly("loose_ammo_pistol"),
+		CaseGlowOnly("loose_ammo_pistol_alt"),
+		CaseGlowOnly("loose_ammo_smg"),
+		CaseGlowOnly("loose_ammo_smg_alt"),
+		CaseGlowOnly("nmrih_pistol_ammo"),
+		CaseGlowOnly("nmrih_crossbow_ammo"),
+		CaseGlowOnly("nmrih_magnum_ammo"),
+		CaseGlowOnly("nmrih_rifle_ammo"),
+		CaseGlowOnly("nmrih_rifle_ammo_mag"),
+		CaseGlowOnly("nmrih_shotgun_ammo"),
+		CaseGlowOnly("nmrih_smg_ammo"),
+		CaseGlowOnly("nmrih_sniper_ammo"),
+		CaseGlowOnly("pouch_magnum_ammo"),
+		CaseGlowOnly("pouch_pistol_ammo"),
+		CaseGlowOnly("pouch_rifle_ammo"),
+		CaseGlowOnly("pouch_shotgun_ammo"),
+		CaseGlowOnly("pouch_smg_ammo"),
+		CaseGlowOnly("pouch_sniper_ammo"),
+		CaseGlowOnly("re2_40mm_ammo"),
+		CaseGlowOnly("re2_grenade_rounds"),
+		CaseGlowOnly("re2_grenade_rounds"),
+		CaseGlowOnly("re2_magnum_ammo_alt"),
+		CaseGlowOnly("re2_magnum_ammo"),
+		CaseGlowOnly("re2_pistol_ammo"),
+		CaseGlowOnly("re2_rifle_ammo"),
+		CaseGlowOnly("re2_shotgun_ammo"),
+		CaseGlowOnly("re2_smg_ammo"),
+		CaseGlowOnly("re2_sniper_ammo"),
+		CaseGlowOnly("re4_grenade_ammo"),
+		CaseGlowOnly("re4_magnum_ammo"),
+		CaseGlowOnly("re4_pistol_ammo"),
+		CaseGlowOnly("re4_rifle_ammo"),
+		CaseGlowOnly("re4_shotgun_ammo"),
+		CaseGlowOnly("re4_smg_ammo"),
+		CaseGlowOnly("smod_buckshot"),
+		CaseGlowOnly("smod_magnum_revolver"),
+		CaseGlowOnly("smod_magnum"),
+		CaseGlowOnly("smod_pistol"),
+		CaseGlowOnly("smod_rifle"),
+		CaseGlowOnly("smod_smg"),
+		CaseGlowOnly("smod_sniper"),
+		CaseGlowOnly("stalker_pistol_ammo"),
+		CaseGlowOnly("stalker_rifle_ammo"),
+		CaseGlowOnly("stalker_rpg_ammo"),
+		CaseGlowOnly("stalker_shotgun_ammo"),
+		CaseGlowOnly("stalker_smg_ammo"),
+		CaseGlowOnly("stalker_sniper_ammo"),
+		CaseGlowOnly("stalker_magnum_ammo"),
+		CaseGlowOnly("stalker_pistol_ammo"),
+		CaseGlowOnly("stalker_rifle_ammo"),
+		CaseGlowOnly("stalker_rpg_ammo"),
+		CaseGlowOnly("stalker_shotgun_ammo"),
+		CaseGlowOnly("stalker_smg_ammo"),
+		CaseGlowOnly("stalker_sniper_ammo"),
+		CaseGlowOnly("uh_ammo_357"),
+		CaseGlowOnly("uh_ammo_pistol"),
+		CaseGlowOnly("uh_ammo_rifle"),
+		CaseGlowOnly("uh_ammo_shotgun"),
+		CaseGlowOnly("uh_ammo_sniper"),
+		CaseGlowOnly("uh_ammo_smg"),
+		CaseGlowOnly("zps_ammo_sniper"),
+		CaseGlowOnly("zps_ammo_357"),
+		CaseGlowOnly("zps_ammo_buckshot"),
+		CaseGlowOnly("zps_ammo_pistol"),
+		CaseGlowOnly("zps_ammo_rifle"),
+		CaseGlowOnly("zps_ammo_smg"),
+
+		-- Stuff
+		CaseGeneric("re2_chem_fluid", "Chem Fluid", CaseRenderInfo("models/crunchy/props/re8_props/re8_village_chem_fluid.mdl", 2, {0, -90}, Vector(0, -1)), 1, 2, 1),
+		CaseGeneric("re2_gunpowder_a", "Gunpowder (A)", CaseRenderInfo("models/crunchy/props/re2_props/re2_remake_gunpowder.mdl", 4.8), 1, 1, 1),
+		CaseGeneric("re2_gunpowder_b", "Gunpowder (B)", CaseRenderInfo("models/crunchy/props/re2_props/re2_remake_gunpowder_b.mdl", 4.8), 1, 1, 1),
+		CaseGeneric("re2_gunpowder_c", "Gunpowder (C)", CaseRenderInfo("models/crunchy/props/re2_props/re2_remake_high_grade_gunpowder.mdl", 2.3, {}, Vector()), 1, 1, 1),
+		CaseGeneric("re2_gunpowder_d", "Gunpowder (D)", CaseRenderInfo("models/crunchy/props/re2_props/re2_remake_gunpowder_large.mdl", 4), 1, 1, 1),
+		CaseGeneric("re2_gunpowder_e", "Gunpowder (E)", CaseRenderInfo("models/crunchy/props/re2_props/re2_remake_gunpowder_e.mdl", 4.), 1, 1, 1),
+		CaseGeneric("re2_gunpowder_f", "Gunpowder (F)", CaseRenderInfo("models/crunchy/props/re2_props/re2_remake_gunpowder_f.mdl", 2.3), 1, 1, 1),
+		CaseGeneric("re2_gunpowder_g", "Gunpowder (G)", CaseRenderInfo("models/crunchy/props/re3_props/re3_remake_explosives.mdl", 1.9, {0, 90}), 1, 1, 1),
+		CaseGeneric("re2_gunpowder_x", "Gunpowder (X)", CaseRenderInfo("models/crunchy/props/re8_props/re8_village_gunpowder.mdl", 5, {-45, 200, 20}, Vector(0, 2, 0)), 1, 1, 1),
+		CaseGeneric("re4_herb_blue", "Herb (Blue)", CaseRenderInfo("models/crunchy/props/re4_props/herb_blue.mdl", 1.5), 1, 2, 1)
+	}
+end})
+
 local function _RegisterItems()
 	_registerItemTable(itemsGMOD)
 	_registerItemTable(itemsHL2)
+	_registerItemTable(itemsHLS)
 
 	-- 
 	for _, addon in ipairs(engine.GetAddons()) do
@@ -424,3 +710,4 @@ end
 hook.Add("CaseRegisterItems", "CaseDefaultItemRegister", function ()
 	_RegisterItems()
 end)
+_RegisterItems()

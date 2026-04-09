@@ -293,7 +293,7 @@ local function _windowOnKeyboardInput(self, keycode)
 	local itemInfo = CaseInventory:GetItemInfo(invInfo.ItemID)
 
 	local use = input.LookupBinding("use") == input.GetKeyName(keycode)
-	if use and CaseInventory:CanUse(LocalPlayer(), itemInfo, invId) then
+	if use and CaseInventory:CanUse(LocalPlayer(), invId) then
 		CaseInventory.ClientNet.UseItem(invId, false) -- Request for the server to use the item
 		-- Cool line
 		local used, useCount = itemInfo.OnUse(LocalPlayer(), itemInfo, invId)

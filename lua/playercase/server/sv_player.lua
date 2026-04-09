@@ -41,6 +41,7 @@ local function _canPickup(ply, ent)
 end
 
 hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent )
+
 	if ply.CasePickup == ent then
 		ply.CasePickup = nil
 		return true
@@ -281,6 +282,33 @@ hook.Add("PlayerDisconnected", "CASE_PlayerDisconnected", function (ply)
 	if cvar_inventory_mode:GetInt() == 1 then
 		CaseInventory.Inventories[ply:SteamID64()] = nil
 	end
+end)
+
+hook.Add("PlayerUse", "CASE_PlayerUse", function(ply, ent)
+	if not IsValid(ent) then
+		return false -- what
+	end
+
+	local itemInfo = CaseInventory:GetItemInfo(CaseInventory:GetItemID(ent:GetClass()))
+	if itemInfo == nil then
+		return -- let something else handle it
+	end
+
+	if itemInfo.ItemType == CASE_ITEM_DO_NOT_HANDLE then
+		return -- same as above
+	end
+
+	if ply.UseCommand ~= 1 then
+		return false
+	end
+
+	if CaseInventory:PickupEntity(ply, ent, not ply:IsWalking()) then
+		return false
+	end
+
+	ply.UseCommand = 2
+
+	return false
 end)
 
 

@@ -99,7 +99,7 @@ function CaseInventory:PickupEntity(ply, ent, doUse)
 			use = false
 		else
 			if itemInfo.CanUse ~= nil then
-				use = itemInfo.CanUse(ply)
+				use = itemInfo.CanUse(ply, itemInfo)
 			end
 		end
 
@@ -524,7 +524,7 @@ function CaseInventory:UseItem(ply, invId, sync)
 		return false, 0
 	end
 
-	local used, amount = item.OnUse(ply, invId)
+	local used, amount = item.OnUse(ply, item)
 
 	if not used then
 		return false, 0
@@ -546,22 +546,6 @@ function CaseInventory:UseItem(ply, invId, sync)
 	end
 	local caseCount = CaseInventory:Inv(ply).Items[invId] ~= nil and CaseInventory:Inv(ply).Items[invId].Count or 1
 	return true, math.min(amount, caseCount)
-end
-
----Quick check to see if an item can be used
----@param player table
----@param itemInfo table
----@param invId? number
-function CaseInventory:CanUse(player, itemInfo, invId)
-	if itemInfo.OnUse == nil then
-		return false
-	end
-
-	if itemInfo.CanUse == nil then
-		return true
-	end
-
-	return itemInfo.CanUse(player, itemInfo, invId) 
 end
 
 ---Returns the itemID based off name
@@ -708,6 +692,9 @@ function CaseInventory:SendOverride(itemID, ply)
 
 			-- Write blacklist
 			net.WriteBool(info.ItemType == CASE_ITEM_DO_NOT_HANDLE)
+
+			-- Write Skin
+			net.WriteUInt(DefaultVar(info.RenderInfo.Skin, 0), 8)
 		end
 
 
@@ -1847,6 +1834,26 @@ function CaseInventory:IsItem(itemID)
 	end
 
 	return item.ItemType ~= CASE_ITEM_GLOW_ONLY
+end
+
+---Little thingy
+---@param itemID number
+---@param ply table
+function CaseInventory:CanUse(ply, itemID)
+	local itemInfo = CaseInventory:GetItemInfo(itemID)
+	if itemInfo == nil then
+		return false
+	end
+
+	if itemInfo.ItemType ~= CASE_ITEM_GENERIC then
+		return false
+	end
+
+	if itemInfo.CanUse == nil then
+		return true
+	end
+
+	return itemInfo.CanUse(ply, itemInfo)
 end
 
 ---Client only

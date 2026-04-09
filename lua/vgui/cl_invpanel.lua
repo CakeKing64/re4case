@@ -267,6 +267,7 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
 		})
 
 		model:SetNoDraw(false)
+		model:SetSkin(renderInfo.Skin)
 		model:DrawModel()
 		model:SetNoDraw(true)
 		cam.End3D()

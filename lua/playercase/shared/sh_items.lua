@@ -54,13 +54,14 @@ function CaseItem(name, sizeW, sizeH, maxSize, itemType, onUse, canUse, ammoID, 
     }
 end
 
----@param model string
+---@param model string?
 ---@param scale number?
 ---@param rotVec table|boolean? Uses this vector to apply rotations post xDiff/yDiff OR if it's true/false it'll apply 90 degrees instead
 ---@param offset table? Vector offset
 ---@param diffMode integer? 0 -> Use xDiff > yDiff, 1 -> Force yDiff, 2 -> Force xDiff
+---@param skin integer? Skin to use
 ---@return table
-function CaseRenderInfo(model, scale, rotVec, offset, diffMode)
+function CaseRenderInfo(model, scale, rotVec, offset, diffMode, skin)
     if type(offset) == "table" then
         offset = Vector(
             offset[1] ~= nil and offset[1] or 0,
@@ -74,7 +75,8 @@ function CaseRenderInfo(model, scale, rotVec, offset, diffMode)
         Scale = scale or 1, -- Ok to be nil
         Rotations = rotVec or {0, 0, 0},
         DiffMode = diffMode or 0,
-        Offset = offset or Vector(0, 0)
+        Offset = offset or Vector(0, 0),
+        Skin = skin or 0
     }
 
 
