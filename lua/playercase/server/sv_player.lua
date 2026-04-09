@@ -265,8 +265,16 @@ hook.Add("PlayerUse", "CASE_PlayerUse", function(ply, ent)
 		return false
 	end
 
+	local invertWalk = ply:GetInfoNum("case_cl_invert_pickup", 1)
+	local performUse = false
 
-	if CaseInventory:PickupEntity(ply, ent, not ply:IsWalking()) then
+	if invertWalk == 0 then
+		performUse = not ply:IsWalking()
+	else
+		performUse = ply:IsWalking()
+	end
+
+	if CaseInventory:PickupEntity(ply, ent, performUse) then
 		return false
 	end
 

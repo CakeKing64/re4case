@@ -212,3 +212,15 @@ net.Receive("CaseSyncOverride", function ()
 	})
 
 end)
+
+net.Receive("CaseOnPickup", function ()
+	local itemID = net.ReadUInt(16)
+	local info = CaseInventory:GetItemInfo(itemID)
+
+
+	if info ~= nil then
+		if info.ItemType == CASE_ITEM_GENERIC then
+			CaseGUI.PlaySound("ui/re4case/case_pickup_item.wav")
+		end
+	end
+end)

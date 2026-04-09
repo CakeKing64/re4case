@@ -7,6 +7,10 @@ local case_pickup_mode = CreateConVar("case_cl_pickup_mode", "1", {FCVAR_ARCHIVE
 1 -> Items must be +used to pickup (will still be picked up if in a vehicle)
 2 -> Items must be +used no matter what]], 0, 2)
 
+
+local cvar_invert_pickup = CreateConVar("case_cl_invert_pickup", "0", {FCVAR_ARCHIVE, FCVAR_USERINFO}, [[0 -> Items will be used unless walk is held,
+1 -> Items will be stored unless walk is held]])
+
 local mStatus = {
 	Left = 0,
 	Right = 0,
@@ -52,7 +56,16 @@ hook.Add("PreDrawHalos", "CASE_PreDrawHalos", function ()
 			local freeSpace = false
 			local canUse = itemInfo.OnUse ~= nil and CaseInventory:CanUse(LocalPlayer(), itemID)
 
-			if itemInfo.ItemType == CASE_ITEM_GENERIC and not LocalPlayer():KeyDown(IN_WALK) and canUse then
+			local invertWalk = cvar_invert_pickup:GetBool()
+			local performUse = false
+
+			if invertWalk == 0 then
+				performUse = not LocalPlayer():KeyDown(IN_WALK)
+			else
+				performUse = LocalPlayer():KeyDown(IN_WALK)
+			end
+
+			if itemInfo.ItemType == CASE_ITEM_GENERIC and performUse and canUse then
 				canUse = true
 				drawColor = Color(0, 0, 255)
 			end

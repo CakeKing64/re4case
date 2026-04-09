@@ -23,6 +23,7 @@ if CLIENT then
 	cvar_auto_generate = CreateConVar("case_sh_auto_generate", "0", {FCVAR_REPLICATED})
 	cvar_enable_swap = CreateConVar("case_cl_enable_swapping", "1", {FCVAR_ARCHIVE})
 	cvar_default_case_size = CreateConVar("case_sh_default_size", "1", {FCVAR_REPLICATED})
+
 end
 
 
@@ -81,7 +82,11 @@ function CaseInventory:PickupEntity(ply, ent, doUse)
 	-- Weapons are the easiest to deal with
 	if ent:IsWeapon() then
 		-- If we already have the weapon 
-		CaseInventory:PickupWeapon(ply, ent)
+		if CaseInventory:PickupWeapon(ply, ent) then
+			net.Start("CaseOnPickup")
+				net.WriteUInt(itemID, 16)
+			net.Send(ply)
+		end
 		return
 	end
 
@@ -110,6 +115,10 @@ function CaseInventory:PickupEntity(ply, ent, doUse)
 		else
 			if CaseInventory:PickupItem(ply, itemID, 1) then
 				ent:Remove()
+				
+				net.Start("CaseOnPickup")
+					net.WriteUInt(itemID, 16)
+				net.Send(ply)
 			end
 			
 		end

@@ -149,4 +149,5 @@ if SERVER then
 	util.AddNetworkString("CaseCommandEvent") -- Bidirectional commands
 	util.AddNetworkString("CaseSyncIDs")      -- Server -> Client sync item ids
 	util.AddNetworkString("CaseSyncOverride") -- Server -> Client
+	util.AddNetworkString("CaseOnPickup") -- Server -> Client
 end
