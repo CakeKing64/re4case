@@ -68,6 +68,8 @@ hook.Add("PreDrawHalos", "CASE_PreDrawHalos", function ()
 			if itemInfo.ItemType == CASE_ITEM_GENERIC and performUse and canUse then
 				canUse = true
 				drawColor = Color(0, 0, 255)
+			else
+				canUse = false
 			end
 
 			if not canUse then
