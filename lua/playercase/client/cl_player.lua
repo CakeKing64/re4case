@@ -53,35 +53,38 @@ hook.Add("PreDrawHalos", "CASE_PreDrawHalos", function ()
 		end
 
 		if itemInfo.ItemType == CASE_ITEM_GENERIC or itemInfo.ItemType == CASE_ITEM_GRENADE then
-			local freeSpace = false
 			local canUse = itemInfo.OnUse ~= nil and CaseInventory:CanUse(LocalPlayer(), itemID)
 
 			local invertWalk = cvar_invert_pickup:GetBool()
 			local performUse = false
 
-			if invertWalk == 0 then
+			local hasValid = false
+
+			if not invertWalk then
 				performUse = not LocalPlayer():KeyDown(IN_WALK)
 			else
 				performUse = LocalPlayer():KeyDown(IN_WALK)
 			end
 
 			if itemInfo.ItemType == CASE_ITEM_GENERIC and performUse and canUse then
-				canUse = true
 				drawColor = Color(0, 0, 255)
-			else
-				canUse = false
+				hasValid = true
 			end
 
 			if not canUse then
 				for k, v in pairs(CaseInv().Items) do
 					if v.ItemID == itemID and v.Count < itemInfo.MaxCount then
-						freeSpace = true
+						hasValid = true
 						break
 					end
 				end
 			end
 
-			if not freeSpace and not canUse and not CaseInventory:FindValidSpot(CaseInv(), itemID) then
+			if not hasValid and CaseInventory:FindValidSpot(CaseInv(), itemID) then
+				hasValid = true
+			end
+
+			if not hasValid then
 				drawColor = Color(255, 0, 0)
 			end
 		end
