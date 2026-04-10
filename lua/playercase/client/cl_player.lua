@@ -71,7 +71,7 @@ hook.Add("PreDrawHalos", "CASE_PreDrawHalos", function ()
 				hasValid = true
 			end
 
-			if not canUse then
+			if not hasValid then
 				for k, v in pairs(CaseInv().Items) do
 					if v.ItemID == itemID and v.Count < itemInfo.MaxCount then
 						hasValid = true

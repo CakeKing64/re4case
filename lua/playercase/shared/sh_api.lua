@@ -452,14 +452,31 @@ function CaseInventory:DropItem(inv, invId, count, player, sync)
 	-- Hopefully this is about 1 1/2 seconds
 	player.CasePickupDelay = ( 1 / FrameTime() ) * 1.5
 
+
 	-- Drop different stuff based on item type
+
+	local function GetRandomOffset()
+		local hMin, hMax = player:GetHull()
+		local offset =  Vector(
+			math.Rand( hMin.X, hMax.X ),
+			math.Rand( hMin.Y, hMax.Y ),
+			0)
+
+		return offset
+	end
+
+	local function GetEntFloorOffset(ent)
+		return Vector(0, 0, math.abs(ent:GetModelBounds().Z * ent:GetModelScale()))
+	end
 
 	-- For generic items just spawn the entity on the floor and that should be it
 	if itemInfo.ItemType == CASE_ITEM_GENERIC then
 		for i=1, dropCount do 
 			local ent = ents.Create(itemInfo.Name)
+
 			ent:SetPos(player:GetPos())
 			ent:Spawn()
+			ent:SetPos( player:GetPos() + GetRandomOffset() + GetEntFloorOffset(ent))
 		end
 	end
 
@@ -474,6 +491,7 @@ function CaseInventory:DropItem(inv, invId, count, player, sync)
 			if wep:GetClass() == itemInfo.Name then
 				if player:Alive() then
 					player:DropWeapon( wep , player:GetPos(), Vector(0, 0, 0))
+					wep:SetPos(player:GetPos() + GetRandomOffset() + GetEntFloorOffset(wep))
 					found = true
 					break
 				else
@@ -506,6 +524,8 @@ function CaseInventory:DropItem(inv, invId, count, player, sync)
 		ent:SetOwner(player) -- Probably useful for limiting ammo drops or something
 		ent:SetPos(player:GetPos())
 		ent:Spawn()
+
+		ent:SetPos(player:GetPos() + GetRandomOffset() + GetEntFloorOffset(ent))
 		self:SyncAmmo(player, sync)
 
 		if itemInfo.ItemType == CASE_ITEM_GRENADE and not CaseInventory:HasItem(inv, itemInfo.ItemID) then
