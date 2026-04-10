@@ -13,7 +13,11 @@ function ClientSettings:Populate(panel)
     self.EnableSwapping = panel:CheckBox("Enable Swapping", "case_cl_enable_swapping")
     self.MenuFPS = panel:TextEntry("Menu FPS")
     self.MenuFPS.OnChange = function()
-        GetConVar("case_cl_menu_fps"):SetInt(tonumber(self.MenuFPS:GetText()))
+        local fps = tonumber(self.MenuFPS:GetText())
+        if fps == nil then
+            fps = 40
+        end
+        GetConVar("case_cl_menu_fps"):SetInt(fps)
     end
 
     self.MenuFPS:SetText(GetConVar("case_cl_menu_fps"):GetString())
