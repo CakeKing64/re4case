@@ -94,7 +94,9 @@ local client = {
 	--"client/vgui/cl_invpanel.lua",
 	"client/cl_network.lua",
 	"client/cl_guifont.lua",
-	"client/cl_editor.lua"
+	"client/cl_editor.lua",
+	"client/cl_settings.lua",
+	"client/cl_sv_settings.lua"
 }
 
 local shared = {
