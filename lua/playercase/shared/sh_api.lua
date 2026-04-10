@@ -641,7 +641,7 @@ function CaseInventory:LoadOverrides()
 					Size=v.Size,
 					Blacklist=v.Blacklist,
 					MaxCount=v.MaxCount,
-					RenderInfo=CaseRenderInfo(v.Model, v.Scale, v.Rotations, v.Offset)
+					RenderInfo=CaseRenderInfo(v.Model, v.Scale, v.Rotations, v.Offset, 0, v.Skin)
 				}
 			)
 
@@ -666,6 +666,7 @@ function CaseInventory:SaveOverrides()
 		saveTable[v.Name].Offset[3] = v.RenderInfo.Offset.Z
 		saveTable[v.Name].Blacklist = v.ItemType == CASE_ITEM_DO_NOT_HANDLE
 		saveTable[v.Name].MaxCount = v.MaxCount
+		saveTable[v.Name].Skin = v.RenderInfo.Skin
 	end
 
 	-- Also save the stuff that isn't actually used
