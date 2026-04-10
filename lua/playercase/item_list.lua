@@ -553,7 +553,7 @@ table.insert(ItemList, {{"2690914262"}, function ()
 		CaseConsumable("nmrih_food_protein", "Protein Bars", CaseRenderInfo("models/crunchy/props/nmrih_props/food/nmrih_grocery_food1h.mdl", 1.1, {0, 0}), 2, 2, 6, _useGeneric, _canUseCrunchyHealth),
 		CaseConsumable("nmrih_food_tea", "Tea", CaseRenderInfo("models/crunchy/props/nmrih_props/food/nmrih_grocery_food1e.mdl", 1.5, {0, 0}), 1, 2, 4, _useGeneric, _canUseCrunchyHealth),
 		CaseConsumable("other_coffee_thermos", "Thermos (Coffee)", CaseRenderInfo("models/crunchy/props/random_props/thermos.mdl", 1.5, {0, -30}), 1, 2, 2, _useGeneric, _canUseCrunchyHealth),
-		CaseConsumable("stalker_food_bread", "Bread", CaseRenderInfo("models/crunchy/props/stalker_props/bread.mdl"), 2, 1, 3, _useGeneric, _canUseCrunchyHealth),
+		CaseConsumable("stalker_food_bread", "Bread", CaseRenderInfo("models/crunchy/props/stalker_props/bread.mdl", 3), 2, 1, 4, _useGeneric, _canUseCrunchyHealth),
 		CaseConsumable("stalker_food_energydrink", "Energy Drink", CaseRenderInfo("models/crunchy/props/stalker_props/energy-drink.mdl", 1.5), 1, 2, 3, _useGeneric, _canUseCrunchyHealth),
 		CaseConsumable("stalker_food_energydrink_water", "Water", CaseRenderInfo("models/crunchy/props/stalker_props/energy-drink.mdl", 1.5, {0, -25}, Vector(), 0, 1), 1, 2, 3, _useGeneric, _canUseCrunchyHealth),
 		CaseConsumable("stalker_food_ration", "Ration", CaseRenderInfo("models/crunchy/props/stalker_props/konservi.mdl", 2.9, {-25}, Vector(2, 0, 0.25)), 2, 1, 3, _useGeneric, _canUseCrunchyHealth),
@@ -671,7 +671,12 @@ table.insert(ItemList, {{"2690914262"}, function ()
 		CaseGeneric("re2_gunpowder_f", "Gunpowder (F)", CaseRenderInfo("models/crunchy/props/re2_props/re2_remake_gunpowder_f.mdl", 2.3), 1, 1, 1),
 		CaseGeneric("re2_gunpowder_g", "Gunpowder (G)", CaseRenderInfo("models/crunchy/props/re3_props/re3_remake_explosives.mdl", 1.9, {0, 90}), 1, 1, 1),
 		CaseGeneric("re2_gunpowder_x", "Gunpowder (X)", CaseRenderInfo("models/crunchy/props/re8_props/re8_village_gunpowder.mdl", 5, {-45, 200, 20}, Vector(0, 2, 0)), 1, 1, 1),
-		CaseGeneric("re4_herb_blue", "Herb (Blue)", CaseRenderInfo("models/crunchy/props/re4_props/herb_blue.mdl", 1.5), 1, 2, 1)
+		CaseGeneric("re4_herb_blue", "Herb (Blue)", CaseRenderInfo("models/crunchy/props/re4_props/herb_blue.mdl", 1.5), 1, 2, 1),
+
+		CaseGeneric("universal_ammo_huge", "Universal Ammo (100 Mags)", CaseRenderInfo("models/crunchy/props/random_props/ammo_crate_army.mdl", 4.5, {90, 0 ,180}, Vector(0, 2, 120)), 6, 3, 1),
+		CaseGeneric("universal_ammo_case",  "Universal Ammo (2 Mags)",CaseRenderInfo("models/crunchy/props/csgo_props/coop_ammo_stash_full.mdl", 4, {0, 180}, Vector(0,-5, 3) ), 2, 2, 1),
+		CaseGeneric("universal_ammo_crate_lg",  "Universal Ammo (4 Mags)", CaseRenderInfo("models/crunchy/props/nmrih_props/ammo_crate.mdl", 3), 2, 2, 1),
+		CaseGeneric("universal_ammo_backpack", "Universal Ammo (6 Mags)", CaseRenderInfo("models/crunchy/props/l4d_props/pg_army_backpack.mdl", 2.4, {0, 180}, Vector(0, 0, 2)), 2, 3, 1)
 	}
 end})
 
