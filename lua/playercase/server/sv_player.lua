@@ -62,30 +62,34 @@ local function AllowPickup(ply, ent)
 	if ply.CasePickup == ent then
 		return true
 	end
-	local pickup_mode = cvar_pickup_mode:GetInt() == -1 and math.Clamp(ply:GetInfoNum("case_cl_pickup_mode", 1), 0, 2) or cvar_pickup_mode:GetInt()
 
 
-	-- Either use or be in a vehicle
-	if pickup_mode == 1 and 
-		(use or ply:InVehicle()) and ply.CasePickupDelay <= 0
-	then
+	-- Entity was created this frame directly on the player
+	if cvar_frame0:GetBool() and CurTime() - ent:GetCreationTime() == 0 and ent:GetPos() == ply:GetPos() then
 		return true
 	end
+
+	return false
+end
+
+local function ShouldAddToInventory(ply, ent)
+	local pickup_mode = cvar_pickup_mode:GetInt() == -1 and math.Clamp(ply:GetInfoNum("case_cl_pickup_mode", 1), 0, 2) or cvar_pickup_mode:GetInt()
 
 	-- Pickup when walked over
 	if pickup_mode == 0 and ply.CasePickupDelay <= 0 then
 		return true
 	end
 
-	-- Must interact with the item, being in a vehicle doesn't count
-	if pickup_mode == 2 and use then
+
+	-- Be in a vehicle, other half handled by :Use()
+	if pickup_mode == 1 and 
+		(ply:InVehicle()) and ply.CasePickupDelay <= 0
+	then
 		return true
 	end
 
-	-- Entity was created this frame
-	if cvar_frame0:GetBool() and CurTime() - ent:GetCreationTime() == 0 and ent:GetPos() == ply:GetPos() then
-		return true
-	end
+	-- Must interact with the item, being in a vehicle doesn't count
+	-- pickup_mode == 2 handled by :Use()
 end
 
 hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent )
@@ -95,6 +99,11 @@ hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent 
 
 	if AllowPickup(ply, ent) then
 		return true
+	end
+
+	if ShouldAddToInventory(ply, ent) then
+		CaseInventory:PickupEntity(ply, ent, true)
+		return false
 	end
 
 	return false
@@ -119,6 +128,11 @@ hook.Add("PlayerCanPickupWeapon", "CASE_PlayerCanPickupWeapon", function( ply, e
 
 	if AllowPickup(ply, ent) then
 		return true
+	end
+
+	if ShouldAddToInventory(ply, ent) then
+		CaseInventory:PickupEntity(ply, ent, true)
+		return false
 	end
 
 	return false

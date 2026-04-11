@@ -28,7 +28,7 @@ function ClientSettings:Populate(panel)
     self.PickupMode:AddChoice("Walk over to pickup items", 0)
     self.PickupMode:AddChoice("Use to pickup, unless in vehicle", 1)
     self.PickupMode:AddChoice("Use to pickup", 2)
-    panel:ControlHelp("This setting can be overridden by the server")
+    panel:ControlHelp("This setting can be overridden by the server\nAlso Walk over to pickup will only work with items that would do that normally without this mod")
     
     
     self.PlaySounds = panel:ComboBox("Play Sounds", "case_cl_play_sounds")

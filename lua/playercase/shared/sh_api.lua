@@ -4,6 +4,8 @@ local cvar_auto_generate = 0
 local cvar_enable_swap = 0
 local cvar_default_case_size = 0
 
+local MARKED_FOR_PICKUP_DELAY = 5
+
 if SERVER then
 	--[[
 	local case_sync_mode = CreateConVar("case_sync_mode", "0", {FCVAR_ARCHIVE}, 
@@ -73,6 +75,11 @@ function CaseInventory:PickupEntity(ply, ent, doUse)
 		return false
 	end
 
+	if ent.MarkedForPickup ~= nil and ent.MarkedForPickup > 0 then
+		ent.MarkedForPickup = ent.MarkedForPickup - 1
+		return
+	end
+
 	local itemID = CaseInventory:GetItemID(ent:GetClass())
 	local itemInfo = CaseInventory:GetItemInfo(itemID)
 	if itemID == -1 or itemInfo == nil then
@@ -83,6 +90,8 @@ function CaseInventory:PickupEntity(ply, ent, doUse)
 	if ent:IsWeapon() then
 		-- If we already have the weapon 
 		if CaseInventory:PickupWeapon(ply, ent) then
+			ent.MarkedForPickup = MARKED_FOR_PICKUP_DELAY 
+
 			net.Start("CaseOnPickup")
 				net.WriteUInt(itemID, 16)
 			net.Send(ply)
@@ -93,7 +102,7 @@ function CaseInventory:PickupEntity(ply, ent, doUse)
 	-- It's an ammo type, also just absorb it
 	if itemInfo.ItemType == CASE_ITEM_GLOW_ONLY then
 		ply.CasePickup = ent
-		ent:Use(ply, ply)
+		ent.MarkedForPickup = MARKED_FOR_PICKUP_DELAY 
 	end
 
 	-- An actual item
@@ -115,6 +124,7 @@ function CaseInventory:PickupEntity(ply, ent, doUse)
 		else
 			if CaseInventory:PickupItem(ply, itemID, 1) then
 				ent:Remove()
+				ent.MarkedForPickup = MARKED_FOR_PICKUP_DELAY 
 				
 				net.Start("CaseOnPickup")
 					net.WriteUInt(itemID, 16)
@@ -492,6 +502,7 @@ function CaseInventory:DropItem(inv, invId, count, player, sync)
 				if player:Alive() then
 					player:DropWeapon( wep , player:GetPos(), Vector(0, 0, 0))
 					wep:SetPos(player:GetPos() + GetRandomOffset() + GetEntFloorOffset(wep))
+					wep.MarkedForPickup = false
 					found = true
 					break
 				else
