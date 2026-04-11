@@ -310,6 +310,6 @@ concommand.Add( "case_pickup", function(ply, cmd, args, argStr)
 	if ply:GetPos():Distance(lookTarget:GetPos()) > 75 then
 		return
 	end
-
+	
 	CaseInventory:PickupEntity(ply, lookTarget, false)
 end )

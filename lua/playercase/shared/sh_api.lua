@@ -102,6 +102,7 @@ function CaseInventory:PickupEntity(ply, ent, doUse)
 	-- It's an ammo type, also just absorb it
 	if itemInfo.ItemType == CASE_ITEM_GLOW_ONLY then
 		ply.CasePickup = ent
+		ent:Use(ply, ply)
 		ent.MarkedForPickup = MARKED_FOR_PICKUP_DELAY 
 	end
 
