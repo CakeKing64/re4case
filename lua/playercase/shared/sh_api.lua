@@ -502,7 +502,7 @@ function CaseInventory:DropItem(inv, invId, count, player, sync)
 				if player:Alive() then
 					player:DropWeapon( wep , player:GetPos(), Vector(0, 0, 0))
 					wep:SetPos(player:GetPos() + GetRandomOffset() + GetEntFloorOffset(wep))
-					wep.MarkedForPickup = false
+					wep.MarkedForPickup = 0
 					found = true
 					break
 				else
