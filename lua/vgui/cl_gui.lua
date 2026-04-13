@@ -1,5 +1,5 @@
 local cvar_blur_bg = CreateClientConVar("case_cl_blur_bg", "1", true, false, "Blur the background for the UI", 0, 1)
-local cvar_show_edit_button = CreateClientConVar("case_cl_show_edit", "0", true, false, "Shows the edit button in the case menu", 0, 1)
+local cvar_show_edit_button = CreateClientConVar("case_cl_show_edit", "1", true, false, "Shows the edit button in the case menu", 0, 1)
 local ogWidth, ogHeight = 1920, 1080 -- not my screen size, hopefully that makes it better for testing????
 __CASE_UI_CELL_SIZE = 64 -- #define
 __CASE_UI_BORDER = 32
@@ -299,6 +299,8 @@ function CaseGUI:OpenEditMenu()
 
 
 	CaseEditor:Populate(panel)
+
+	panel:ControlHelp("\n\nYou can hide the button that opens this menu in the settings :)")
 end
 
 function CaseGUI:CloseEditMenu()
