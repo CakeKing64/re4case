@@ -1,5 +1,5 @@
 local cvar_blur_bg = CreateClientConVar("case_cl_blur_bg", "1", true, false, "Blur the background for the UI", 0, 1)
-
+local cvar_show_edit_button = CreateClientConVar("case_cl_show_edit", "0", true, false, "Shows the edit button in the case menu", 0, 1)
 local ogWidth, ogHeight = 1920, 1080 -- not my screen size, hopefully that makes it better for testing????
 __CASE_UI_CELL_SIZE = 64 -- #define
 __CASE_UI_BORDER = 32
@@ -15,6 +15,9 @@ CaseGUI = {
 	},
 	SortingWindow = nil,
 	MainWindow = nil,
+	EditWindow = {
+		Panel = nil
+	},
 	HoveredWindow = nil,
 	IsOpen = false,
 	ReadyToClose=false,
@@ -80,6 +83,7 @@ function CaseGUI:Close()
 	if self.Context.Panel ~= nil then
 		self.Context.Panel:Remove()
 	end
+	self:CloseEditMenu()
 	self.SortingWindow = nil
 	self.MainWindow = nil
 	self.IsOpen = false
@@ -267,6 +271,44 @@ function CaseGUI:GenerateInfo()
 		InvID=CaseGUI.Context.InvID}
 end
 
+function CaseGUI:OpenEditMenu()
+	local sizeW, sizeH = 400, 700
+
+	self.EditWindow.Window = vgui.Create("DFrame")
+	self.EditWindow.Window:InvalidateLayout(true)
+	self.EditWindow.Window:SetSize(sizeW, sizeH)
+	self.EditWindow.Window:SetSizable( true )
+	self.EditWindow.Window:NoClipping(true)
+	self.EditWindow.Window:MakePopup()
+	self.EditWindow.Window:Center()
+	self.EditWindow.Window:SetTitle("The Edit Zone")
+
+	local backgroundPanel = vgui.Create( "DPanel", self.EditWindow.Window )
+	backgroundPanel:Dock( TOP )
+	backgroundPanel:DockPadding( 4, 4, 4, 4 )
+	backgroundPanel:DockMargin( 0, 0, 0, 4 )
+	backgroundPanel:SetSize(sizeW - 4, sizeH- 8)
+	
+
+	local panel, b = vgui.Create("DForm", backgroundPanel)
+
+	panel:InvalidateLayout(true)
+	panel:SizeToChildren( true, true )
+	panel:SetSize(sizeW- 4, sizeH - 8)
+	panel:SetLabel("The Edit Zone")
+
+
+	CaseEditor:Populate(panel)
+end
+
+function CaseGUI:CloseEditMenu()
+	if not IsValid(self.EditWindow.Window) then
+		return
+	end
+
+	self.EditWindow.Window:Remove()
+end
+
 -- Quick shortcut for using an item in an inventory with +use/E
 local function _windowOnKeyboardInput(self, keycode)
 	if CaseGUI.HoveredWindow == nil then
@@ -385,6 +427,20 @@ function CaseGUI.OpenInventory()
 	button:SetPos(mainWindowW - ((5*scaleW) +  (25 * scaleH)), (5*scaleW))
 	button.DoClick = function()
 		CaseGUI:Close()
+	end
+
+	if cvar_show_edit_button:GetBool() then
+		local editButton = vgui.Create("CaseInvEditButton", CaseGUI.MainWindow)
+		editButton:SetText("")
+		editButton:SetSize(25 * scaleH, 25 * scaleH)
+		editButton:SetPos(5*scaleW, 5*scaleH)
+		editButton.DoClick = function()
+			if IsValid(CaseGUI.EditWindow.Window) then
+				CaseGUI:CloseEditMenu()
+			else
+				CaseGUI:OpenEditMenu()
+			end
+		end
 	end
 
 	if CaseGUI.ShouldPlaySounds:GetBool() then

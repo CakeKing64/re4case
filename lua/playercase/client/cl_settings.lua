@@ -35,6 +35,8 @@ function ClientSettings:Populate(panel)
     self.PlaySounds:AddChoice("Disable Sounds", 0)
     self.PlaySounds:AddChoice("Enable Sounds", 1)
     self.PlaySounds:AddChoice("Enable Sounds (Alt. sounds)", 2)
+
+    self.ShowEditButton = panel:CheckBox("Show edit button", "case_cl_show_edit")
 end
 
 hook.Add("PopulateToolMenu", "CaseAddSettings", function()

@@ -1,4 +1,4 @@
-local CaseEditor = {}
+CaseEditor = {}
 
 CaseEditor.Panel = nil
 
@@ -20,56 +20,61 @@ CaseEditor.CurrentID = 1
 
 CaseEditor.IsWeapon = false
 
+local CaseEditSpawnMenu = {
+	IsWeapon = false,
+	CurrentID = 1
+}
+
 
 function CaseEditor:Populate(panel)
 
 	-- Add a combo box and slap all the weapon names in it
-	CaseEditor.WeaponList = vgui.Create("DComboBox")
+	self.WeaponList = vgui.Create("DComboBox")
 
-	CaseEditor.Filter = panel:TextEntry("Filter")
-	CaseEditor.Filter.OnTextChanged = function ()
-		CaseEditor:FilterChanged(CaseEditor.Filter:GetText())
+	self.Filter = panel:TextEntry("Filter")
+	self.Filter.OnTextChanged = function ()
+		CaseEditor.FilterChanged(self, self.Filter:GetText())
 	end
 
 
 
-	CaseEditor.WeaponList.OnSelect = function (_, _, _, data)
-		CaseEditor:WeaponChanged(data, true)
+	self.WeaponList.OnSelect = function (_, _, _, data)
+		CaseEditor.WeaponChanged(self, data, true)
 	end
 
-	panel:AddItem(CaseEditor.WeaponList)
+	panel:AddItem(self.WeaponList)
 
 
-	CaseEditor.ApplyButton = panel:Button("Apply")
-	CaseEditor.ApplyButton.DoClick = function()
-		CaseEditor:ApplyChanges()
+	self.ApplyButton = panel:Button("Apply")
+	self.ApplyButton.DoClick = function()
+		CaseEditor.ApplyChanges(self)
 	end
 
-	CaseEditor.ResetButton = panel:Button("Reset")
-	CaseEditor.ResetButton.DoClick = function ()
-		CaseEditor:ResetInfo()
+	self.ResetButton = panel:Button("Reset")
+	self.ResetButton.DoClick = function ()
+		CaseEditor.ResetInfo(self)
 	end
 
-	CaseEditor.CopyAsCode = panel:Button("Copy As Lua Code")
-	CaseEditor.CopyAsCode.DoClick = function ()
-		CaseEditor:CopyToClipboard()
+	self.CopyAsCode = panel:Button("Copy As Lua Code")
+	self.CopyAsCode.DoClick = function ()
+		CaseEditor.CopyToClipboard(self)
 	end
 
 
 
-	CaseEditor.Model = panel:TextEntry("Model")
-	CaseEditor.Skin = panel:TextEntry("Model Skin")
-	CaseEditor.Size = panel:TextEntry("Size")
-	CaseEditor.Scale = panel:TextEntry("Scale")
-	CaseEditor.Offset = panel:TextEntry("Offset")
-	CaseEditor.Rotation = panel:TextEntry("Rotation")
+	self.Model = panel:TextEntry("Model")
+	self.Skin = panel:TextEntry("Model Skin")
+	self.Size = panel:TextEntry("Size")
+	self.Scale = panel:TextEntry("Scale")
+	self.Offset = panel:TextEntry("Offset")
+	self.Rotation = panel:TextEntry("Rotation")
 
-	CaseEditor.Blacklist = panel:CheckBox("Blacklisted")
-	CaseEditor.Count 	= panel:TextEntry("Max Count")
+	self.Blacklist = panel:CheckBox("Blacklisted")
+	self.Count 	= panel:TextEntry("Max Count")
 	
 
 	
-	CaseEditor:FilterChanged("")
+	CaseEditor.FilterChanged(self, "")
 end
 
 local function GetValue(val, default)
@@ -92,39 +97,39 @@ function CaseEditor:WeaponChanged(itemID, useGetItemInfo)
 		return
 	end
 
-	CaseEditor.CurrentID = itemID
+	self.CurrentID = itemID
 	
-	CaseEditor.Model:SetText(register.RenderInfo.Model)
-	CaseEditor.Size:SetText("" .. GetValue(register.Size.W, 1) .. " " .. GetValue(register.Size.H, 1))
-	CaseEditor.Scale:SetText(GetValue(register.RenderInfo.Scale, 1.0))
-	CaseEditor.Offset:SetText("" .. GetValue(register.RenderInfo.Offset.X, 0) .. " " .. GetValue(register.RenderInfo.Offset.Y, 0) .. " " .. GetValue(register.RenderInfo.Offset.Z, 0))
-	CaseEditor.Rotation:SetText("" .. GetValue(register.RenderInfo.Rotations[1], 0) .. " " .. GetValue(register.RenderInfo.Rotations[2], 0) .. " " .. GetValue(register.RenderInfo.Rotations[3], 0))
-	CaseEditor.Skin:SetText("" .. GetValue(register.RenderInfo.Skin, 0))
+	self.Model:SetText(register.RenderInfo.Model)
+	self.Size:SetText("" .. GetValue(register.Size.W, 1) .. " " .. GetValue(register.Size.H, 1))
+	self.Scale:SetText(GetValue(register.RenderInfo.Scale, 1.0))
+	self.Offset:SetText("" .. GetValue(register.RenderInfo.Offset.X, 0) .. " " .. GetValue(register.RenderInfo.Offset.Y, 0) .. " " .. GetValue(register.RenderInfo.Offset.Z, 0))
+	self.Rotation:SetText("" .. GetValue(register.RenderInfo.Rotations[1], 0) .. " " .. GetValue(register.RenderInfo.Rotations[2], 0) .. " " .. GetValue(register.RenderInfo.Rotations[3], 0))
+	self.Skin:SetText("" .. GetValue(register.RenderInfo.Skin, 0))
 
 	if realType == CASE_ITEM_WEAPON then
-		CaseEditor.Count:SetEnabled(false)
-		CaseEditor.Count:SetText("")
+		self.Count:SetEnabled(false)
+		self.Count:SetText("")
 
 
 
-		CaseEditor.IsWeapon = true
+		self.IsWeapon = true
 	else
-		CaseEditor.Count:SetText("" .. GetValue(register.MaxCount))
-		CaseEditor.Count:SetEnabled(true)
+		self.Count:SetText("" .. GetValue(register.MaxCount))
+		self.Count:SetEnabled(true)
 
-		CaseEditor.IsWeapon = false
+		self.IsWeapon = false
 	end
 
 
 
-	CaseEditor.Blacklist:SetChecked(register.ItemType == CASE_ITEM_DO_NOT_HANDLE)
+	self.Blacklist:SetChecked(register.ItemType == CASE_ITEM_DO_NOT_HANDLE)
 end
 
 function CaseEditor:ApplyChanges()
 	local i = 1
 
-	local model = CaseEditor.Model:GetText()
-	local skin = tonumber(CaseEditor.Skin:GetText())
+	local model = self.Model:GetText()
+	local skin = tonumber(self.Skin:GetText())
 
 	local size = {
 		1,
@@ -143,11 +148,11 @@ function CaseEditor:ApplyChanges()
 		0
 	}
 
-	local scale = tonumber(CaseEditor.Scale:GetText())
+	local scale = tonumber(self.Scale:GetText())
 	
 	
 
-	for word in string.gmatch(CaseEditor.Size:GetText(), '([^ ]+)') do
+	for word in string.gmatch(self.Size:GetText(), '([^ ]+)') do
 		if word == "" then
 			continue
 		end
@@ -156,7 +161,7 @@ function CaseEditor:ApplyChanges()
 	end
 
 	i = 1
-	for word in string.gmatch(CaseEditor.Offset:GetText(), '([^ ]+)') do
+	for word in string.gmatch(self.Offset:GetText(), '([^ ]+)') do
 		if word == "" then
 			continue
 		end
@@ -165,7 +170,7 @@ function CaseEditor:ApplyChanges()
 	end
 
 	i = 1
-	for word in string.gmatch(CaseEditor.Rotation:GetText(), '([^ ]+)') do
+	for word in string.gmatch(self.Rotation:GetText(), '([^ ]+)') do
 		if word == "" then
 			continue
 		end
@@ -173,11 +178,11 @@ function CaseEditor:ApplyChanges()
 		i = i + 1
 	end
 
-	local maxCount = CaseEditor.IsWeapon and 1 or tonumber(CaseEditor.Count:GetText())
-	local blacklist = CaseEditor.Blacklist:GetChecked()
+	local maxCount = self.IsWeapon and 1 or tonumber(self.Count:GetText())
+	local blacklist = self.Blacklist:GetChecked()
 
 	CaseInventory.ClientNet.UpdateOverride(
-		CaseEditor.CurrentID,
+		self.CurrentID,
 		{
 			Size=size,
 			MaxCount=maxCount ~= nil and maxCount or 1,
@@ -190,8 +195,8 @@ end
 function CaseEditor:CopyToClipboard()
 	local i = 1
 
-	local model = CaseEditor.Model:GetText()
-	local skin = tonumber(CaseEditor.Skin:GetText())
+	local model = self.Model:GetText()
+	local skin = tonumber(self.Skin:GetText())
 	local size = {
 		1,
 		1
@@ -209,11 +214,11 @@ function CaseEditor:CopyToClipboard()
 		0
 	}
 
-	local scale = tonumber(CaseEditor.Scale:GetText())
+	local scale = tonumber(self.Scale:GetText())
 	
 	
 
-	for word in string.gmatch(CaseEditor.Size:GetText(), '([^ ]+)') do
+	for word in string.gmatch(self.Size:GetText(), '([^ ]+)') do
 		if word == "" then
 			continue
 		end
@@ -222,7 +227,7 @@ function CaseEditor:CopyToClipboard()
 	end
 
 	i = 1
-	for word in string.gmatch(CaseEditor.Offset:GetText(), '([^ ]+)') do
+	for word in string.gmatch(self.Offset:GetText(), '([^ ]+)') do
 		if word == "" then
 			continue
 		end
@@ -231,7 +236,7 @@ function CaseEditor:CopyToClipboard()
 	end
 
 	i = 1
-	for word in string.gmatch(CaseEditor.Rotation:GetText(), '([^ ]+)') do
+	for word in string.gmatch(self.Rotation:GetText(), '([^ ]+)') do
 		if word == "" then
 			continue
 		end
@@ -239,8 +244,8 @@ function CaseEditor:CopyToClipboard()
 		i = i + 1
 	end
 
-	local maxCount = CaseEditor.IsWeapon and 1 or tonumber(CaseEditor.Count:GetText())
-	local blacklist = CaseEditor.Blacklist:GetChecked()
+	local maxCount = self.IsWeapon and 1 or tonumber(self.Count:GetText())
+	local blacklist = self.Blacklist:GetChecked()
 
 	local copyString = "no code for this item type yet :("
 	local renderInfo = string.format("CaseRenderInfo(\"%s\", %g, {%g, %g, %g}, Vector(%g, %g, %g), 0, %g)",
@@ -256,8 +261,8 @@ function CaseEditor:CopyToClipboard()
 		)
 		
 
-	local itemType = CaseInventory.ItemRegister[CaseEditor.CurrentID].ItemType
-	local itemName = CaseInventory.ItemRegister[CaseEditor.CurrentID].Name
+	local itemType = CaseInventory.ItemRegister[self.CurrentID].ItemType
+	local itemName = CaseInventory.ItemRegister[self.CurrentID].Name
 
 	if blacklist then
 		itemType = CASE_ITEM_DO_NOT_HANDLE
@@ -272,7 +277,7 @@ function CaseEditor:CopyToClipboard()
 	end
 
 	if itemType == CASE_ITEM_AMMO then
-		local ammoName = game.GetAmmoName(CaseInventory.ItemRegister[CaseEditor.CurrentID].AmmoID)
+		local ammoName = game.GetAmmoName(CaseInventory.ItemRegister[self.CurrentID].AmmoID)
 		copyString = string.format("CaseAmmo(game.GetAmmoID(\"%s\"), %s, %g, %g, %g)", ammoName, renderInfo, size[1], size[2], maxCount)
 	end
 
@@ -282,11 +287,11 @@ function CaseEditor:CopyToClipboard()
 end
 
 function CaseEditor:ResetInfo()
-	CaseEditor:WeaponChanged(CaseEditor.CurrentID, false)
+	CaseEditor.WeaponChanged(self, self.CurrentID, false)
 
 	-- Delete the item from the overrides
 	CaseInventory.ClientNet.UpdateOverride(
-		CaseEditor.CurrentID,
+		self.CurrentID,
 		nil
 	)
 end
@@ -297,8 +302,8 @@ function CaseEditor:FilterChanged(filter, all)
 	end
 
 	local foundWeapon = false
-	CaseEditor.WeaponList:CloseMenu()
-	CaseEditor.WeaponList:Clear()
+	self.WeaponList:CloseMenu()
+	self.WeaponList:Clear()
 
 	for i in ipairs(CaseInventory.ItemRegister) do
 		local type = CaseInventory.ItemRegister[i].ItemType
@@ -315,7 +320,7 @@ function CaseEditor:FilterChanged(filter, all)
 
 		if found then
 			foundWeapon = true
-			CaseEditor.WeaponList:AddChoice(
+			self.WeaponList:AddChoice(
 				CaseInventory.ItemRegister[i].Name .. " (" .. CaseInventory.ItemRegister[i].PrintName .. ")",
 				i -- Store the index just because
 			)
@@ -324,17 +329,17 @@ function CaseEditor:FilterChanged(filter, all)
 
 	-- Wait we really found nothing...
 	if not foundWeapon and all then
-		CaseEditor.ApplyButton:SetEnabled(false)
-		CaseEditor.ResetButton:SetEnabled(false)
+		self.ApplyButton:SetEnabled(false)
+		self.ResetButton:SetEnabled(false)
 	end
 
 	-- nothing found, just throw everything back on
 	if not foundWeapon then
-		CaseEditor:FilterChanged("", true)
+		CaseEditor.FilterChanged(self, "", true)
 	else
-		CaseEditor.WeaponList:ChooseOptionID(1)
-		CaseEditor.ApplyButton:SetEnabled(true)
-		CaseEditor.ResetButton:SetEnabled(true)
+		self.WeaponList:ChooseOptionID(1)
+		self.ApplyButton:SetEnabled(true)
+		self.ResetButton:SetEnabled(true)
 	end
 end
 
@@ -345,7 +350,7 @@ end)
 
 hook.Add("PopulateToolMenu", "CaseAddOption", function()
     spawnmenu.AddToolMenuOption("Utilities", "RE4 Case", "RE4CaseEditor", "#Item Editor", "", "", function(panel)
-		CaseEditor.Panel = panel
-		CaseEditor:Populate(panel)
+		CaseEditSpawnMenu.Panel = panel
+		CaseEditor.Populate(CaseEditSpawnMenu, panel)
     end)
 end)
