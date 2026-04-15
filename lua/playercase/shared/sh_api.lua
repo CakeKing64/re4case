@@ -1899,6 +1899,24 @@ function CaseInventory:CanUse(ply, itemID)
 	return itemInfo.CanUse(ply, itemInfo)
 end
 
+---Checks to see if an item has a tag
+---@param itemID any
+---@param tag any
+function CaseInventory:HasTag(itemID, tag)
+	local itemInfo = CaseInventory:GetItemInfo(itemID)
+	if itemInfo == nil then
+		return false
+	end
+
+	for k, v in ipairs(itemInfo.Tags) do
+		if v == tag then
+			return true
+		end
+	end
+
+	return false
+end
+
 ---Client only
 function CaseInventory:PopulateNames()
 	for k, v in ipairs(CaseInventory.ItemRegister) do

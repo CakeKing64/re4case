@@ -23,6 +23,15 @@ CASE_ITEM_AMMO          = 4
 CASE_ITEM_AMMO_SPECIAL  = 5 -- Used for the caseammo entity to store any type of ammo
 CASE_ITEM_DO_NOT_HANDLE = 6 -- Used for fists and stuff for when it's not really something to go into the inventory
 
+CASE_TAG_ITEM = "item"
+CASE_TAG_CONSUMABLE = "consumable"
+CASE_TAG_WEAPON = "weapon"
+CASE_TAG_GRENADE = "grenade"
+CASE_TAG_HEALTH = "health"
+CASE_TAG_ARMOR = "armor"
+CASE_TAG_AMMO = "ammo"
+CASE_TAG_CRAFTING = "crafting_component"
+
 ---@param name string
 ---@param sizeW number
 ---@param sizeH number
@@ -33,7 +42,8 @@ CASE_ITEM_DO_NOT_HANDLE = 6 -- Used for fists and stuff for when it's not really
 ---@param ammoID number
 ---@param renderInfo table?
 ---@param printName string?
-function CaseItem(name, sizeW, sizeH, maxSize, itemType, onUse, canUse, ammoID, renderInfo, printName)
+---@param tags table?
+function CaseItem(name, sizeW, sizeH, maxSize, itemType, onUse, canUse, ammoID, renderInfo, printName, tags)
     return {
         Name=name,
         PrintName=printName,
@@ -50,7 +60,8 @@ function CaseItem(name, sizeW, sizeH, maxSize, itemType, onUse, canUse, ammoID, 
             "models/error",
             1,
             {0,0,0}
-        )
+        ),
+        Tags= tags or {}
     }
 end
 
@@ -89,9 +100,16 @@ end
 ---@param sizeW integer
 ---@param sizeH integer
 ---@param maxSize integer
+---@param tags table?
 ---@return table
-function CaseGeneric(name, printName, renderInfo, sizeW, sizeH, maxSize)
-    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GENERIC, nil, nil, -1, renderInfo, printName)
+function CaseGeneric(name, printName, renderInfo, sizeW, sizeH, maxSize, tags)
+    local tags2 = {}
+    if tags ~= nil then
+        tags2 = table.Copy(tags)
+    end
+    table.insert(tags2, CASE_TAG_ITEM)
+
+    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GENERIC, nil, nil, -1, renderInfo, printName, tags2)
 end
 
 ---Usable item
@@ -103,9 +121,16 @@ end
 ---@param maxSize integer
 ---@param onUse function
 ---@param canUse function?
+---@param tags table?
 ---@return table
-function CaseConsumable(name, printName, renderInfo, sizeW, sizeH, maxSize, onUse, canUse)
-    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GENERIC, onUse, canUse, -1, renderInfo,  printName)
+function CaseConsumable(name, printName, renderInfo, sizeW, sizeH, maxSize, onUse, canUse, tags)
+    local tags2 = {}
+    if tags ~= nil then
+        tags2 = table.Copy(tags)
+    end
+    table.insert(tags2, CASE_TAG_CONSUMABLE)
+
+    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GENERIC, onUse, canUse, -1, renderInfo,  printName, tags2)
 end
 
 ---Weapon :)
@@ -114,9 +139,16 @@ end
 ---@param sizeW integer
 ---@param sizeH integer
 ---@param printName string? Last because only HL2 weapons will need to be manually added (their pickup names are all caps :()
+---@param tags table?
 ---@return table
-function CaseWeapon(name, renderInfo, sizeW, sizeH, printName)
-    return CaseItem(name, sizeW, sizeH, 1, CASE_ITEM_WEAPON, nil, nil,-1, renderInfo, printName)
+function CaseWeapon(name, renderInfo, sizeW, sizeH, printName, tags)
+    local tags2 = {}
+    if tags ~= nil then
+        tags2 = table.Copy(tags)
+    end
+    table.insert(tags2, CASE_TAG_WEAPON)
+
+    return CaseItem(name, sizeW, sizeH, 1, CASE_ITEM_WEAPON, nil, nil,-1, renderInfo, printName, tags2)
 end
 
 ---Creates a grenade :)
@@ -126,9 +158,17 @@ end
 ---@param sizeH integer
 ---@param maxSize integer
 ---@param grenadeAmmo integer
+---@param tags table?
 ---@return table
-function CaseGrenade(name, renderInfo, sizeW, sizeH, maxSize, grenadeAmmo)
-    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GRENADE, nil, nil, grenadeAmmo, renderInfo, game.GetAmmoName( grenadeAmmo ))
+function CaseGrenade(name, renderInfo, sizeW, sizeH, maxSize, grenadeAmmo, tags)
+    local tags2 = {}
+    if tags ~= nil then
+        tags2 = table.Copy(tags)
+    end
+    table.insert(tags2, CASE_TAG_WEAPON)
+    table.insert(tags2, CASE_TAG_GRENADE)
+
+    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GRENADE, nil, nil, grenadeAmmo, renderInfo, game.GetAmmoName( grenadeAmmo ), tags2)
 end
 
 ---Creates ammo
@@ -151,7 +191,7 @@ function CaseAmmo(ammoID, renderInfo, sizeW, sizeH, maxSize, printName)
     if printName == nil and not SERVER then
         printName = CaseInventory:TryLocalize(game.GetAmmoName( ammoID ) .. "_ammo")
     end
-    return CaseItem("case_ammo_" .. ammoID, sizeW, sizeH, maxSize, CASE_ITEM_AMMO, nil, nil, ammoID, renderInfo, printName)
+    return CaseItem("case_ammo_" .. ammoID, sizeW, sizeH, maxSize, CASE_ITEM_AMMO, nil, nil, ammoID, renderInfo, printName, {CASE_TAG_AMMO})
 end
 
 function CaseGlowOnly(name)
