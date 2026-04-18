@@ -133,7 +133,8 @@ local function _Use(info)
 	local itemInfo = info.ItemInfo
 	CaseInventory.ClientNet.UseItem(info.InvID, false) -- Request for the server to use the item
 	-- Cool line
-	local used, useCount = itemInfo.OnUse(LocalPlayer(), itemInfo, info.InvID)
+	
+	local used, useCount = CaseInventory:UseItem(LocalPlayer(), info.InvID, false)
 	useCount = useCount and math.max(0, useCount) or 1
 	if used then
 		info.Inv.Items[info.InvID].Count = info.Inv.Items[info.InvID].Count - useCount
@@ -146,11 +147,7 @@ local function _Use(info)
 end
 
 local function _UseCheck(info)
-	local itemInfo = info.ItemInfo
-	if itemInfo.CanUse == nil then
-		return true
-	end
-	return itemInfo.CanUse(LocalPlayer(), itemInfo, info.InvID)
+	return CaseInventory:CanUse(LocalPlayer(), info.ItemID)
 end
 
 local function _Equip(info)

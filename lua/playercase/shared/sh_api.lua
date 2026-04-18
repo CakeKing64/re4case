@@ -113,9 +113,7 @@ function CaseInventory:PickupEntity(ply, ent, doUse)
 		if not doUse then
 			use = false
 		else
-			if itemInfo.CanUse ~= nil then
-				use = itemInfo.CanUse(ply, itemInfo)
-			end
+			use = CaseInventory:CanUse(ply, itemID)
 		end
 
 		if use then
@@ -550,23 +548,54 @@ end
 ---Uses an item from a player's inventory
 ---@param ply table
 ---@param invId integer
----@param sync boolean
+---@param sync boolean?
+---@param runCanUse boolean?
+---@param runHook boolean?
 ---@return boolean used, integer amountUsed
-function CaseInventory:UseItem(ply, invId, sync)
+function CaseInventory:UseItem(ply, invId, sync, runCanUse, runHook)
+
+	if sync == nil then
+		sync = SERVER
+	end
+
+	if runHook == nil then
+		runHook = true
+	end
+
+	if runCanUse == nil then
+		runCanUse = true
+	end
+
 	if CaseInventory:Inv(ply).Items[invId] == nil then
 		return false, 0
 	end
 
 	local item = CaseInventory:GetItemInfo(CaseInventory:Inv(ply).Items[invId].ItemID)
+
+	if item == nil then
+		return false, 0
+	end
+	
 	if item.OnUse == nil then
 		return false, 0
 	end
 
-	if item.CanUse ~= nil and not item.CanUse(ply, item, invId) then
+	if runCanUse and not CaseInventory:CanUse(ply, item.ItemID) then
 		return false, 0
 	end
 
-	local used, amount = item.OnUse(ply, item)
+	local used, amount
+	
+	if runHook then
+		used, amount = hook.Run(
+			"CaseOnUse",
+			ply, invId, item.ItemID
+		)
+	end
+
+	if used == nil then
+		used, amount = item.OnUse(ply, invId, item.ItemID)
+	end
 
 	if not used then
 		return false, 0
@@ -578,16 +607,29 @@ function CaseInventory:UseItem(ply, invId, sync)
 
 	amount = math.max(1, amount)
 
-	CaseInventory:Inv(ply).Items[invId].Count = CaseInventory:Inv(ply).Items[invId].Count - amount
-	if CaseInventory:Inv(ply).Items[invId].Count <= 0 then
-		CaseInventory:Inv(ply).Items[invId] = nil
+	if SERVER then
+		CaseInventory:Inv(ply).Items[invId].Count = CaseInventory:Inv(ply).Items[invId].Count - amount
+		if CaseInventory:Inv(ply).Items[invId].Count <= 0 then
+			CaseInventory:Inv(ply).Items[invId] = nil
+		end
+
+		if sync then
+			CaseInventory:Sync(ply)
+		end
+		local caseCount = CaseInventory:Inv(ply).Items[invId] ~= nil and CaseInventory:Inv(ply).Items[invId].Count or 1
+		return true, math.min(amount, caseCount)
 	end
 
-	if sync then
-		CaseInventory:Sync(ply)
-	end
-	local caseCount = CaseInventory:Inv(ply).Items[invId] ~= nil and CaseInventory:Inv(ply).Items[invId].Count or 1
-	return true, math.min(amount, caseCount)
+	return true, amount
+end
+
+---Convenience function
+---Skips hook and canUse
+---@param ply table
+---@param invId integer
+---@param sync boolean?
+function CaseInventory:ForceUseItem(ply, invId, sync)
+	return CaseInventory:UseItem(ply, invId, sync, false, false)
 end
 
 ---Returns the itemID based off name
@@ -1087,9 +1129,6 @@ function CaseInventory:SwapLogic(srcInv, srcId, tgtInv, tgtId, dstX, dstY, srcRo
 		tgtInv.Items[newSrcId] = newSrcItem
 		srcInv.Items[newTgtId] = newTgtItem
 
-
-
-		print("RE4Case: Swap logic error!")
 		CaseInventory:RefreshLoadout(srcInv)
 		CaseInventory:RefreshLoadout(tgtInv)
 	end
@@ -1882,7 +1921,16 @@ end
 ---Little thingy
 ---@param itemID number
 ---@param ply table
-function CaseInventory:CanUse(ply, itemID)
+---@param runHook boolean?
+function CaseInventory:CanUse(ply, itemID, runHook)
+	if not IsValid(ply) then
+		return false
+	end
+	
+	if runHook == nil then
+		runHook = true
+	end
+
 	local itemInfo = CaseInventory:GetItemInfo(itemID)
 	if itemInfo == nil then
 		return false
@@ -1895,6 +1943,18 @@ function CaseInventory:CanUse(ply, itemID)
 	if itemInfo.CanUse == nil then
 		return true
 	end
+
+	local canUse
+	
+	if runHook then
+		canUse = hook.Run("CaseCanUse", ply, itemID)
+	end
+
+	-- Looks stupid but means it has to be a boolean so i mean ;)
+	if canUse == true or canUse == false then
+		return canUse
+	end
+
 
 	return itemInfo.CanUse(ply, itemInfo)
 end
