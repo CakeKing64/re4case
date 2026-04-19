@@ -3,145 +3,145 @@ local commands = {}
 
 
 function commands.DropItem(ply, invID, count, sync)
-    CaseInventory:DropItem(CaseInventory:Inv(ply), invID, count, ply, sync)
+	CaseInventory:DropItem(CaseInventory:Inv(ply), invID, count, ply, sync)
 end
 
 function commands.Use(ply, invID, sync)
-    CaseInventory:UseItem(ply, invID, sync)
+	CaseInventory:UseItem(ply, invID, sync)
 end
 
 function commands.SyncLocations(ply, toPlace)
-    local plyCopy = table.Copy(CaseInventory:Inv(ply))
-    CaseInventory:ClearLoadout(plyCopy)
+	local plyCopy = table.Copy(CaseInventory:Inv(ply))
+	CaseInventory:ClearLoadout(plyCopy)
 
-    
+	
 
-    for k, v in pairs(plyCopy.Items) do
-        plyCopy.Items[k].X = toPlace[k].X
-        plyCopy.Items[k].Y = toPlace[k].Y
-        plyCopy.Items[k].Rotated = toPlace[k].Rotated
-    end
+	for k, v in pairs(plyCopy.Items) do
+		plyCopy.Items[k].X = toPlace[k].X
+		plyCopy.Items[k].Y = toPlace[k].Y
+		plyCopy.Items[k].Rotated = toPlace[k].Rotated
+	end
 
-    for k, v in pairs(plyCopy.Items) do
-        -- If a **SINGLE** item can't be placed bail
-        if not CaseInventory:PlaceItem(plyCopy, k, v) then
-            return false
-        end
-    end
+	for k, v in pairs(plyCopy.Items) do
+		-- If a **SINGLE** item can't be placed bail
+		if not CaseInventory:PlaceItem(plyCopy, k, v) then
+			return false
+		end
+	end
 
-    CaseInventory:Inv(ply).Items = plyCopy.Items
-    CaseInventory:Inv(ply).Loadout = plyCopy.Loadout
+	CaseInventory:Inv(ply).Items = plyCopy.Items
+	CaseInventory:Inv(ply).Loadout = plyCopy.Loadout
 end
 
 function commands.MergeItems(ply, srcID, destID, sync)
-    CaseInventory:MergeItem(CaseInv(ply), CaseInv(ply), srcID, destID, sync)
+	CaseInventory:MergeItem(CaseInv(ply), CaseInv(ply), srcID, destID, sync)
 end
 -- Client to server command packet structure
 --[[
-    uint4 command
+	uint4 command
 ]]--
 net.Receive("CaseCommandEvent", function (len, ply)
-    local cmd = net.ReadUInt(4)
+	local cmd = net.ReadUInt(4)
 
-    if cmd == CASE_COMMAND_DROP then
-        local invID = net.ReadUInt(16)
-        local count = net.ReadInt(16)
-        local sync = net.ReadBool()
-        commands.DropItem(ply, invID, count, sync)
-    end
+	if cmd == CASE_COMMAND_DROP then
+		local invID = net.ReadUInt(16)
+		local count = net.ReadInt(16)
+		local sync = net.ReadBool()
+		commands.DropItem(ply, invID, count, sync)
+	end
 
-    if cmd == CASE_COMMAND_SYNC then
-        local newItems = {}
-        for k, v in pairs(CaseInventory:Inv(ply).Items) do
-            local invId = net.ReadUInt(16)
-            local x = net.ReadUInt(8)
-            local y = net.ReadUInt(8)
-            local rotated = net.ReadBool()
+	if cmd == CASE_COMMAND_SYNC then
+		local newItems = {}
+		for k, v in pairs(CaseInventory:Inv(ply).Items) do
+			local invId = net.ReadUInt(16)
+			local x = net.ReadUInt(8)
+			local y = net.ReadUInt(8)
+			local rotated = net.ReadBool()
 
 
-            if CaseInventory:Inv(ply).Items[invId] == nil then
-                return
-            end
+			if CaseInventory:Inv(ply).Items[invId] == nil then
+				return
+			end
 
-            newItems[invId] = {
-                X=x,
-                Y=y,
-                Rotated=rotated
-            }
-        end
+			newItems[invId] = {
+				X=x,
+				Y=y,
+				Rotated=rotated
+			}
+		end
 
-        commands.SyncLocations(ply, newItems)
-        CaseInventory:Sync(ply)
-    end
-    
-    if cmd == CASE_COMMAND_USE then
-        local invID = net.ReadUInt(16)
-        local sync = net.ReadBool()
-        commands.Use(ply, invID, sync)
-    end
+		commands.SyncLocations(ply, newItems)
+		CaseInventory:Sync(ply)
+	end
+	
+	if cmd == CASE_COMMAND_USE then
+		local invID = net.ReadUInt(16)
+		local sync = net.ReadBool()
+		commands.Use(ply, invID, sync)
+	end
 
-    if cmd == CASE_COMMAND_MERGE then
-        local srcID = net.ReadUInt(16)
-        local destID = net.ReadUInt(16)
-        local sync = net.ReadBool()
-        commands.MergeItems(ply, srcID, destID, sync)
-    end
+	if cmd == CASE_COMMAND_MERGE then
+		local srcID = net.ReadUInt(16)
+		local destID = net.ReadUInt(16)
+		local sync = net.ReadBool()
+		commands.MergeItems(ply, srcID, destID, sync)
+	end
 
-    if cmd == CASE_COMMAND_SYNC_OVERRIDES then
-        -- Admin only thing, now die
-        if not ply:IsAdmin() then
-            return
-        end
+	if cmd == CASE_COMMAND_SYNC_OVERRIDES then
+		-- Admin only thing, now die
+		if not ply:IsAdmin() then
+			return
+		end
 
-        local itemID = net.ReadUInt(16)
+		local itemID = net.ReadUInt(16)
 		local delete = net.ReadBool()
 
 		if delete then
 			CaseInventory:SetOverride(itemID, nil)
-        else
-            local model = net.ReadString()
+		else
+			local model = net.ReadString()
 
-            local size = {
-                net.ReadUInt(16),
-                net.ReadUInt(16)
-            }
+			local size = {
+				net.ReadUInt(16),
+				net.ReadUInt(16)
+			}
 
-            -- Only size needs to be checked as the others are visual only
-            if size[1] <= 0 then
-                size[1] = 1
-            end
+			-- Only size needs to be checked as the others are visual only
+			if size[1] <= 0 then
+				size[1] = 1
+			end
 
-            if size[2] <= 0 then
-                size[2] = 1
-            end
+			if size[2] <= 0 then
+				size[2] = 1
+			end
 
-            local scale = net.ReadFloat()
+			local scale = net.ReadFloat()
 
-            local offset = {
-                net.ReadFloat(),
-                net.ReadFloat(),
-                net.ReadFloat()
-            }
-            
-            local rotation = {
-                net.ReadFloat(),
-                net.ReadFloat(),
-                net.ReadFloat()
-            }
+			local offset = {
+				net.ReadFloat(),
+				net.ReadFloat(),
+				net.ReadFloat()
+			}
+			
+			local rotation = {
+				net.ReadFloat(),
+				net.ReadFloat(),
+				net.ReadFloat()
+			}
 
 			local maxCount = net.ReadUInt(16)
 			local blacklist = net.ReadBool()
 
-            local skin = net.ReadUInt(8)
+			local skin = net.ReadUInt(8)
 
-            -- Store it away
-            CaseInventory:SetOverride(itemID, {
+			-- Store it away
+			CaseInventory:SetOverride(itemID, {
 				Size=size,
 				MaxCount=maxCount,
 				Blacklist=blacklist,
 				RenderInfo=CaseRenderInfo(model, scale, rotation, offset, 0, skin)
 			})
-        end -- END NO DELETE
+		end -- END NO DELETE
 
 		-- Now time to replicate this to all clients
 		CaseInventory:SendOverride(itemID)
@@ -157,7 +157,37 @@ net.Receive("CaseCommandEvent", function (len, ply)
 
 		-- Save everything to disk
 		CaseInventory:SaveOverrides()
-    end
+	end
+
+	if cmd == CASE_COMMAND_SYNC_ITEM then
+		-- Admin only thing (again), now die (again)
+		if not ply:IsAdmin() then
+			return
+		end
+
+		local itemName = net.ReadString()
+		local mode = net.ReadUInt(4)
+
+		if mode == CASE_ITEM_CREATE then
+			local printName = net.ReadString()
+			local model = net.ReadString()
+			CaseInventory:CreateCustomItem(itemName, printName, model)
+			return
+		end
+
+		if mode == CASE_ITEM_EDIT then
+			local printName = net.ReadString()
+			local itemType = net.ReadUInt(8)
+			local useCondition = net.ReadUInt(8)
+
+			CaseInventory:UpdateCustomItem(itemName, printName, itemType, useCondition)
+		end
+
+		if mode == CASE_ITEM_REMOVE then
+			CaseInventory:RemoveCustomItem(itemName)
+			return
+		end
+	end
 
 	--[[
 	if cmd == CASE_COMMAND_REQUEST_OVERRIDES then

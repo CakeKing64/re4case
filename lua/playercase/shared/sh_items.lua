@@ -31,6 +31,7 @@ CASE_TAG_HEALTH = "health"
 CASE_TAG_ARMOR = "armor"
 CASE_TAG_AMMO = "ammo"
 CASE_TAG_CRAFTING = "crafting_component"
+CASE_TAG_CUSTOM = "custom"
 
 ---@param name string
 ---@param sizeW number
@@ -200,4 +201,47 @@ end
 
 function CaseDoNotHandle(name)
     return CaseItem(name, 0, 0, 0, CASE_ITEM_DO_NOT_HANDLE, nil, nil, -1, {}, "") 
+end
+
+
+-- Custom item stuff
+
+function CaseCustomItemUse(ply, itemID)
+    if CLIENT then
+		return true
+	end
+
+    local info = CaseInventory:GetItemInfo(itemID)
+    if info == nil then
+        return false
+    end
+
+	local ent = ents.Create(info.Name)
+
+    -- Unlucky?
+    if not IsValid(ent) then
+        return false
+    end
+
+	ent:Spawn()
+	ply.CasePickup = ent
+	ent:SetPos(ply:GetPos())
+	ent:Use(ply, ply)
+
+	return true
+end
+
+function CaseCustomItemCanUse(ply, itemID)
+    local custom = CaseInventory.CustomItems[itemID]
+    if custom.Type ~= CASE_CUSTOM_CONSUMABLE then
+        return false
+    end
+
+    if custom.CanUse == CASE_CUSTOM_USE_ALWAYS then
+        return true
+    elseif custom.CanUse == CASE_CUSTOM_USE_HEALTH then
+        return ply:Health() < ply:GetMaxHealth()
+    elseif custom.CanUse == CASE_CUSTOM_USE_ARMOR then
+        return ply:Armor() < ply:GetMaxArmor()
+    end
 end

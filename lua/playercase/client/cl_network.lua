@@ -81,6 +81,34 @@ CaseInventory.ClientNet = {
 		net.WriteUInt(CASE_COMMAND_REQUEST_OVERRIDES, 4)
 		net.SendToServer()
 	end,
+	CreateItem = function (name, model, printName)
+		net.Start("CaseCommandEvent")
+		net.WriteUInt(CASE_COMMAND_SYNC_ITEM, 4)
+			net.WriteString(name)
+			net.WriteUInt(CASE_ITEM_CREATE, 4)
+
+			net.WriteString(printName)
+			net.WriteString(model)
+
+		net.SendToServer()
+	end,
+	UpdateItem = function (name, printName, itemType, useCondition)
+		net.Start("CaseCommandEvent")
+		net.WriteUInt(CASE_COMMAND_SYNC_ITEM, 4)
+			net.WriteString(name)
+			net.WriteUInt(CASE_ITEM_EDIT, 4)
+			net.WriteString(printName)
+			net.WriteUInt(itemType, 8)
+			net.WriteUInt(useCondition, 8)
+		net.SendToServer()
+	end,
+	RemoveItem = function (name)
+		net.Start("CaseCommandEvent")
+		net.WriteUInt(CASE_COMMAND_SYNC_ITEM, 4)
+			net.WriteString(name)
+			net.WriteUInt(CASE_ITEM_REMOVE, 4)
+		net.SendToServer()
+	end,
 	SyncTemp = nil
 
 }
@@ -222,5 +250,85 @@ net.Receive("CaseOnPickup", function ()
 		if info.ItemType == CASE_ITEM_GENERIC then
 			CaseGUI.PlaySound("ui/re4case/case_pickup_item.wav")
 		end
+	end
+end)
+
+--[[
+	bool isToolSelect
+		(if true)
+		string name
+		string model
+
+	(if false)
+		uint16 itemID
+		string name
+		string printName
+		string model
+		uint8 type
+		uint8 canUseCondition
+]]
+net.Receive("CaseSyncCustomItems", function ()
+	local isToolSelect = net.ReadBool()
+	if isToolSelect then
+		local class = net.ReadString()
+		local name = net.ReadString()
+		local model = net.ReadString()
+
+		CaseItemCreator.Current.Model = model
+		CaseItemCreator.Current.PrintName = name
+		CaseItemCreator:SelectEntity(class)
+		return
+	else
+
+		local itemID = net.ReadUInt(16)
+		local delete = net.ReadBool()
+
+		if delete then
+			local name = CaseInventory.ItemRegister[itemID].Name
+			CaseInventory.CustomItems[itemID] = nil
+
+			CaseInventory.ItemRegister[itemID] = nil
+			CaseInventory.RegisterOverrides[itemID] = nil
+
+			if CaseItemCreator.Current.Class == name then
+				CaseItemCreator:SelectEntity(CaseItemCreator.Current.Class)
+			end
+
+			return
+		end
+
+		local name = net.ReadString()
+		local printName = net.ReadString()
+		local model = net.ReadString()
+		local type = net.ReadUInt(8)
+		local useMode = net.ReadUInt(8)
+
+		
+
+		CaseInventory.CustomItems[itemID] = {
+			Class = name,
+			PrintName = printName,
+			Type = type,
+			CanUse = useMode,
+			Model = model
+		}
+
+		local item = CaseInventory:GenerateCustomItemInfo(name, printName, model, type)
+		item.ItemID = itemID
+
+		CaseInventory.ItemRegister[itemID] = item
+
+		-- As a treat, check the override register
+		if CaseInventory.RegisterOverrides[itemID] ~= nil then
+			CaseInventory.RegisterOverrides[itemID].PrintName = printName
+			CaseInventory.RegisterOverrides[itemID].OnUse = item.OnUse
+			CaseInventory.RegisterOverrides[itemID].CanUse = item.CanUse
+		end
+
+		-- Reselect to update stuff
+		if CaseItemCreator.Current.Class == name then
+			CaseItemCreator:SelectEntity(name)
+		end
+
 	end
 end)

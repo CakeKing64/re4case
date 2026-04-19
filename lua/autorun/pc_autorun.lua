@@ -61,12 +61,52 @@ CASE_COMMAND_SYNC_OVERRIDES = 5
 ]]
 CASE_COMMAND_REQUEST_OVERRIDES = 6
 
+--[[
+	string itemName
+	int8 mode
+	
+	FOR CASE_ITEM_CREATE
+	string printName
+	string modelName
+	
+	FOR CASE_ITEM_EDIT only
+	string printName
+	uint8 itemType
+	uint8 useCondition
+]]
+CASE_COMMAND_SYNC_ITEM = 7
+
+-- Modes for SYNC_ITEM
+CASE_ITEM_CREATE = 0
+CASE_ITEM_REMOVE = 1
+CASE_ITEM_EDIT = 2
+--
 
 CaseInventory = {}
 CaseInventory.ItemRegister = {}
 CaseInventory.RegisterOverrides = {}
 CaseInventory.Inventories = {}
 CaseInventory.PickupQueue = {}
+
+---Types:
+---1 -> Generic
+---2 -> Consumable
+---3 -> Glow Only
+CaseInventory.CustomItems = {}
+
+if SERVER then
+	CaseInventory.CustomItemOrder = {}
+end
+
+CASE_CUSTOM_GENERIC = 1
+CASE_CUSTOM_CONSUMABLE = 2
+CASE_CUSTOM_GLOW_ONLY = 3
+
+CASE_CUSTOM_USE_ALWAYS = 1
+CASE_CUSTOM_USE_HEALTH = 2
+CASE_CUSTOM_USE_ARMOR = 3
+
+CaseInventory.CustomItemStart = -1
 
 if SERVER then
 	-- To allow saving overrides that don't exist any more
@@ -96,7 +136,8 @@ local client = {
 	"client/cl_guifont.lua",
 	"client/cl_editor.lua",
 	"client/cl_settings.lua",
-	"client/cl_sv_settings.lua"
+	"client/cl_sv_settings.lua",
+	"client/cl_itemcreator.lua"
 }
 
 local shared = {
@@ -105,7 +146,6 @@ local shared = {
 	"shared/sh_hooks.lua",
 	"item_list.lua"
 }
-
 
 local function _client(files)
 
@@ -147,9 +187,11 @@ _client(client)
 _client(shared)
 
 if SERVER then
-	util.AddNetworkString("CaseSync")         -- Server -> Client only full inventory sync
-	util.AddNetworkString("CaseCommandEvent") -- Bidirectional commands
-	util.AddNetworkString("CaseSyncIDs")      -- Server -> Client sync item ids
-	util.AddNetworkString("CaseSyncOverride") -- Server -> Client
-	util.AddNetworkString("CaseOnPickup") -- Server -> Client
+	-- uh remind me to merge these all into like one string please
+	util.AddNetworkString("CaseSync")         	-- Server -> Client only full inventory sync
+	util.AddNetworkString("CaseCommandEvent") 	-- Bidirectional commands
+	util.AddNetworkString("CaseSyncIDs")      	-- Server -> Client sync item ids
+	util.AddNetworkString("CaseSyncOverride") 	-- Server -> Client
+	util.AddNetworkString("CaseOnPickup") 		-- Server -> Client
+	util.AddNetworkString("CaseSyncCustomItems") -- Server -> Client
 end

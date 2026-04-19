@@ -30,10 +30,12 @@ local function _canUseAlways()
 	return true
 end
 
-local function _useGeneric(ply, info)
+local function _useGeneric(ply, itemID)
 	if CLIENT then
 		return true
 	end
+
+	local info = CaseInventory:GetItemInfo(itemID)
 
 	local kit = ents.Create(info.Name)
 	kit:Spawn()

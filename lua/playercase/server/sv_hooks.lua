@@ -72,7 +72,7 @@ hook.Add("player_activate", "CASE_PlayerActivate", function (data)
 	local curLimitCheck = 0
 	local player = Player(data.userid)
 
-	for k, v in ipairs(CaseInventory.ItemRegister) do
+	for k, v in pairs(CaseInventory.ItemRegister) do
 		remItemCount = remItemCount + 1
 	end
 
@@ -103,6 +103,10 @@ hook.Add("player_activate", "CASE_PlayerActivate", function (data)
 
 	for k, v in pairs(CaseInventory.RegisterOverrides) do
 		CaseInventory:SendOverride(k, player)
+	end
+
+	for k, v in pairs(CaseInventory.CustomItems) do
+		CaseInventory:SyncCustomItem(k, player)
 	end
 	
 	CaseInventory:Sync(player)

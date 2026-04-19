@@ -305,7 +305,7 @@ function CaseEditor:FilterChanged(filter, all)
 	self.WeaponList:CloseMenu()
 	self.WeaponList:Clear()
 
-	for i in ipairs(CaseInventory.ItemRegister) do
+	for i in pairs(CaseInventory.ItemRegister) do
 		local type = CaseInventory.ItemRegister[i].ItemType
 
 		if type == CASE_ITEM_GLOW_ONLY or type == CASE_ITEM_DO_NOT_HANDLE or type == CASE_ITEM_AMMO_SPECIAL then

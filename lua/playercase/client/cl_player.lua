@@ -256,6 +256,10 @@ concommand.Add("case_print_overrides", function(ply)
 	PrintTable(CaseInventory.RegisterOverrides)
 end)
 
+concommand.Add("case_print_custom", function(ply)
+	PrintTable(CaseInventory.CustomItems)
+end)
+
 -- This just kinda has to be here so the client can see it
 concommand.Add( "case_pickup", function(ply, cmd, args, argStr)
 end )

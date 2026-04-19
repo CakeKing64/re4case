@@ -117,8 +117,10 @@ function CaseInventory:PickupEntity(ply, ent, doUse)
 		end
 
 		if use then
-			ply.CasePickup = ent
-			ent:SetPos(ply:GetPos())
+			if itemInfo.OnUse ~= nil then
+				ply.CasePickup = ent
+				ent:SetPos(ply:GetPos())
+			end
 			ent:Use(ply, ply)
 		else
 			if CaseInventory:PickupItem(ply, itemID, 1) then
@@ -475,6 +477,10 @@ function CaseInventory:DropItem(inv, invId, count, player, sync)
 	end
 
 	local function GetEntFloorOffset(ent)
+		local bounds = ent:GetModelBounds()
+		if bounds == nil then
+			return Vector(0, 0, 0)
+		end
 		return Vector(0, 0, math.abs(ent:GetModelBounds().Z * ent:GetModelScale()))
 	end
 
@@ -482,6 +488,9 @@ function CaseInventory:DropItem(inv, invId, count, player, sync)
 	if itemInfo.ItemType == CASE_ITEM_GENERIC then
 		for i=1, dropCount do 
 			local ent = ents.Create(itemInfo.Name)
+			if not IsValid(ent) then
+				continue
+			end
 
 			ent:SetPos(player:GetPos())
 			ent:Spawn()
@@ -514,6 +523,10 @@ function CaseInventory:DropItem(inv, invId, count, player, sync)
 
 		if not found then
 			local wpn = ents.Create(itemInfo.Name) 
+			if not IsValid(wpn) then
+				return true
+			end
+
 			wpn:SetPos(player:GetPos())
 			wpn:Spawn()
 
@@ -589,12 +602,12 @@ function CaseInventory:UseItem(ply, invId, sync, runCanUse, runHook)
 	if runHook then
 		used, amount = hook.Run(
 			"CaseOnUse",
-			ply, invId, item.ItemID
+			ply, item.ItemID, invId
 		)
 	end
 
 	if used == nil then
-		used, amount = item.OnUse(ply, invId, item.ItemID)
+		used, amount = item.OnUse(ply, item.ItemID, invId)
 	end
 
 	if not used then
@@ -664,6 +677,11 @@ function CaseInventory:GetItemInfo(id)
 			CaseInventory:SetOverride(id, reg)
 		end
 		return CaseInventory.RegisterOverrides[id]
+	end
+
+	-- Just as a super bonus ;)
+	if CaseInventory.ItemRegister[id].ItemID == nil then
+		CaseInventory.ItemRegister[id].ItemID = id
 	end
 
 	return CaseInventory.ItemRegister[id]
@@ -1781,7 +1799,7 @@ function CaseInventory:AutoGenerate()
 		end
 	end
 
-	for k, v in ipairs(CaseInventory.ItemRegister) do
+	for k, v in pairs(CaseInventory.ItemRegister) do
 		if v.AmmoID == -1 then
 			continue
 		end
@@ -1846,7 +1864,8 @@ function CaseInventory:FinalizeItemRegister()
 		for _, v in pairs(tempRegister) do
 			table.insert(CaseInventory.ItemRegister, v)
 		end
-		
+
+
 	end
 
 	if SERVER then
@@ -1856,11 +1875,19 @@ function CaseInventory:FinalizeItemRegister()
 	end
 
 	-- Give the item info a way to reference its own id
-	for k, v in ipairs(CaseInventory.ItemRegister) do
+	for k, v in pairs(CaseInventory.ItemRegister) do
 		v.ItemID = k
 	end
 
+	if SERVER then
+		CaseInventory.CustomItemStart = #CaseInventory.ItemRegister + 1
+	end
+
+	CaseInventory:LoadCustomItems()
+
+
 	CaseInventory:LoadOverrides()
+
 end
 
 function CaseInventory:TryLocalize(string)
@@ -1956,7 +1983,7 @@ function CaseInventory:CanUse(ply, itemID, runHook)
 	end
 
 
-	return itemInfo.CanUse(ply, itemInfo)
+	return itemInfo.CanUse(ply, itemID)
 end
 
 ---Checks to see if an item has a tag
@@ -1977,9 +2004,289 @@ function CaseInventory:HasTag(itemID, tag)
 	return false
 end
 
+---Is this item cool and custom?
+---@param itemID number
+---@return boolean
+function CaseInventory:IsCustom(itemID)
+	if CaseInventory:GetItemInfo(itemID) == nil then
+		return false
+	end
+
+	return CaseInventory:HasTag(itemID, "custom")
+end
+
+---Creates a custom item
+---@param name string
+---@param printName string
+---@param model string
+---@return boolean
+function CaseInventory:CreateCustomItem(name, printName, model)
+	local itemID = CaseInventory:GetItemID(name)
+
+	-- Item actually does exist!
+	if itemID ~= -1 then
+		return false
+	end
+	
+	local item = CaseInventory:GenerateCustomItemInfo(name, printName, model, 1)
+	item.ItemID = itemID
+
+	itemID = CaseInventory.CustomItemStart
+
+	-- Find the first free spot
+	while CaseInventory.ItemRegister[itemID] ~= nil do
+		itemID = itemID + 1
+	end
+
+	CaseInventory.ItemRegister[itemID] = item
+
+	CaseInventory.CustomItems[itemID] = {
+		Class = name,
+		PrintName = printName,
+		Type = CASE_CUSTOM_GENERIC,
+		CanUse = CASE_CUSTOM_USE_ALWAYS,
+		Model = model
+	}
+
+	-- Broadcast this new creation
+	if SERVER then
+		itemID = CaseInventory:GetItemID(name)
+		table.insert(CaseInventory.CustomItemOrder, itemID)
+
+		CaseInventory:SyncCustomItem(itemID)
+		CaseInventory:SaveCustomItems()
+	end
+
+	return true
+end
+
+---Applies a custom item from a silly table
+---Basically just for loading
+---@param custom table
+---@return number itemID
+function CaseInventory:SetupCustomItem(custom)
+
+	-- Generate item info based of what we have
+	local itemInfo = CaseInventory:GenerateCustomItemInfo(
+		custom.Class,
+		custom.PrintName,
+		custom.Model,
+		custom.Type
+	)
+
+	if itemInfo == nil then
+		return -1
+	end
+
+	
+	local itemID = CaseInventory.CustomItemStart
+
+	-- Find the first free spot
+	while CaseInventory.ItemRegister[itemID] ~= nil do
+		itemID = itemID + 1
+	end
+
+
+	CaseInventory.ItemRegister[itemID] = itemInfo
+	CaseInventory.ItemRegister[itemID].ItemID = itemID
+
+	CaseInventory.CustomItems[itemID] = custom
+
+	if SERVER then
+		CaseInventory:SyncCustomItem(itemID)
+	end
+
+	return itemID
+end
+
+---Updates a custom item
+---@param name string
+---@param printName string
+---@param itemType number
+---@param canUseCondition number
+function CaseInventory:UpdateCustomItem(name, printName, itemType, canUseCondition)
+	local itemID = CaseInventory:GetItemID(name)
+
+	-- Item isn't real!
+	if itemID == -1 then
+		return false
+	end
+
+	-- hold up...
+	if not CaseInventory:IsCustom(itemID) then
+		CaseInventory.Panel:HelpText("https://tenor.com/bW5F1.gif")
+		return
+	end
+	
+	local item = CaseInventory:GenerateCustomItemInfo(name, printName, CaseInventory.ItemRegister[itemID].RenderInfo.Model, itemType)
+	item.ItemID = itemID
+
+	CaseInventory.ItemRegister[itemID] = item
+
+	CaseInventory.CustomItems[itemID] = {
+		Class = name,
+		PrintName = printName,
+		Type = itemType,
+		CanUse = canUseCondition,
+		Model = CaseInventory.CustomItems[itemID].Model
+	}
+
+	-- We also have to update some of the override info if that exists
+	if CaseInventory.RegisterOverrides[itemID] ~= nil then
+		local override = CaseInventory.RegisterOverrides[itemID]
+		override.PrintName = printName
+		override.CanUse = item.CanUse
+		override.OnUse = item.OnUse
+	end
+
+	-- Broadcast this new creation
+	if SERVER then
+		itemID = CaseInventory:GetItemID(name)
+		CaseInventory:SyncCustomItem(itemID)
+		CaseInventory:SaveCustomItems()
+	end
+end
+
+---Banishes a custom item from existance
+function CaseInventory:RemoveCustomItem(name)
+	local itemID = CaseInventory:GetItemID(name)
+
+	if itemID == -1 then
+		return false
+	end
+
+	-- Maybe don't do that
+	if not CaseInventory:IsCustom(itemID) then
+		return
+	end
+
+	-- Make sure everyone drops the item
+	for _, ply in ipairs(player.GetAll()) do
+		for invID, invInfo in pairs(CaseInv(ply).Items) do
+			if invInfo.ItemID == itemID then
+				CaseInventory:DropItem(CaseInv(ply), invID, invInfo.Count, ply, true)
+			end
+		end
+	end
+
+	for i=1, #CaseInventory.CustomItemOrder do
+		if CaseInventory.CustomItemOrder[i] == itemID then
+			table.remove(CaseInventory.CustomItemOrder, i)
+			break
+		end
+	end
+
+	-- Now that's done, yeet it from the register
+	CaseInventory.ItemRegister[itemID] = nil
+	CaseInventory.RegisterOverrides[itemID] = nil
+
+	CaseInventory:SyncCustomItem(itemID)
+	CaseInventory:SaveCustomItems()
+end
+
+---Return a CaseX based on type for custom items
+---@param name string
+---@param printName string
+---@param model string
+---@param type number
+function CaseInventory:GenerateCustomItemInfo(name, printName, model, type)
+	if type == CASE_CUSTOM_GENERIC then
+		return CaseGeneric(
+			name,
+			printName,
+			CaseRenderInfo(model),
+			1, 1, 1, {CASE_TAG_CUSTOM}
+		)
+	elseif type == CASE_CUSTOM_CONSUMABLE then
+		return CaseConsumable(
+			name,
+			printName,
+			CaseRenderInfo(model),
+			1, 1, 1,
+			CaseCustomItemUse,
+			CaseCustomItemCanUse,
+			{CASE_TAG_CUSTOM}
+		)
+	elseif type == CASE_CUSTOM_GLOW_ONLY then
+		return CaseGlowOnly(name)
+	end
+
+	return nil
+end
+
+function CaseInventory:SyncCustomItem(itemID, ply)
+	local info = CaseInventory.ItemRegister[itemID]
+	
+
+		--[[
+			uint16 itemID
+			bool delete?
+			string name
+			string printName
+			string model
+			uint8 type
+			uint8 canUseCondition
+		]]
+	net.Start("CaseSyncCustomItems")
+		net.WriteBool(false) -- This is not a stupid workaround
+		if info == nil then
+			net.WriteUInt(itemID, 16)
+			net.WriteBool(true) -- Bye bye :(
+		else
+			net.WriteUInt(itemID, 16)
+			net.WriteBool(false) -- Don't delete
+			net.WriteString(info.Name)
+			net.WriteString(info.PrintName)
+			net.WriteString(info.RenderInfo.Model)
+			net.WriteUInt(CaseInventory.CustomItems[itemID].Type, 8)
+			net.WriteUInt(CaseInventory.CustomItems[itemID].CanUse, 8)
+		end
+	if ply == nil then
+		net.Broadcast()
+	else
+		net.Send(ply)
+	end
+end
+
+
+function CaseInventory:SaveCustomItems()
+	if CLIENT then
+		return
+	end
+	local saveTable = {}
+
+	-- Force everything to be in order
+	for k, v in ipairs(CaseInventory.CustomItemOrder) do
+		table.insert(saveTable,CaseInventory.CustomItems[v])
+	end
+
+	file.Write("caseinv/customitems.json", util.TableToJSON(saveTable))
+end
+
+function CaseInventory:LoadCustomItems()
+	if CLIENT then
+		return
+	end
+
+	-- Can't load what isn't real
+	if not file.Exists("caseinv/customitems.json", "DATA") then
+		return
+	end
+	
+	local customs = util.JSONToTable(file.Read("caseinv/customitems.json", "DATA"))
+	if customs == nil then
+		return
+	end
+
+	
+	for k, custom in ipairs(customs) do
+		table.insert(CaseInventory.CustomItemOrder, CaseInventory:SetupCustomItem(custom))
+	end
+end
+
 ---Client only
 function CaseInventory:PopulateNames()
-	for k, v in ipairs(CaseInventory.ItemRegister) do
+	for k, v in pairs(CaseInventory.ItemRegister) do
 		if v.PrintName ~= nil then
 			CaseInventory:TryLocalize(v.PrintName)
 			continue
