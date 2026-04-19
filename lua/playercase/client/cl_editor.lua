@@ -16,6 +16,10 @@ CaseEditor.Count = nil
 CaseEditor.Blacklist = nil
 CaseEditor.Rotation = nil
 CaseEditor.Skin = nil
+
+CaseEditor.WorldModel = nil
+CaseEditor.ViewModel = nil
+
 CaseEditor.CurrentID = 1
 
 CaseEditor.IsWeapon = false
@@ -40,6 +44,7 @@ function CaseEditor:Populate(panel)
 
 	self.WeaponList.OnSelect = function (_, _, _, data)
 		CaseEditor.WeaponChanged(self, data, true)
+		CaseEditor.CurrentID = data
 	end
 
 	panel:AddItem(self.WeaponList)
@@ -64,6 +69,9 @@ function CaseEditor:Populate(panel)
 
 	self.Model = panel:TextEntry("Model")
 	self.Skin = panel:TextEntry("Model Skin")
+
+
+
 	self.Size = panel:TextEntry("Size")
 	self.Scale = panel:TextEntry("Scale")
 	self.Offset = panel:TextEntry("Offset")
@@ -72,7 +80,25 @@ function CaseEditor:Populate(panel)
 	self.Blacklist = panel:CheckBox("Blacklisted")
 	self.Count 	= panel:TextEntry("Max Count")
 	
+	self.WorldModel = panel:Button("Set To World Model")
+	self.WorldModel.DoClick = function ()
+		local info = weapons.Get(CaseInventory:GetItemInfo(CaseEditor.CurrentID).Name)
+		if info == nil then
+			return
+		end
 
+		self.Model:SetText(info.WorldModel)
+	end
+	self.ViewModel = panel:Button("Set To View Model")
+	self.ViewModel.DoClick = function ()
+		print(CaseInventory:GetItemInfo(CaseEditor.CurrentID).Name)
+		local info = weapons.Get(CaseInventory:GetItemInfo(CaseEditor.CurrentID).Name)
+		if info == nil then
+			return
+		end
+		PrintTable(info)
+		self.Model:SetText(info.ViewModel)
+	end
 	
 	CaseEditor.FilterChanged(self, "")
 end
@@ -109,13 +135,15 @@ function CaseEditor:WeaponChanged(itemID, useGetItemInfo)
 	if realType == CASE_ITEM_WEAPON then
 		self.Count:SetEnabled(false)
 		self.Count:SetText("")
-
-
+		self.WorldModel:SetEnabled(true)
+		self.ViewModel:SetEnabled(true)
 
 		self.IsWeapon = true
 	else
 		self.Count:SetText("" .. GetValue(register.MaxCount))
 		self.Count:SetEnabled(true)
+		self.WorldModel:SetEnabled(false)
+		self.ViewModel:SetEnabled(false)
 
 		self.IsWeapon = false
 	end
