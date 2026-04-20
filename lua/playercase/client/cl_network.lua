@@ -316,6 +316,8 @@ net.Receive("CaseSyncCustomItems", function ()
 		local item = CaseInventory:GenerateCustomItemInfo(name, printName, model, type)
 		item.ItemID = itemID
 
+		CaseInventory:UpdateCustomTags(item, type, useMode)
+
 		CaseInventory.ItemRegister[itemID] = item
 
 		-- As a treat, check the override register

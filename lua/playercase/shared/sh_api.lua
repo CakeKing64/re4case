@@ -2096,6 +2096,8 @@ function CaseInventory:SetupCustomItem(custom)
 	if itemInfo == nil then
 		return -1
 	end
+	
+	CaseInventory:UpdateCustomTags(itemInfo, custom.Type, custom.CanUse)
 
 	
 	local itemID = CaseInventory.CustomItemStart
@@ -2138,7 +2140,13 @@ function CaseInventory:UpdateCustomItem(name, printName, itemType, canUseConditi
 	end
 	
 	local item = CaseInventory:GenerateCustomItemInfo(name, printName, CaseInventory.ItemRegister[itemID].RenderInfo.Model, itemType)
+	if item == nil then
+		return
+	end
+
 	item.ItemID = itemID
+	CaseInventory:UpdateCustomTags(item, itemType, canUseCondition)
+
 
 	CaseInventory.ItemRegister[itemID] = item
 
@@ -2149,6 +2157,7 @@ function CaseInventory:UpdateCustomItem(name, printName, itemType, canUseConditi
 		CanUse = canUseCondition,
 		Model = CaseInventory.CustomItems[itemID].Model
 	}
+
 
 	-- We also have to update some of the override info if that exists
 	if CaseInventory.RegisterOverrides[itemID] ~= nil then
@@ -2163,6 +2172,28 @@ function CaseInventory:UpdateCustomItem(name, printName, itemType, canUseConditi
 		itemID = CaseInventory:GetItemID(name)
 		CaseInventory:SyncCustomItem(itemID)
 		CaseInventory:SaveCustomItems()
+	end
+end
+
+---Updates tags for a custom item :)
+---@param item table
+---@param itemType number
+---@param canUseCondition number
+function CaseInventory:UpdateCustomTags(item, itemType, canUseCondition)
+
+	if itemType == CASE_CUSTOM_GENERIC or itemType == CASE_CUSTOM_GLOW_ONLY then
+		item.Tags = {CASE_TAG_CUSTOM}
+	elseif itemType == CASE_CUSTOM_CONSUMABLE then
+		item.Tags = {
+			CASE_TAG_CUSTOM,
+			CASE_TAG_CONSUMABLE
+		}
+
+		if canUseCondition == CASE_CUSTOM_USE_HEALTH then
+			table.insert(item.Tags, CASE_TAG_HEALTH)
+		elseif canUseCondition == CASE_CUSTOM_USE_ARMOR then
+			table.insert(item.Tags, CASE_TAG_ARMOR)
+		end
 	end
 end
 
