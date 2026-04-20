@@ -188,11 +188,13 @@ function CaseAmmo(ammoID, renderInfo, sizeW, sizeH, maxSize, printName)
     if ammoID == -1 then
         return nil
     end
+    local ammoName = game.GetAmmoName(ammoID)
+
 
     if printName == nil and not SERVER then
         printName = CaseInventory:TryLocalize(game.GetAmmoName( ammoID ) .. "_ammo")
     end
-    return CaseItem("case_ammo_" .. ammoID, sizeW, sizeH, maxSize, CASE_ITEM_AMMO, nil, nil, ammoID, renderInfo, printName, {CASE_TAG_AMMO})
+    return CaseItem("case_ammo_" .. ammoName, sizeW, sizeH, maxSize, CASE_ITEM_AMMO, nil, nil, ammoID, renderInfo, printName, {CASE_TAG_AMMO})
 end
 
 function CaseGlowOnly(name)
