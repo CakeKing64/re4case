@@ -332,3 +332,14 @@ net.Receive("CaseSyncCustomItems", function ()
 
 	end
 end)
+
+net.Receive("CaseAutoGenWeapons", function ()
+	local done = net.ReadBool()
+	if done then
+		CaseInventory.ObtainedAutoGenerate = true
+		return
+	end
+
+	local itemInfo = net.ReadTable()
+	table.insert(CaseInventory.AutoGenerateInfo, itemInfo)
+end)

@@ -88,6 +88,13 @@ CaseInventory.RegisterOverrides = {}
 CaseInventory.Inventories = {}
 CaseInventory.PickupQueue = {}
 
+CASE_AUTOGEN_WEAPON = 1
+CASE_AUTOGEN_AMMO = 2
+CaseInventory.AutoGenerateInfo = {}
+
+if CLIENT then
+	CaseInventory.ObtainedAutoGenerate = false
+end
 ---Types:
 ---1 -> Generic
 ---2 -> Consumable
@@ -97,6 +104,7 @@ CaseInventory.CustomItems = {}
 if SERVER then
 	CaseInventory.CustomItemOrder = {}
 end
+
 
 CASE_CUSTOM_GENERIC = 1
 CASE_CUSTOM_CONSUMABLE = 2
@@ -194,4 +202,5 @@ if SERVER then
 	util.AddNetworkString("CaseSyncOverride") 	-- Server -> Client
 	util.AddNetworkString("CaseOnPickup") 		-- Server -> Client
 	util.AddNetworkString("CaseSyncCustomItems") -- Server -> Client
+	util.AddNetworkString("CaseAutoGenWeapons")
 end

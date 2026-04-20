@@ -191,6 +191,9 @@ hook.Add("PlayerAmmoChanged", "CASE_PlayerAmmoChanged", function (ply, ammoID, o
 
 	for k, v in pairs(CaseInventory:Inv(ply).Items) do
 		local info = CaseInventory:GetItemInfo(v.ItemID)
+		if info == nil then
+			continue
+		end
 		
 		if info.AmmoID == ammoID then
 

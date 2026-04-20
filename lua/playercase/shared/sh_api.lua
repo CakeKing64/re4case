@@ -22,7 +22,7 @@ end
 
 if CLIENT then
 	cvar_inventory_mode = CreateConVar("case_sh_inventory_mode", "0", {FCVAR_REPLICATED})
-	cvar_auto_generate = CreateConVar("case_sh_auto_generate", "0", {FCVAR_REPLICATED})
+	cvar_auto_generate = CreateConVar("case_sh_auto_generate", "1", {FCVAR_REPLICATED})
 	cvar_enable_swap = CreateConVar("case_cl_enable_swapping", "1", {FCVAR_ARCHIVE})
 	cvar_default_case_size = CreateConVar("case_sh_default_size", "1", {FCVAR_REPLICATED})
 
@@ -1771,7 +1771,20 @@ end
 ---Auto generates weapon and ammo
 ---Probably bad and also maybe like O(n something (nothing good))
 function CaseInventory:AutoGenerate()
-	if not cvar_auto_generate:GetBool() then
+	if SERVER and not cvar_auto_generate:GetBool() then
+		return
+	end
+
+	if CLIENT then
+		for k, v in pairs(CaseInventory.AutoGenerateInfo) do
+			if v.Type == CASE_AUTOGEN_WEAPON then
+				CaseInventory:RegisterItem(CaseWeapon(v.Name, CaseRenderInfo(v.Model), v.Size[1], v.Size[2], v.PrintName))
+			end
+
+			if v.Type == CASE_AUTOGEN_AMMO then
+				CaseInventory:RegisterItem(CaseAmmo(v.AmmoID ,CaseRenderInfo(v.Model, v.Scale, v.Rotation), v.Size[1], v.Size[2], v.Count))
+			end
+		end
 		return
 	end
 
@@ -1818,10 +1831,32 @@ function CaseInventory:AutoGenerate()
 	for k, v in ipairs(wepList) do
 		local world = v.WorldModel or "models/weapons/w_pistol.mdl"
 		CaseInventory:RegisterItem(CaseWeapon(v.ClassName, CaseRenderInfo(world), 3, 2, v.Name))
+
+		table.insert(CaseInventory.AutoGenerateInfo, {
+			Type = CASE_AUTOGEN_WEAPON,
+			Name = v.ClassName,
+			Model = world,
+			Scale = 1,
+			Rotation = {0, 0, 0},
+			PrintName = v.Name,
+			Size = {3, 2},
+			Count = 1
+		})
 	end
 
 	for k, v in pairs(ammoList) do
 		CaseInventory:RegisterItem(CaseAmmo(k,CaseRenderInfo("models/Items/357ammo.mdl", 1.3, {25, 180, 0}), 2, 1, 30))
+		table.insert(CaseInventory.AutoGenerateInfo, {
+			Type = CASE_AUTOGEN_AMMO,
+			Name = "",
+			AmmoID = k,
+			Model = "models/Items/357ammo.mdl",
+			Scale = 1.3,
+			Rotation = {25, 180, 0},
+			PrintName = v.Name,
+			Size = {2, 1},
+			Count = 30
+		})
 	end
 
 	if cvar_auto_generate:GetInt() == 2 and SERVER then
@@ -1835,8 +1870,6 @@ function CaseInventory:AutoGenerate()
 			print(string.format("CaseAmmo(game.GetAmmoID(\"%s\"), CaseRenderInfo(\"models/Items/357ammo.mdl\", 1.3, {25, 180, 0}), 2, 1, 30),", v))
 		end
 	end
-
-
 end
 
 --- Sorts item register and some other minor things
@@ -1845,27 +1878,13 @@ function CaseInventory:FinalizeItemRegister()
 	-- Apply the item IDs obtained from the server
 	if CLIENT then
 		local tempRegister = {}
-		for k, v in ipairs(CaseInventory.ItemRegister) do
-			tempRegister[k] = v
-			CaseInventory.ItemRegister[k] = nil
-		end
-
 		for newItemID, newItemName in pairs(CaseInventory.ItemRegisterLayout ) do
-			for k, v in pairs(tempRegister) do
-				if newItemName == v.Name then
-					CaseInventory.ItemRegister[newItemID] = tempRegister[k]
-					table.remove(tempRegister, k)
-					break
-				end
-			end
+			local itemID = CaseInventory:GetItemID(newItemName)
+			tempRegister[newItemID] = CaseInventory.ItemRegister[itemID]
 		end
+		CaseInventory.ItemRegister = tempRegister
 
-		-- As for anything left in the temp register, just slap it on the end
-		for _, v in pairs(tempRegister) do
-			table.insert(CaseInventory.ItemRegister, v)
-		end
-
-
+		return
 	end
 
 	if SERVER then

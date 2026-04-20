@@ -96,7 +96,6 @@ function CaseEditor:Populate(panel)
 		if info == nil then
 			return
 		end
-		PrintTable(info)
 		self.Model:SetText(info.ViewModel)
 	end
 	

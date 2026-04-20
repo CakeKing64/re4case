@@ -101,6 +101,17 @@ hook.Add("player_activate", "CASE_PlayerActivate", function (data)
 		end
 	until (remItemCount == 0)
 
+	for k, v in pairs(CaseInventory.AutoGenerateInfo) do
+		net.Start("CaseAutoGenWeapons")
+			net.WriteBool(false) -- Not done yet
+			net.WriteTable(v)
+		net.Send(player)
+	end
+
+	net.Start("CaseAutoGenWeapons")
+		net.WriteBool(true) -- All done
+	net.Send(player)
+
 	for k, v in pairs(CaseInventory.RegisterOverrides) do
 		CaseInventory:SendOverride(k, player)
 	end
