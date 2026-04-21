@@ -80,7 +80,7 @@ hook.Add("player_activate", "CASE_PlayerActivate", function (data)
 	net.WriteUInt(math.min(remItemCount, 64), 8)
 
 	repeat
-		net.WriteUInt(CaseInventory.ItemRegister[curItemId].ItemID, 32)
+		net.WriteUInt(curItemId, 32)
 		net.WriteString(CaseInventory.ItemRegister[curItemId].Name)
 
 		curItemId = curItemId + 1

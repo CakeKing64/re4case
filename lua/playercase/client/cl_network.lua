@@ -236,7 +236,7 @@ net.Receive("CaseSyncOverride", function ()
 		Size=size,
 		MaxCount=maxCount,
 		Blacklist=blacklist,
-		RenderInfo=CaseRenderInfo(model, scale, rotation, offset, 0, skin)
+		RenderInfo=CaseRenderInfo(model, scale, rotation, offset, skin)
 	})
 
 end)

@@ -214,7 +214,7 @@ function CaseEditor:ApplyChanges()
 			Size=size,
 			MaxCount=maxCount ~= nil and maxCount or 1,
 			Blacklist=blacklist,
-			RenderInfo=CaseRenderInfo(model, scale, rotation, offset, 0, skin)
+			RenderInfo=CaseRenderInfo(model, scale, rotation, offset, skin)
 		}
 	)
 end

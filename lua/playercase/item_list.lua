@@ -537,7 +537,7 @@ table.insert(ItemList, {{"2690914262"}, function ()
 		CaseConsumable("contagion_food_sardines", "Sardines", CaseRenderInfo("models/crunchy/props/contagion_props/food/sardine_can_open.mdl", 2.75, {90, 90}, Vector(0, 0, 1)), 1, 2, 3, _useGeneric, _canUseCrunchyHealth, {CASE_TAG_HEALTH, "crunchy_health"}),
 		CaseConsumable("contagion_food_water", "Water", CaseRenderInfo("models/crunchy/props/contagion_props/plastic_bottle_1.mdl", 4, {0, 180}, {0, 0, -1.5}), 1, 2, 3, _useGeneric, _canUseCrunchyHealth, {CASE_TAG_HEALTH, "crunchy_health"}),
 		CaseConsumable("eft_food_mre", "Army MRE", CaseRenderInfo("models/crunchy/props/eft_props/mre.mdl", 3.5, {90, 90}, Vector(0, 0, 1)), 1, 2, 1, _useGeneric, _canUseCrunchyHealth, {CASE_TAG_HEALTH, "crunchy_health"}),
-		CaseConsumable("eft_food_mre_white", "Army MRE", CaseRenderInfo("models/crunchy/props/eft_props/mre.mdl", 3.5, {90, 90}, Vector(0, 0, 1), 0, 1), 1, 2, 1, _useGeneric, _canUseCrunchyHealth, {CASE_TAG_HEALTH, "crunchy_health"}),
+		CaseConsumable("eft_food_mre_white", "Army MRE", CaseRenderInfo("models/crunchy/props/eft_props/mre.mdl", 3.5, {90, 90}, Vector(0, 0, 1), 1), 1, 2, 1, _useGeneric, _canUseCrunchyHealth, {CASE_TAG_HEALTH, "crunchy_health"}),
 		CaseConsumable("eft_food_beefstew", "Beef Stew", CaseRenderInfo("models/crunchy/props/eft_props/beefstew.mdl", 2.2, {0, -20}), 1, 2, 3, _useGeneric, _canUseCrunchyHealth, {CASE_TAG_HEALTH, "crunchy_health"}),
 		CaseConsumable("eft_food_beefstew_family", "Beef Stew (Family Size)", CaseRenderInfo("models/crunchy/props/eft_props/beefstew2.mdl", 3.5, {0, 180}), 2, 2, 3, _useGeneric, _canUseCrunchyHealth, {CASE_TAG_HEALTH, "crunchy_health"}),
 		CaseConsumable("eft_food_canned_fish", "Canned Herring", CaseRenderInfo("models/crunchy/props/eft_props/herring.mdl", 2.5, {0, 120}), 2, 1, 3, _useGeneric, _canUseCrunchyHealth, {CASE_TAG_HEALTH, "crunchy_health"}),
@@ -556,7 +556,7 @@ table.insert(ItemList, {{"2690914262"}, function ()
 		CaseConsumable("other_coffee_thermos", "Thermos (Coffee)", CaseRenderInfo("models/crunchy/props/random_props/thermos.mdl", 1.5, {0, -30}), 1, 2, 2, _useGeneric, _canUseCrunchyHealth, {CASE_TAG_HEALTH, "crunchy_health"}),
 		CaseConsumable("stalker_food_bread", "Bread", CaseRenderInfo("models/crunchy/props/stalker_props/bread.mdl", 3), 2, 1, 4, _useGeneric, _canUseCrunchyHealth, {CASE_TAG_HEALTH, "crunchy_health"}),
 		CaseConsumable("stalker_food_energydrink", "Energy Drink", CaseRenderInfo("models/crunchy/props/stalker_props/energy-drink.mdl", 1.5), 1, 2, 3, _useGeneric, _canUseCrunchyHealth, {CASE_TAG_HEALTH, "crunchy_health"}),
-		CaseConsumable("stalker_food_energydrink_water", "Water", CaseRenderInfo("models/crunchy/props/stalker_props/energy-drink.mdl", 1.5, {0, -25}, Vector(), 0, 1), 1, 2, 3, _useGeneric, _canUseCrunchyHealth, {CASE_TAG_HEALTH, "crunchy_health"}),
+		CaseConsumable("stalker_food_energydrink_water", "Water", CaseRenderInfo("models/crunchy/props/stalker_props/energy-drink.mdl", 1.5, {0, -25}, Vector(), 1), 1, 2, 3, _useGeneric, _canUseCrunchyHealth, {CASE_TAG_HEALTH, "crunchy_health"}),
 		CaseConsumable("stalker_food_ration", "Ration", CaseRenderInfo("models/crunchy/props/stalker_props/konservi.mdl", 2.9, {-25}, Vector(2, 0, 0.25)), 2, 1, 3, _useGeneric, _canUseCrunchyHealth, {CASE_TAG_HEALTH, "crunchy_health"}),
 		CaseConsumable("stalker_food_sausage", "Sausage", CaseRenderInfo("models/crunchy/props/stalker_props/kolbasa.mdl", 2.5, {25, 0, 240}, Vector(0, 1, 3)), 2, 1, 4, _useGeneric, _canUseCrunchyHealth, {CASE_TAG_HEALTH, "crunchy_health"}),
 		CaseConsumable("uh_food_apple", "Apple", CaseRenderInfo("models/crunchy/props/underhell_props/pg_apple.mdl", 4), 1, 1, 3, _useGeneric, _canUseCrunchyHealth, {CASE_TAG_HEALTH, "crunchy_health"}),
@@ -681,29 +681,73 @@ table.insert(ItemList, {{"2690914262"}, function ()
 	}
 end})
 
+-- Crunchy Resident Evil Requiem
+table.insert(ItemList, {{"3708241490"}, function ()
+	
+	return {
+
+		-- Armor items
+		CaseConsumable("re9_armor_injector", "Armor Injector", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_med_injector.mdl", 3.8, {-90, 0, 0}, Vector(0, 1.65, -2), 2), 1, 2, 1, _useGeneric, _canUseArmor, {CASE_TAG_ARMOR}),
+		CaseConsumable("re9_armor_kit", "Armor Kit", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_hip_pouch.mdl", 3, {0, 90, 0}, Vector(0, -2.5, 0)), 2, 1, 1, _useGeneric, _canUseArmor, {CASE_TAG_ARMOR}),
+
+		-- Healing items
+		CaseConsumable("re9_med_injector", "Med Injector", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_med_injector.mdl", 3.8, {-90, 0, 0}, Vector(0, 1.65, -2)), 1, 2, 1, _useGeneric, _canUseHealth, {CASE_TAG_HEALTH}),
+		CaseConsumable("re9_green_herb", "Green Herb", CaseRenderInfo("models/ultimate_items_re9/green_herb.mdl", 2.3), 1, 2, 1, _useGeneric, _canUseHealth, {CASE_TAG_HEALTH}),
+		CaseConsumable("re9_mixed_herb", "Mixed Herb", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_green_herb.mdl", 0.75), 1, 2, 1, _useGeneric, _canUseHealth, {CASE_TAG_HEALTH}),
+
+		-- Random stuff
+		CaseGeneric("re9_crafting_gunpowder_a", "Gunpowder A", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_gunpowder_small.mdl", 2, {0, 180, 0}, Vector(), 3), 1, 1, 3),
+		CaseGeneric("re9_crafting_gunpowder_b", "Gunpowder B", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_gunpowder_small.mdl", 2, {0, 180, 0}, Vector(), 2), 1, 1, 3),
+		CaseGeneric("re9_crafting_gunpowder_c", "Gunpowder C", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_gunpowder_small.mdl", 2, {0, 180, 0}, Vector(), 6), 1, 1, 3),
+		CaseGeneric("re9_crafting_gunpowder_d", "Gunpowder D", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_gunpowder_large.mdl", 2, {0, 180, 0}, Vector(), 3), 1, 1, 3),
+		CaseGeneric("re9_crafting_gunpowder_e", "Gunpowder E", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_gunpowder_large.mdl", 2, {0, 180, 0}, Vector(), 4), 1, 1, 3),
+		CaseGeneric("re9_crafting_gunpowder_f", "Gunpowder F", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_gunpowder_large.mdl", 2, {0, 180, 0}, Vector(), 5), 1, 1, 5),
+		CaseGeneric("re9_crafting_list", "Crafting Recipe List", CaseRenderInfo("models/ultimate_items_re9/re9_crafting_list.mdl", 3, {0, 0, -90}), 2, 1, 1),
+		CaseGeneric("re9_crafting_scrap", "Scrap", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_metal_scrap.mdl", 2.9, {0, 0, 90}, Vector(0, 0, 1)), 2, 1, 1),
+		CaseGeneric("re9_crafting_scrap_rare", "Rare Scrap", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_metal_rare.mdl", 3.3), 2, 1, 1),
+		CaseGeneric("re9_red_herb", "Red Herb", CaseRenderInfo("models/ultimate_items_re9/green_herb.mdl", 2.3, {}, {}, 1), 1, 2, 1),
+
+		-- Ammo
+		CaseGlowOnly("re9_ammo_assault_rifle"),
+		CaseGlowOnly("re9_ammo_pistol"),
+		CaseGlowOnly("re9_ammo_machine_gun"),
+		CaseGlowOnly("re9_ammo_revolver"),
+		CaseGlowOnly("re9_ammo_sniper"),
+		CaseGlowOnly("re9_ammo_shotgun")
+	}
+
+end})
+
 local function _RegisterItems()
 	_registerItemTable(itemsGMOD)
 	_registerItemTable(itemsHL2)
 
-	-- 
-	for _, addon in ipairs(engine.GetAddons()) do
-		if not addon.mounted then
-			continue
-		end
-
-		local workshopID = addon.wsid
-
-		for _, item in ipairs(ItemList) do
-			if item.Used ~= nil and item.Used then
+	-- We wanna do something FREAKY here
+	-- For the server, only add the stuff that is actually mounted
+	-- For the clinet, we mount everything and then let the sort system just clean out everything that isn't actually used
+	if SERVER then
+		for _, addon in ipairs(engine.GetAddons()) do
+			if not addon.mounted then
 				continue
 			end
+			local workshopID = addon.wsid
 
-			for _, wID in ipairs(item[1]) do
-				if wID == workshopID then
-					item.Used = true
-					_registerItemTable(item[2]()) -- Register stuff
+			for _, item in ipairs(ItemList) do
+				if item.Used ~= nil and item.Used then
+					continue
+				end
+
+				for _, wID in ipairs(item[1]) do
+					if wID == workshopID then
+						item.Used = true
+						_registerItemTable(item[2]()) -- Register stuff
+					end
 				end
 			end
+		end
+	else -- Client
+		for _, item in ipairs(ItemList) do
+			_registerItemTable(item[2]())
 		end
 	end
 end
