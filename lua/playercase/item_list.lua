@@ -696,12 +696,12 @@ table.insert(ItemList, {{"3708241490"}, function ()
 		CaseConsumable("re9_mixed_herb", "Mixed Herb", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_green_herb.mdl", 0.75), 1, 2, 1, _useGeneric, _canUseHealth, {CASE_TAG_HEALTH}),
 
 		-- Random stuff
-		CaseGeneric("re9_crafting_gunpowder_a", "Gunpowder A", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_gunpowder_small.mdl", 2, {0, 180, 0}, Vector(), 3), 1, 1, 3),
-		CaseGeneric("re9_crafting_gunpowder_b", "Gunpowder B", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_gunpowder_small.mdl", 2, {0, 180, 0}, Vector(), 2), 1, 1, 3),
-		CaseGeneric("re9_crafting_gunpowder_c", "Gunpowder C", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_gunpowder_small.mdl", 2, {0, 180, 0}, Vector(), 6), 1, 1, 3),
-		CaseGeneric("re9_crafting_gunpowder_d", "Gunpowder D", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_gunpowder_large.mdl", 2, {0, 180, 0}, Vector(), 3), 1, 1, 3),
-		CaseGeneric("re9_crafting_gunpowder_e", "Gunpowder E", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_gunpowder_large.mdl", 2, {0, 180, 0}, Vector(), 4), 1, 1, 3),
-		CaseGeneric("re9_crafting_gunpowder_f", "Gunpowder F", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_gunpowder_large.mdl", 2, {0, 180, 0}, Vector(), 5), 1, 1, 5),
+		CaseGeneric("re9_crafting_gunpowder_a", "Gunpowder A", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_gunpowder_small.mdl", 2, {0, 180, 0}, Vector(), 3), 1, 1, 1),
+		CaseGeneric("re9_crafting_gunpowder_b", "Gunpowder B", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_gunpowder_small.mdl", 2, {0, 180, 0}, Vector(), 2), 1, 1, 1),
+		CaseGeneric("re9_crafting_gunpowder_c", "Gunpowder C", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_gunpowder_small.mdl", 2, {0, 180, 0}, Vector(), 6), 1, 1, 1),
+		CaseGeneric("re9_crafting_gunpowder_d", "Gunpowder D", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_gunpowder_large.mdl", 2, {0, 180, 0}, Vector(), 3), 1, 1, 1),
+		CaseGeneric("re9_crafting_gunpowder_e", "Gunpowder E", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_gunpowder_large.mdl", 2, {0, 180, 0}, Vector(), 4), 1, 1, 1),
+		CaseGeneric("re9_crafting_gunpowder_f", "Gunpowder F", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_gunpowder_large.mdl", 2, {0, 180, 0}, Vector(), 5), 1, 1, 1),
 		CaseGeneric("re9_crafting_list", "Crafting Recipe List", CaseRenderInfo("models/ultimate_items_re9/re9_crafting_list.mdl", 3, {0, 0, -90}), 2, 1, 1),
 		CaseGeneric("re9_crafting_scrap", "Scrap", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_metal_scrap.mdl", 2.9, {0, 0, 90}, Vector(0, 0, 1)), 2, 1, 1),
 		CaseGeneric("re9_crafting_scrap_rare", "Rare Scrap", CaseRenderInfo("models/ultimate_items_re9/re9_requiem_metal_rare.mdl", 3.3), 2, 1, 1),
