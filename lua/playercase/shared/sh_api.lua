@@ -699,10 +699,30 @@ function CaseInventory:LoadOverrides()
 	end
 	
 	local overrides = util.JSONToTable(file.Read("caseinv/overrides.json", "DATA"))
-
+	local updatedAmmo = false
 	
 	for k, v in pairs(overrides) do
-		local itemID = CaseInventory:GetItemID(k)
+		local itemName = k
+		local isOldAmmoName = string.sub(k, 0, 10) == "case_ammo_"
+		if isOldAmmoName then
+			local ammoID = tonumber(string.sub(k, 11))
+			if ammoID ~= nil then
+				local ammoName = game.GetAmmoName(ammoID)
+				if ammoName ~= nil then
+					local newItemName = "ammo_" .. ammoName
+
+					-- The register alreay exists....?
+					if CaseInventory.RegisterOverrides[newItemName] ~= nil then
+						continue
+					end
+					itemName = newItemName
+					print(string.format("RE4Case: Converted override for ammo %s -> %s", k, itemName))
+					updatedAmmo = true
+				end
+			end
+		end
+
+		local itemID = CaseInventory:GetItemID(itemName)
 		if itemID == -1 then
 			CaseInventory.GhostOverrides[k] = v
 		else
@@ -720,6 +740,10 @@ function CaseInventory:LoadOverrides()
 			-- Send it out just for singleplayer
 			CaseInventory:SendOverride(itemID)
 		end
+	end
+
+	if updatedAmmo then
+		CaseInventory:SaveOverrides()
 	end
 end
 
@@ -2258,7 +2282,9 @@ function CaseInventory:GenerateCustomItemInfo(name, printName, model, type)
 			{CASE_TAG_CUSTOM}
 		)
 	elseif type == CASE_CUSTOM_GLOW_ONLY then
-		return CaseGlowOnly(name)
+		local item = CaseGlowOnly(name)
+		item.PrintName = printName -- Apply this just for neatness
+		return item
 	end
 
 	return nil
@@ -2287,7 +2313,7 @@ function CaseInventory:SyncCustomItem(itemID, ply)
 			net.WriteBool(false) -- Don't delete
 			net.WriteString(info.Name)
 			net.WriteString(info.PrintName)
-			net.WriteString(info.RenderInfo.Model)
+			net.WriteString(info.RenderInfo ~= nil and info.RenderInfo.Model or "")
 			net.WriteUInt(CaseInventory.CustomItems[itemID].Type, 8)
 			net.WriteUInt(CaseInventory.CustomItems[itemID].CanUse, 8)
 		end

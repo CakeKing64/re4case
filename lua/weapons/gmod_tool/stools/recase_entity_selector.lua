@@ -7,7 +7,7 @@ TOOL.Information = {
 
 
 if CLIENT then
-	language.Add("tool.recase_entity_selector.name", "RE4 Case Item Editor")
+	language.Add("tool.recase_entity_selector.name", "RE4 Case Item Creator")
 	language.Add("tool.recase_entity_selector.left", "Select an entity")
 	language.Add("tool.recase_entity_selector.desc", "Sets up an entity in the item creator")
 end
