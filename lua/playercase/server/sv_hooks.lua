@@ -101,10 +101,55 @@ hook.Add("player_activate", "CASE_PlayerActivate", function (data)
 		end
 	until (remItemCount == 0)
 
-	for k, v in pairs(CaseInventory.AutoGenerateInfo) do
-		net.Start("CaseAutoGenWeapons")
-			net.WriteBool(false) -- Not done yet
-			net.WriteTable(v)
+	local count = 0
+	local rem = #CaseInventory.AutoGenerateInfo
+	local unsent = false
+	--[[
+				Type = net.ReadUInt(4),
+			Name = net.ReadString(),
+			PrintName = net.ReadString(),
+			Model = net.ReadString(),
+			Scale = net.ReadFloat(),
+			Rotation = {net.ReadFloat(), net.ReadFloat(), net.ReadFloat()},
+			Size = {net.ReadInt(8), net.ReadInt(8)},
+			Count = net.ReadUint(16)
+	]]
+
+	for k, autoItem in pairs(CaseInventory.AutoGenerateInfo) do
+		if not unsent then
+			net.Start("CaseAutoGenWeapons")
+			net.WriteBool(false)
+			net.WriteUInt(math.min(64, rem), 8)
+			unsent = true
+		end
+			net.WriteUInt(autoItem.Type, 4)
+			net.WriteString(autoItem.Name)
+			net.WriteString(autoItem.PrintName)
+			net.WriteString(autoItem.Model)
+			net.WriteFloat(autoItem.Scale)
+
+			net.WriteFloat(autoItem.Rotation[1])
+			net.WriteFloat(autoItem.Rotation[2])
+			net.WriteFloat(autoItem.Rotation[3])
+
+			net.WriteInt(autoItem.Size[1], 8)
+			net.WriteInt(autoItem.Size[2], 8)
+
+			net.WriteUInt(autoItem.Count, 16)
+			net.WriteInt(autoItem.AmmoID, 16)
+
+			count = count + 1
+
+		if count == 64 then
+			rem = rem - count
+			count = 0
+			unsent = false
+			net.Send(player)
+		end
+	end
+
+	-- Send off any remaning slop
+	if unsent then
 		net.Send(player)
 	end
 

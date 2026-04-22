@@ -342,6 +342,21 @@ net.Receive("CaseAutoGenWeapons", function ()
 		return
 	end
 
-	local itemInfo = net.ReadTable()
-	table.insert(CaseInventory.AutoGenerateInfo, itemInfo)
+	local count = net.ReadUInt(8)
+	for i=1, count do
+
+		local autoGen = {
+			Type = net.ReadUInt(4),
+			Name = net.ReadString(),
+			PrintName = net.ReadString(),
+			Model = net.ReadString(),
+			Scale = net.ReadFloat(),
+			Rotation = {net.ReadFloat(), net.ReadFloat(), net.ReadFloat()},
+			Size = {net.ReadInt(8), net.ReadInt(8)},
+			Count = net.ReadUInt(16),
+			AmmoID = net.ReadInt(16)
+		}
+		table.insert(CaseInventory.AutoGenerateInfo, autoGen)
+	end
+	
 end)

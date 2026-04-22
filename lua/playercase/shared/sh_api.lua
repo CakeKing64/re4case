@@ -1817,7 +1817,6 @@ function CaseInventory:AutoGenerate()
 	local wepList = table.Copy(weapons.GetList())
 	local ammoList = game.GetAmmoTypes()
 
-
 	-- We're about to push that big O to its limits fellas
 	-- Find out what is already registed and remove it from the todo list
 	for k, v in pairs(CaseInventory.ItemRegister) do
@@ -1852,17 +1851,22 @@ function CaseInventory:AutoGenerate()
 		end
 	end
 
-	for k, v in ipairs(wepList) do
+	for k, v in pairs(wepList) do
 		local world = v.WorldModel or "models/weapons/w_pistol.mdl"
 		CaseInventory:RegisterItem(CaseWeapon(v.ClassName, CaseRenderInfo(world), 3, 2, v.Name))
+		local name = v.ClassName
+		if v.PrintName ~= nil then
+			name = v.PrintName
+		end
 
 		table.insert(CaseInventory.AutoGenerateInfo, {
 			Type = CASE_AUTOGEN_WEAPON,
 			Name = v.ClassName,
+			AmmoID = -1,
 			Model = world,
 			Scale = 1,
 			Rotation = {0, 0, 0},
-			PrintName = v.Name,
+			PrintName = name,
 			Size = {3, 2},
 			Count = 1
 		})
@@ -1870,6 +1874,11 @@ function CaseInventory:AutoGenerate()
 
 	for k, v in pairs(ammoList) do
 		CaseInventory:RegisterItem(CaseAmmo(k,CaseRenderInfo("models/Items/357ammo.mdl", 1.3, {25, 180, 0}), 2, 1, 30))
+		local name = ""
+		if v.Name ~= nil then
+			name = v.Name
+		end
+
 		table.insert(CaseInventory.AutoGenerateInfo, {
 			Type = CASE_AUTOGEN_AMMO,
 			Name = "",
@@ -1877,7 +1886,7 @@ function CaseInventory:AutoGenerate()
 			Model = "models/Items/357ammo.mdl",
 			Scale = 1.3,
 			Rotation = {25, 180, 0},
-			PrintName = v.Name,
+			PrintName = name,
 			Size = {2, 1},
 			Count = 30
 		})

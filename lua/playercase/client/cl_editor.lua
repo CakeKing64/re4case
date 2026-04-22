@@ -91,7 +91,6 @@ function CaseEditor:Populate(panel)
 	end
 	self.ViewModel = panel:Button("Set To View Model")
 	self.ViewModel.DoClick = function ()
-		print(CaseInventory:GetItemInfo(CaseEditor.CurrentID).Name)
 		local info = weapons.Get(CaseInventory:GetItemInfo(CaseEditor.CurrentID).Name)
 		if info == nil then
 			return

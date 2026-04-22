@@ -90,6 +90,19 @@ CaseInventory.PickupQueue = {}
 
 CASE_AUTOGEN_WEAPON = 1
 CASE_AUTOGEN_AMMO = 2
+
+--[[[
+	Key/Values:
+		Type = uint4
+		Name = string
+		PrintName = string
+		Model = string
+		Scale = float
+		Rotation = 3x float
+		Size = 2x int8
+		Count = uint16
+		AmmoID = int16
+]]
 CaseInventory.AutoGenerateInfo = {}
 
 if CLIENT then
