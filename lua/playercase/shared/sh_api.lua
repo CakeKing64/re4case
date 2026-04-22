@@ -2010,6 +2010,10 @@ function CaseInventory:CanUse(ply, itemID, runHook)
 		return false
 	end
 
+	if itemInfo.OnUse == nil then
+		return false
+	end
+	
 	if itemInfo.CanUse == nil then
 		return true
 	end
