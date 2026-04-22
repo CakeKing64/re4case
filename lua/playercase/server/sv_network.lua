@@ -146,13 +146,28 @@ net.Receive("CaseCommandEvent", function (len, ply)
 		-- Now time to replicate this to all clients
 		CaseInventory:SendOverride(itemID)
 
-		-- As a little bonus if items can't fit now drop them on the floor
-		for k, v in ipairs(player.GetAll()) do
-			if not IsValid(v) then
+		-- Rearrange inventory for fun
+		for k, ply in ipairs(player.GetAll()) do
+			if not IsValid(ply) then
 				continue
 			end
 
-			CaseInventory:Sync(v)
+			CaseInventory:ClearLoadout(CaseInventory:Inv(ply))
+
+			for invID, invInfo in pairs(CaseInventory:Inv(ply).Items) do
+				if not CaseInventory:PlaceItem(CaseInventory:Inv(ply), k, invInfo) then
+					local found, x, y = CaseInventory:FindValidSpot(CaseInventory:Inv(ply), invInfo.ItemID)
+					if not found then
+						CaseInventory:DropItem(CaseInventory:Inv(ply), k, -1, ply, false)
+					else
+						invInfo.X = x
+						invInfo.Y = y
+						CaseInventory:PlaceItem(CaseInventory:Inv(ply), k, invInfo)
+					end
+				end
+			end
+			
+			CaseInventory:Sync(ply, true)
 		end
 
 		-- Save everything to disk
