@@ -676,6 +676,11 @@ function CaseInventory:GetItemInfo(id)
 
 			CaseInventory:SetOverride(id, reg)
 		end
+
+		if CaseInventory.RegisterOverrides[id].ItemID == nil then
+			CaseInventory.RegisterOverrides[id].ItemID = id
+		end
+		
 		return CaseInventory.RegisterOverrides[id]
 	end
 
@@ -683,6 +688,7 @@ function CaseInventory:GetItemInfo(id)
 	if CaseInventory.ItemRegister[id].ItemID == nil then
 		CaseInventory.ItemRegister[id].ItemID = id
 	end
+	
 
 	return CaseInventory.ItemRegister[id]
 end
@@ -873,6 +879,9 @@ function CaseInventory:SetOverride(itemID, info)
 
 	-- MaxCount
 	CaseInventory.RegisterOverrides[itemID].MaxCount = math.max(GetDefault(info.MaxCount, 1), 1) -- No less than 1
+
+	-- Just kinda make sure this is valid
+	CaseInventory.RegisterOverrides[itemID].ItemID = itemID
 
 	-- Blacklist
 	if (info.Blacklist) or (info.ItemType == CASE_ITEM_DO_NOT_HANDLE) then
