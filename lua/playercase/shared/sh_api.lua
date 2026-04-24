@@ -733,7 +733,7 @@ function CaseInventory:LoadOverrides()
 					Size=v.Size,
 					Blacklist=v.Blacklist,
 					MaxCount=v.MaxCount,
-					RenderInfo=CaseRenderInfo(v.Model, v.Scale, v.Rotations, v.Offset, 0, v.Skin)
+					RenderInfo=CaseRenderInfo(v.Model, v.Scale, v.Rotations, v.Offset, v.Skin)
 				}
 			)
 

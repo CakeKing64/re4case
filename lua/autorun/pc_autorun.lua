@@ -51,6 +51,7 @@ CASE_COMMAND_MERGE = 4
 	float rotationX
 	float rotationY
 	float rotationZ
+	int8 skin
 ]]
 CASE_COMMAND_SYNC_OVERRIDES = 5
 
