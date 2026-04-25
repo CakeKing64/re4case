@@ -66,10 +66,16 @@ function _CaseUIGetCell(arguments)
 	
 end
 
-function CaseGUI:Sync()
+function CaseGUI:Sync(dropItems)
+	if dropItems == nil then
+		dropItems = false
+	end
+
 	-- Start by dropping all items stored in the sorting menu
-	for k, v in pairs(self.InvTargets["SortingWindow"]:Inv().Items) do
-		CaseInventory.ClientNet.DropItem(k, -1, false)
+	if dropItems then
+		for k, v in pairs(self.InvTargets["SortingWindow"]:Inv().Items) do
+			CaseInventory.ClientNet.DropItem(k, -1, false)
+		end
 	end
 
 	CaseInventory.ClientNet.SyncItems()
@@ -77,7 +83,7 @@ end
 
 -- Sick cleanup
 function CaseGUI:Close()
-	self:Sync()
+	self:Sync(true)
 	self.SortingWindow:Close()
 	self.MainWindow:Close()
 	if self.Context.Panel ~= nil then
@@ -131,9 +137,9 @@ end
 
 local function _Use(info)
 	local itemInfo = info.ItemInfo
-	CaseInventory.ClientNet.UseItem(info.InvID, false) -- Request for the server to use the item
-	-- Cool line
+	CaseInventory.ClientNet.UseItem(info.InvID, true) -- Request for the server to use the item
 	
+	-- Cool line
 	local used, useCount = CaseInventory:UseItem(LocalPlayer(), info.InvID, false)
 	useCount = useCount and math.max(0, useCount) or 1
 	if used then
@@ -335,7 +341,7 @@ local function _windowOnKeyboardInput(self, keycode)
 
 	local use = input.LookupBinding("use") == input.GetKeyName(keycode)
 	if use and CaseInventory:CanUse(LocalPlayer(), invId) then
-		CaseInventory.ClientNet.UseItem(invId, false) -- Request for the server to use the item
+		CaseInventory.ClientNet.UseItem(invId, true) -- Request for the server to use the item
 		-- Cool line
 		local used, useCount = itemInfo.OnUse(LocalPlayer(), itemInfo, invId)
 		useCount = useCount and math.max(0, useCount) or 1

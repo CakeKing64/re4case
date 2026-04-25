@@ -412,7 +412,7 @@ function invpanel:OnMousePressed(keyCode)
 						self:Inv(),
 						CaseGUI.HeldItem.InvID,
 						destInvID,
-						false
+						true
 					)
 
 					if mergeResult then
@@ -445,6 +445,7 @@ function invpanel:OnMousePressed(keyCode)
 				then
 					CaseGUI.PlaySound("ui/re4case/case_putdown.wav", "ui/re4case/case_unequip.wav")
 					CaseGUI.HeldItem.InvID = -1
+					CaseGUI:Sync()
 					return
 				end
 			end

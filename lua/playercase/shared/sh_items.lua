@@ -226,11 +226,7 @@ function CaseCustomItemUse(ply, itemID)
 	ent:Spawn()
 	ply.CasePickup = ent
 	ent:SetPos(ply:GetPos())
-	timer.Simple(0, function()
-		if IsValid(ent) and IsValid(ply) then
-			ent:Use(ply, ply)
-		end
-	end)
+	ent:Use(ply, ply)
 	
 
 	return true

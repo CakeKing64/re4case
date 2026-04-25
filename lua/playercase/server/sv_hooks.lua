@@ -102,7 +102,7 @@ hook.Add("player_activate", "CASE_PlayerActivate", function (data)
 	until (remItemCount == 0)
 
 	local count = 0
-	local rem = #CaseInventory.AutoGenerateInfo
+	local rem = table.Count(CaseInventory.AutoGenerateInfo)
 	local unsent = false
 	--[[
 				Type = net.ReadUInt(4),

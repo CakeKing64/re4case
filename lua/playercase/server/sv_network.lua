@@ -17,9 +17,11 @@ function commands.SyncLocations(ply, toPlace)
 	
 
 	for k, v in pairs(plyCopy.Items) do
-		plyCopy.Items[k].X = toPlace[k].X
-		plyCopy.Items[k].Y = toPlace[k].Y
-		plyCopy.Items[k].Rotated = toPlace[k].Rotated
+		if toPlace[k] ~= nil then
+			plyCopy.Items[k].X = toPlace[k].X
+			plyCopy.Items[k].Y = toPlace[k].Y
+			plyCopy.Items[k].Rotated = toPlace[k].Rotated
+		end
 	end
 
 	for k, v in pairs(plyCopy.Items) do
@@ -52,7 +54,8 @@ net.Receive("CaseCommandEvent", function (len, ply)
 
 	if cmd == CASE_COMMAND_SYNC then
 		local newItems = {}
-		for k, v in pairs(CaseInventory:Inv(ply).Items) do
+		local count = math.min(net.ReadUInt(16), table.Count(CaseInventory:Inv(ply).Items))
+		for i=1, count do
 			local invId = net.ReadUInt(16)
 			local x = net.ReadUInt(8)
 			local y = net.ReadUInt(8)

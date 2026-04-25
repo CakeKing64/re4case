@@ -25,6 +25,7 @@ CaseInventory.ClientNet = {
 	SyncItems = function ()
 		net.Start("CaseCommandEvent")
 		net.WriteUInt(CASE_COMMAND_SYNC, 4)
+		net.WriteUInt(table.Count(CaseInventory:Inv().Items), 16)
 		for k, v in pairs(CaseInventory:Inv().Items) do
 			net.WriteUInt(k, 16)
 			net.WriteUInt(v.X, 8)
@@ -177,8 +178,29 @@ net.Receive("CaseSync", function ()
 	end
 	
 
-	if CaseGUI.IsOpen then -- fuck you re-do your sorting
-		CaseGUI.InvTargets["SortingWindow"]:Inv().Items = {}
+	if CaseGUI.IsOpen then
+		local sortingInv = CaseGUI.InvTargets["SortingWindow"]:Inv()
+
+		-- Sync up both the main inventory and the sorting window
+		for invID, sortInvInfo in pairs(sortingInv.Items) do
+			local invInfo = CaseInv(LocalPlayer()).Items[invID]
+
+			-- If an item was removed from the left, remove it from the sorting window
+			if invInfo == nil then
+				sortingInv.Items[invID] = nil
+				continue
+			end
+
+			-- An item exists both on both sides, make sure it's the same type
+			-- then remove it from the main case
+			-- Also sync the new count if something happened to it
+			if invInfo ~= nil and invInfo.ItemID == sortInvInfo.ItemID then
+				sortInvInfo.Count = invInfo.Count
+				CaseInv(LocalPlayer()).Items[invID] = nil
+			end
+		end
+
+		CaseInventory:RefreshLoadout(CaseInventory:Inv())
 		CaseInventory:RefreshLoadout(CaseGUI.InvTargets["SortingWindow"]:Inv())
 	end
 

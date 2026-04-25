@@ -1951,7 +1951,7 @@ function CaseInventory:FinalizeItemRegister()
 	end
 
 	if SERVER then
-		CaseInventory.CustomItemStart = #CaseInventory.ItemRegister + 1
+		CaseInventory.CustomItemStart = table.Count(CaseInventory.ItemRegister) + 1
 	end
 
 	CaseInventory:LoadCustomItems()
@@ -2285,7 +2285,7 @@ function CaseInventory:RemoveCustomItem(name)
 		end
 	end
 
-	for i=1, #CaseInventory.CustomItemOrder do
+	for i=1, table.Count(CaseInventory.CustomItemOrder) do
 		if CaseInventory.CustomItemOrder[i] == itemID then
 			table.remove(CaseInventory.CustomItemOrder, i)
 			break
