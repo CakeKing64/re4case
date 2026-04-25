@@ -1,18 +1,18 @@
 --[[
-    Some info, read if you're gonna add something :)
+	Some info, read if you're gonna add something :)
 
-    .OnUse/.CanUse are given three arguments, the player, the info table and the inventoryID
-    (the inventoryID will be -1 if not yet in the inventory!), you'll probably only need to use the player but do whatever
-    BOTH are used client and serverside
+	.OnUse/.CanUse are given three arguments, the player, the info table and the inventoryID
+	(the inventoryID will be -1 if not yet in the inventory!), you'll probably only need to use the player but do whatever
+	BOTH are used client and serverside
 
-    .CanUse returns true or false
-    You can set CanUse to nil to indicate always usable
+	.CanUse returns true or false
+	You can set CanUse to nil to indicate always usable
 
-    .OnUse can return two items, a boolean (true/false) to indicate if an item was used and a number to indicate how many were used (optional, will default to 1)
-    It will also be called both CLIENTSIDE AND SERVERSIDE
-    clientside is ONLY used to calculate if the item would've actually been used, make sure to account for this :)
+	.OnUse can return two items, a boolean (true/false) to indicate if an item was used and a number to indicate how many were used (optional, will default to 1)
+	It will also be called both CLIENTSIDE AND SERVERSIDE
+	clientside is ONLY used to calculate if the item would've actually been used, make sure to account for this :)
 
-    You might want to set the player variable .CasePickup to the entity you want them to pickup instantly if you're gonna spawn the item to pickup
+	You might want to set the player variable .CasePickup to the entity you want them to pickup instantly if you're gonna spawn the item to pickup
 
 ]]
 CASE_ITEM_GENERIC       = 0 -- :Use will be called when picking up normally, holding Alt/walk will add it to inventory (useful for healing/armor)
@@ -45,25 +45,25 @@ CASE_TAG_CUSTOM = "custom"
 ---@param printName string?
 ---@param tags table?
 function CaseItem(name, sizeW, sizeH, maxSize, itemType, onUse, canUse, ammoID, renderInfo, printName, tags)
-    return {
-        Name=name,
-        PrintName=printName,
-        Size={
-            W=sizeW,
-            H=sizeH
-        },
-        OnUse=onUse,
-        CanUse=canUse,
-        AmmoID=ammoID,
-        MaxCount=maxSize,
-        ItemType=itemType,
-        RenderInfo=renderInfo or CaseRenderInfo(
-            "models/error",
-            1,
-            {0,0,0}
-        ),
-        Tags= tags or {}
-    }
+	return {
+		Name=name,
+		PrintName=printName,
+		Size={
+			W=sizeW,
+			H=sizeH
+		},
+		OnUse=onUse,
+		CanUse=canUse,
+		AmmoID=ammoID,
+		MaxCount=maxSize,
+		ItemType=itemType,
+		RenderInfo=renderInfo or CaseRenderInfo(
+			"models/error",
+			1,
+			{0,0,0}
+		),
+		Tags= tags or {}
+	}
 end
 
 ---@param model string?
@@ -73,21 +73,21 @@ end
 ---@param skin integer? Skin to use
 ---@return table
 function CaseRenderInfo(model, scale, rotVec, offset, skin)
-    if type(offset) == "table" then
-        offset = Vector(
-            offset[1] ~= nil and offset[1] or 0,
-            offset[2] ~= nil and offset[2] or 0,
-            offset[3] ~= nil and offset[3] or 0
-        )
-    end
+	if type(offset) == "table" then
+		offset = Vector(
+			offset[1] ~= nil and offset[1] or 0,
+			offset[2] ~= nil and offset[2] or 0,
+			offset[3] ~= nil and offset[3] or 0
+		)
+	end
 
-    return {
-        Model = model or "",
-        Scale = scale or 1, -- Ok to be nil
-        Rotations = rotVec or {0, 0, 0},
-        Offset = offset or Vector(0, 0),
-        Skin = skin or 0
-    }
+	return {
+		Model = model or "",
+		Scale = scale or 1, -- Ok to be nil
+		Rotations = rotVec or {0, 0, 0},
+		Offset = offset or Vector(0, 0),
+		Skin = skin or 0
+	}
 
 
 end
@@ -102,13 +102,13 @@ end
 ---@param tags table?
 ---@return table
 function CaseGeneric(name, printName, renderInfo, sizeW, sizeH, maxSize, tags)
-    local tags2 = {}
-    if tags ~= nil then
-        tags2 = table.Copy(tags)
-    end
-    table.insert(tags2, CASE_TAG_ITEM)
+	local tags2 = {}
+	if tags ~= nil then
+		tags2 = table.Copy(tags)
+	end
+	table.insert(tags2, CASE_TAG_ITEM)
 
-    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GENERIC, nil, nil, -1, renderInfo, printName, tags2)
+	return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GENERIC, nil, nil, -1, renderInfo, printName, tags2)
 end
 
 ---Usable item
@@ -123,13 +123,13 @@ end
 ---@param tags table?
 ---@return table
 function CaseConsumable(name, printName, renderInfo, sizeW, sizeH, maxSize, onUse, canUse, tags)
-    local tags2 = {}
-    if tags ~= nil then
-        tags2 = table.Copy(tags)
-    end
-    table.insert(tags2, CASE_TAG_CONSUMABLE)
+	local tags2 = {}
+	if tags ~= nil then
+		tags2 = table.Copy(tags)
+	end
+	table.insert(tags2, CASE_TAG_CONSUMABLE)
 
-    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GENERIC, onUse, canUse, -1, renderInfo,  printName, tags2)
+	return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GENERIC, onUse, canUse, -1, renderInfo,  printName, tags2)
 end
 
 ---Weapon :)
@@ -141,13 +141,13 @@ end
 ---@param tags table?
 ---@return table
 function CaseWeapon(name, renderInfo, sizeW, sizeH, printName, tags)
-    local tags2 = {}
-    if tags ~= nil then
-        tags2 = table.Copy(tags)
-    end
-    table.insert(tags2, CASE_TAG_WEAPON)
+	local tags2 = {}
+	if tags ~= nil then
+		tags2 = table.Copy(tags)
+	end
+	table.insert(tags2, CASE_TAG_WEAPON)
 
-    return CaseItem(name, sizeW, sizeH, 1, CASE_ITEM_WEAPON, nil, nil,-1, renderInfo, printName, tags2)
+	return CaseItem(name, sizeW, sizeH, 1, CASE_ITEM_WEAPON, nil, nil,-1, renderInfo, printName, tags2)
 end
 
 ---Creates a grenade :)
@@ -160,14 +160,14 @@ end
 ---@param tags table?
 ---@return table
 function CaseGrenade(name, renderInfo, sizeW, sizeH, maxSize, grenadeAmmo, tags)
-    local tags2 = {}
-    if tags ~= nil then
-        tags2 = table.Copy(tags)
-    end
-    table.insert(tags2, CASE_TAG_WEAPON)
-    table.insert(tags2, CASE_TAG_GRENADE)
+	local tags2 = {}
+	if tags ~= nil then
+		tags2 = table.Copy(tags)
+	end
+	table.insert(tags2, CASE_TAG_WEAPON)
+	table.insert(tags2, CASE_TAG_GRENADE)
 
-    return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GRENADE, nil, nil, grenadeAmmo, renderInfo, game.GetAmmoName( grenadeAmmo ), tags2)
+	return CaseItem(name, sizeW, sizeH, maxSize, CASE_ITEM_GRENADE, nil, nil, grenadeAmmo, renderInfo, game.GetAmmoName( grenadeAmmo ), tags2)
 end
 
 ---Creates ammo
@@ -179,20 +179,20 @@ end
 ---@param printName string?
 ---@return table|nil
 function CaseAmmo(ammoID, renderInfo, sizeW, sizeH, maxSize, printName)
-    if type(ammoID) == "string" then
-        ammoID = game.GetAmmoID(ammoID)
-    end
+	if type(ammoID) == "string" then
+		ammoID = game.GetAmmoID(ammoID)
+	end
 
-    if ammoID == -1 then
-        return nil
-    end
-    local ammoName = game.GetAmmoName(ammoID)
+	if ammoID == -1 then
+		return nil
+	end
+	local ammoName = game.GetAmmoName(ammoID)
 
 
-    if printName == nil and not SERVER then
-        printName = CaseInventory:TryLocalize(game.GetAmmoName( ammoID ) .. "_ammo")
-    end
-    return CaseItem("ammo_" .. ammoName, sizeW, sizeH, maxSize, CASE_ITEM_AMMO, nil, nil, ammoID, renderInfo, printName, {CASE_TAG_AMMO})
+	if printName == nil and not SERVER then
+		printName = CaseInventory:TryLocalize(game.GetAmmoName( ammoID ) .. "_ammo")
+	end
+	return CaseItem("ammo_" .. ammoName, sizeW, sizeH, maxSize, CASE_ITEM_AMMO, nil, nil, ammoID, renderInfo, printName, {CASE_TAG_AMMO})
 end
 
 function CaseGlowOnly(name)
@@ -200,48 +200,53 @@ function CaseGlowOnly(name)
 end
 
 function CaseDoNotHandle(name)
-    return CaseItem(name, 0, 0, 0, CASE_ITEM_DO_NOT_HANDLE, nil, nil, -1, {}, "") 
+	return CaseItem(name, 0, 0, 0, CASE_ITEM_DO_NOT_HANDLE, nil, nil, -1, {}, "") 
 end
 
 
 -- Custom item stuff
 
 function CaseCustomItemUse(ply, itemID)
-    if CLIENT then
+	if CLIENT then
 		return true
 	end
 
-    local info = CaseInventory:GetItemInfo(itemID)
-    if info == nil then
-        return false
-    end
+	local info = CaseInventory:GetItemInfo(itemID)
+	if info == nil then
+		return false
+	end
 
 	local ent = ents.Create(info.Name)
 
-    -- Unlucky?
-    if not IsValid(ent) then
-        return false
-    end
+	-- Unlucky?
+	if not IsValid(ent) then
+		return false
+	end
 
 	ent:Spawn()
 	ply.CasePickup = ent
 	ent:SetPos(ply:GetPos())
-	ent:Use(ply, ply)
+	timer.Simple(0, function()
+		if IsValid(ent) and IsValid(ply) then
+			ent:Use(ply, ply)
+		end
+	end)
+	
 
 	return true
 end
 
 function CaseCustomItemCanUse(ply, itemID)
-    local custom = CaseInventory.CustomItems[itemID]
-    if custom.Type ~= CASE_CUSTOM_CONSUMABLE then
-        return false
-    end
+	local custom = CaseInventory.CustomItems[itemID]
+	if custom.Type ~= CASE_CUSTOM_CONSUMABLE then
+		return false
+	end
 
-    if custom.CanUse == CASE_CUSTOM_USE_ALWAYS then
-        return true
-    elseif custom.CanUse == CASE_CUSTOM_USE_HEALTH then
-        return ply:Health() < ply:GetMaxHealth()
-    elseif custom.CanUse == CASE_CUSTOM_USE_ARMOR then
-        return ply:Armor() < ply:GetMaxArmor()
-    end
+	if custom.CanUse == CASE_CUSTOM_USE_ALWAYS then
+		return true
+	elseif custom.CanUse == CASE_CUSTOM_USE_HEALTH then
+		return ply:Health() < ply:GetMaxHealth()
+	elseif custom.CanUse == CASE_CUSTOM_USE_ARMOR then
+		return ply:Armor() < ply:GetMaxArmor()
+	end
 end
