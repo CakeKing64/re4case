@@ -917,11 +917,21 @@ function CaseInventory:CreateItemInfo(itemId, count, rotated, x, y)
 		Y=y
 	}
 end
----Returns true/false if an item is registered
----@param name string
+
+---Is this item supposed to be stored?
+---@param itemID number
 ---@return boolean
-function CaseInventory:IsValid(name)
-	return self:GetItemID(name) ~= -1
+function CaseInventory:IsStorable(itemID)
+	local info = CaseInventory:GetItemInfo(itemID)
+	if info == nil then
+		return false
+	end
+
+	if info.Type == CASE_ITEM_DO_NOT_HANDLE or info.Type == CASE_ITEM_GLOW_ONLY then
+		return false
+	end
+
+	return true
 end
 
 ---Fetches and itemID based off source ammoID
@@ -2188,6 +2198,16 @@ function CaseInventory:UpdateCustomItem(name, printName, itemType, canUseConditi
 	local item = CaseInventory:GenerateCustomItemInfo(name, printName, CaseInventory.ItemRegister[itemID].RenderInfo.Model, itemType)
 	if item == nil then
 		return
+	end
+
+	if itemType == CASE_CUSTOM_GLOW_ONLY then
+		for _, ply in ipairs(player.GetAll()) do
+			for invID, invInfo in pairs(CaseInv(ply).Items) do
+				if invInfo.ItemID == itemID then
+					CaseInventory:DropItem(CaseInv(ply), invID, invInfo.Count, ply, true)
+				end
+			end
+		end
 	end
 
 	item.ItemID = itemID
