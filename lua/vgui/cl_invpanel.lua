@@ -280,8 +280,8 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
 	local _count = 0
 	local _countStatus = 0 -- 1 == Empty, 2 = Neither empty or full, 3 = Full, 4 = Don't draw count
 
-	if IsValid(self:Inv().Player) and itemInfo.ItemType == CASE_ITEM_WEAPON and self:Inv().Player:HasWeapon(itemInfo.Name) then
-		local player = self:Inv().Player
+	if IsValid(LocalPlayer()) and itemInfo.ItemType == CASE_ITEM_WEAPON and LocalPlayer():HasWeapon(itemInfo.Name) then
+		local player = LocalPlayer()
 		local wpn = player:GetWeapon(itemInfo.Name)
 		if not IsValid(wpn) then
 			_count = 0
