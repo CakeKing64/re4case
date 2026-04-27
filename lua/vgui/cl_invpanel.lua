@@ -28,9 +28,6 @@ function invpanel:InvH()
 end
 
 function invpanel:Inv()
-	if self.InvTarget.Player ~= nil then
-		return CaseInv(self.InvTarget.Player)
-	end
 	return self.InvTarget
 end
 

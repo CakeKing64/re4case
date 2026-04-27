@@ -43,7 +43,10 @@ CaseGUI = {
 		surface.PlaySound(sound)
 	end,
 	ModelCache={},
-	CaseFPS = CreateClientConVar("case_cl_menu_fps", "40", true, false, "Framerate at which the case menu should be drawn", 0, 999)
+	CaseFPS = CreateClientConVar("case_cl_menu_fps", "40", true, false, "Framerate at which the case menu should be drawn", 0, 999),
+
+	-- Me when i lie
+	FakePlayerInv = {}
 }
 
 -- The bane of GUI progammers world wide
@@ -78,6 +81,8 @@ function CaseGUI:Sync(dropItems)
 		end
 	end
 
+	-- Copy over all our work and sync
+	CaseInv(LocalPlayer()).Items = CaseGUI.FakePlayerInv.Items
 	CaseInventory.ClientNet.SyncItems()
 end
 
@@ -408,7 +413,9 @@ function CaseGUI.OpenInventory()
 
 	local scaleW, scaleH = _CaseUIGetScaledDiff()
 	local mwX, mwY = 0, 0 
-	CaseGUI.MainWindow = _createWindow("MainWindow", CaseInv(LocalPlayer()), true, true, "MainWindow")
+
+	CaseGUI.FakePlayerInv = table.Copy(CaseInv(LocalPlayer()))
+	CaseGUI.MainWindow = _createWindow("MainWindow", CaseGUI.FakePlayerInv , true, true, "MainWindow")
 	CaseGUI.MainWindow:Center()
 
 	mwX, mwY = CaseGUI.MainWindow:GetPos()
@@ -451,6 +458,11 @@ function CaseGUI.OpenInventory()
 	if CaseGUI.ShouldPlaySounds:GetBool() then
 		CaseGUI.PlaySound("ui/re4case/case_open.wav")
 	end
+end
+
+-- How kind
+function CaseGUI:OnSyncEvent()
+	
 end
 
 concommand.Add("case_open", CaseGUI.OpenInventory)

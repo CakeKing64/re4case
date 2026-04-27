@@ -179,29 +179,80 @@ net.Receive("CaseSync", function ()
 	
 
 	if CaseGUI.IsOpen then
+		local realInv = CaseInv(LocalPlayer())
+		local fakeInv = CaseGUI.InvTargets["MainWindow"]:Inv()
 		local sortingInv = CaseGUI.InvTargets["SortingWindow"]:Inv()
 
-		-- Sync up both the main inventory and the sorting window
-		for invID, sortInvInfo in pairs(sortingInv.Items) do
-			local invInfo = CaseInv(LocalPlayer()).Items[invID]
-
-			-- If an item was removed from the left, remove it from the sorting window
-			if invInfo == nil then
-				sortingInv.Items[invID] = nil
-				continue
-			end
-
-			-- An item exists both on both sides, make sure it's the same type
-			-- then remove it from the main case
-			-- Also sync the new count if something happened to it
-			if invInfo ~= nil and invInfo.ItemID == sortInvInfo.ItemID then
-				sortInvInfo.Count = invInfo.Count
-				CaseInv(LocalPlayer()).Items[invID] = nil
+		-- Nuke any items that don't exist in the actual inventory any more
+		for invID, invInfo in pairs(fakeInv.Items) do
+			if realInv.Items[invID] == nil then
+				fakeInv.Items[invID] = nil
 			end
 		end
 
-		CaseInventory:RefreshLoadout(CaseInventory:Inv())
-		CaseInventory:RefreshLoadout(CaseGUI.InvTargets["SortingWindow"]:Inv())
+		for invID, invInfo in pairs(sortingInv.Items) do
+			if realInv.Items[invID] == nil then
+				sortingInv.Items[invID] = nil
+			end
+		end
+
+		local resyncSorting = false
+		-- Sync up items
+		for invID, invInfo in pairs(realInv.Items) do
+			local exists = fakeInv.Items[invID] ~= nil or sortingInv.Items[invID] ~= nil
+			local usedInvInfo = nil
+
+			-- Doesn't actually exist at all :(
+			-- This means the item was added while the inventory was open
+			if not exists then
+				resyncSorting = true
+				fakeInv.Items = table.Copy(realInv.Items)
+				break
+			end
+
+			if fakeInv.Items[invID] ~= nil then
+				print("Using fakeInv")
+				usedInvInfo = fakeInv.Items[invID]
+			end
+
+			if sortingInv.Items[invID] ~= nil then
+				print("Using sortingInv")
+				usedInvInfo = sortingInv.Items[invID]
+			end
+
+			--????
+			if usedInvInfo == nil then
+				continue
+			end
+
+			usedInvInfo.Count = invInfo.Count
+		end
+
+		-- This will only happen if a new item was picked up while the inventory was open
+		-- like 100% chance it's ammo so yay
+		if resyncSorting then
+			for invID, sortInvInfo in pairs(sortingInv.Items) do
+				local invInfo = CaseInv(LocalPlayer()).Items[invID]
+
+				-- If an item was removed from the left, remove it from the sorting window
+				if invInfo == nil then
+					sortingInv.Items[invID] = nil
+					continue
+				end
+
+				-- An item exists both on both sides, make sure it's the same type
+				-- then remove it from the main case
+				-- Also sync the new count if something happened to it
+				if invInfo ~= nil and invInfo.ItemID == sortInvInfo.ItemID then
+					sortInvInfo.Count = invInfo.Count
+					fakeInv.Items[invID] = nil
+				end
+			end
+		end
+
+		-- Finally apply what we've done
+		CaseInventory:RefreshLoadout(fakeInv)
+		CaseInventory:RefreshLoadout(sortingInv)
 	end
 
 end)
