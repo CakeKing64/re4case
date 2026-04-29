@@ -1,4 +1,5 @@
 local cvar_draw_names = CreateClientConVar("case_cl_draw_weapon_names", "1", true, false, "Should item names be shown in the case?", 0, 1)
+local cvar_prefer_sprites = CreateClientConVar("case_cl_prefer_sprites", "0", true, false, "Try to use sprites always", 0, 2)
 --local cvar_play_sound = CreateClientConVar("case_play_sounds", "1", true, false, "Should sounds be played?", 0, 1)
 
 local invpanel = {}
@@ -252,8 +253,8 @@ function invpanel:DrawSprite(itemID, invId, gridX, gridY, gridW, gridH, isRotate
 		local spritePath = string.format("caseicons/%s.png", itemInfo.Name)
 		local mat = GetMaterial(spritePath)
 
-		-- Does is this a weapon?
-		if mat == nil and CaseInventory:HasTag(itemID, "weapon") then
+		-- Try to use spawn icons
+		if mat == nil and CaseInventory:HasTag(itemID, "weapon") and cvar_prefer_sprites:GetInt() == 2 then
 			local wep = weapons.Get(itemInfo.Name)
 
 			if wep ~= nil then
@@ -420,7 +421,8 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
 
 
 	-- Actually draw the damn thing
-	if not renderInfo.UseSprite then
+	print(cvar_prefer_sprites:GetInt())
+	if not renderInfo.UseSprite and cvar_prefer_sprites:GetInt() == 0 then
 		self:DrawModel(itemID, invId, gridX, gridY, gridW, gridH, isRotated)
 	else
 		self:DrawSprite(itemID, invId, gridX, gridY, gridW, gridH, isRotated)

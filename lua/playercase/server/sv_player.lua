@@ -65,7 +65,7 @@ local function AllowPickup(ply, ent)
 
 
 	-- Entity was created this frame directly on the player
-	if cvar_frame0:GetBool() and CurTime() - ent:GetCreationTime() == 0 and ent:GetPos() == ply:GetPos() then
+	if cvar_frame0:GetBool() and CurTime() - ent:GetCreationTime() < 0.017 and ent:GetPos() == ply:GetPos() then
 		return true
 	end
 
