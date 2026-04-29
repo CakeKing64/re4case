@@ -7,6 +7,8 @@ invpanel.IsMainPanel = false
 invpanel.LastHoveredItem = -1
 invpanel.RT = nil
 invpanel.RTMat = nil
+invpanel.ItemRT = nil
+invpanel.ItemRTMat = nil
 invpanel.NextDrawTime = 0
 
 AccessorFunc(invpanel, "bHasItems", "HasItems")
@@ -101,19 +103,7 @@ function invpanel:DrawGrid(w, h)
 	end
 end
 
---- Some of this shamelessly stolen from<br>
---- https://github.com/Facepunch/garrysmod/blob/master/garrysmod/lua/vgui/dmodelpanel.lua
---- https://github.com/louiefox/tetris-inventory/blob/master/lua/vgui/tetris_inv_main.lua
----@param itemID integer
----@param invId integer
----@param gridX integer
----@param gridY integer griddy heh
----@param gridW integer
----@param gridH integer
----@param isRotated boolean
----@param count integer
----@param isHeld boolean
-function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated, count, isHeld)
+function invpanel:DrawModel(itemID, invId, gridX, gridY, gridW, gridH, isRotated)
 	local screenW, screenH = _CaseUIGetScaledSize()
 	local scaleW, scaleH = _CaseUIGetScaledDiff()
 	local posX, posY = self:LocalToScreen(self:GetPos())
@@ -146,55 +136,7 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
 	end
 
 
-	local contextHover = CaseGUI.Context.Panel ~= nil and (CaseGUI.Context.Panel:IsHovered() or CaseGUI.Context.Panel:IsChildHovered())
 
-	if invId == CaseGUI.HeldItem.InvID  then
-		local canMove, willSwap = CaseInventory:MoveItem(
-			CaseGUI.HeldItem.SourceWindow:Inv(),
-			CaseGUI.HeldItem.InvID,
-			CaseGUI.HoveredWindow:Inv(),
-			CaseGUI.HeldItem.X,
-			CaseGUI.HeldItem.Y,
-			CaseGUI.HeldItem.Rotated,
-			true
-		)
-
-		-- wait i HATE performance
-		if not canMove then
-			--[[local mx, my = self:GetMouseSlot(true)
-			canMove, willSwap = CaseInventory:MoveItem(
-				CaseGUI.HeldItem.SourceWindow:Inv(),
-				CaseGUI.HeldItem.InvID,
-				CaseGUI.HoveredWindow:Inv(),
-				mx,
-				my,
-				CaseGUI.HeldItem.Rotated,
-				true
-			)]]
-		end
-
-		-- surface.SetDrawColor(Color(128, 128, 128, 128))
-		if canMove and not willSwap then
-			surface.SetDrawColor(Color(0, 128, 0, 128))
-		elseif canMove and willSwap then
-			surface.SetDrawColor(Color(0, 128, 128, 128))
-		else
-			surface.SetDrawColor(Color(128, 0, 0, 128))
-		end
-		
-	elseif CaseGUI.HeldItem.InvID == -1 and invId == self:GetMouseItem() and not contextHover then
-		surface.SetDrawColor(Color(128, 128, 128, 128))
-	else
-		surface.SetDrawColor(Color(25,25,25, 200))
-	end
-	
-	surface.DrawRect(
-		baseX + (__CASE_UI_CELL_SIZE * (gridX-1) * scaleW) + (5 * scaleW),
-		baseY + (__CASE_UI_CELL_SIZE * (gridY-1) * scaleH) + (5 * scaleH),
-		_w - (7.5 * scaleW),
-		_h - (7.5 * scaleH)
-	 )
-	 surface.SetDrawColor(Color(0,0,0, 255))
 
 
 	if IsValid(model) then
@@ -271,6 +213,217 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
 
 
 		render.SetScissorRect( 0, 0, 0, 0, false )
+	end
+	
+end
+
+function invpanel:DrawSprite(itemID, invId, gridX, gridY, gridW, gridH, isRotated)
+	local screenW, screenH = _CaseUIGetScaledSize()
+	local scaleW, scaleH = _CaseUIGetScaledDiff()
+	local posX, posY = self:LocalToScreen(self:GetPos())
+	local itemInfo = CaseInventory:GetItemInfo(itemID)
+	local renderInfo = itemInfo.RenderInfo
+
+	local _x, _y, _w, _h = 
+	(__CASE_UI_BORDER*scaleW) + (__CASE_UI_CELL_SIZE * (gridX-1) * scaleW),
+	(__CASE_UI_BORDER*scaleH) + (__CASE_UI_CELL_SIZE * (gridY-1) * scaleH),
+	__CASE_UI_CELL_SIZE * gridW * scaleW,
+	__CASE_UI_CELL_SIZE * gridH * scaleH
+
+		--[[
+	if isRotated then
+		local tw = _w
+		_w = _h
+		_h = tw
+
+	end
+	]]
+
+	local function GetMaterial(path)
+		local mat = Material(path, "noclamp smooth ignorez")
+		if mat:IsError() then
+			return nil
+		end
+
+		return {Material = mat}
+	end
+
+	if CaseGUI.SpriteCache[itemID] == nil then
+		local spritePath = string.format("caseicons/%s.png", itemInfo.Name)
+		local mat = GetMaterial(spritePath)
+
+		-- Does is this a weapon?
+		if mat == nil and CaseInventory:HasTag(itemID, "weapon") then
+			local wep = weapons.Get(itemInfo.Name)
+
+			if wep ~= nil then
+				if wep.DrawWeaponSelection ~= nil then
+					mat = {DrawIcon=wep.DrawWeaponSelection}
+				end
+
+				if wep == nil then
+					mat = {}
+				elseif mat == nil then
+					mat = {Texture=wep.WepSelectIcon}
+				end
+				
+			end
+		end
+
+		if mat == nil then
+			mat = {}
+		end
+
+		CaseGUI.SpriteCache[itemID] = mat
+	end
+
+	local mat = CaseGUI.SpriteCache[itemID]
+
+	if mat.DrawIcon ~= nil then
+
+		-- Draw the icon to the top left of the render texture
+		render.PushRenderTarget(self.ItemRT)
+		cam.Start2D()
+		render.SetViewPort( 0, 0, ScrW(), ScrH())
+		render.Clear(0, 0, 0, 0, true, true)
+		LocalPlayer():GetWeapon(itemInfo.Name):DrawWeaponSelection(0, 0, _w, _h, 255)
+		cam.End2D()
+		render.PopRenderTarget()
+
+
+		
+		--
+
+		surface.SetDrawColor(255, 255, 255)
+		surface.SetMaterial(self.ItemRTMat)
+
+		
+		if not isRotated then
+			render.SetScissorRect( posX + _x, posY + _y,  posX + _x + _w, posY + _y + _h, true)
+			surface.DrawTexturedRect(_x, _y, ScrW(), ScrH())
+		else
+			-- Make sure to swap width and height because we are rotated here!
+			-- But it works no?
+
+			render.SetScissorRect( posX + _x, posY + _y,  posX + _x + _h, posY + _y + _w, true)
+
+			local xOffset = (-ScrH()) + _h
+			surface.DrawTexturedRectRotated(_x + ( ScrH() / 2 ) + xOffset, _y + (ScrW() / 2), ScrW(),ScrH(), 270)
+		end
+		render.SetScissorRect( 0, 0, 0, 0, false)
+		
+	elseif mat.Texture ~= nil then
+		surface.SetTexture(mat.Texture)
+	elseif mat.Material ~= nil then
+		surface.SetMaterial(mat.Material)
+	else
+		return self:DrawModel(itemID, invId, gridX, gridY, gridW, gridH, isRotated)
+	end
+	
+	surface.SetDrawColor(255, 255, 255)
+
+	if mat.DrawIcon == nil then
+		if not isRotated then
+			surface.DrawTexturedRectUV( _x, _y, _w, _h, 0, 0, 1, 1)
+		else
+			surface.DrawTexturedRectRotated( _x + (_h/2), _y + (_w/2), _w, _h, 270)
+		end
+	end
+end
+
+--- Some of this shamelessly stolen from<br>
+--- https://github.com/Facepunch/garrysmod/blob/master/garrysmod/lua/vgui/dmodelpanel.lua
+--- https://github.com/louiefox/tetris-inventory/blob/master/lua/vgui/tetris_inv_main.lua
+---@param itemID integer
+---@param invId integer
+---@param gridX integer
+---@param gridY integer griddy heh
+---@param gridW integer
+---@param gridH integer
+---@param isRotated boolean
+---@param count integer
+---@param isHeld boolean
+function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated, count, isHeld)
+	local screenW, screenH = _CaseUIGetScaledSize()
+	local scaleW, scaleH = _CaseUIGetScaledDiff()
+	local posX, posY = self:LocalToScreen(self:GetPos())
+	local itemInfo = CaseInventory:GetItemInfo(itemID)
+	local renderInfo = itemInfo.RenderInfo
+
+	local baseX, baseY = __CASE_UI_BORDER*scaleW, (__CASE_UI_BORDER*scaleH)
+
+
+	local _x, _y, _w, _h = 
+		posX + (__CASE_UI_BORDER*scaleW) + (__CASE_UI_CELL_SIZE * (gridX-1) * scaleW),
+		posY+ (__CASE_UI_BORDER*scaleH) + (__CASE_UI_CELL_SIZE * (gridY-1) * scaleH),
+		__CASE_UI_CELL_SIZE * gridW * scaleW,
+		__CASE_UI_CELL_SIZE * gridH * scaleH
+
+	if isRotated then
+		local tw = _w
+		_w = _h
+		_h = tw
+
+	end
+
+	-- Draw the background
+	local contextHover = CaseGUI.Context.Panel ~= nil and (CaseGUI.Context.Panel:IsHovered() or CaseGUI.Context.Panel:IsChildHovered())
+
+	if invId == CaseGUI.HeldItem.InvID  then
+		local canMove, willSwap = CaseInventory:MoveItem(
+			CaseGUI.HeldItem.SourceWindow:Inv(),
+			CaseGUI.HeldItem.InvID,
+			CaseGUI.HoveredWindow:Inv(),
+			CaseGUI.HeldItem.X,
+			CaseGUI.HeldItem.Y,
+			CaseGUI.HeldItem.Rotated,
+			true
+		)
+
+		-- wait i HATE performance
+		if not canMove then
+			--[[local mx, my = self:GetMouseSlot(true)
+			canMove, willSwap = CaseInventory:MoveItem(
+				CaseGUI.HeldItem.SourceWindow:Inv(),
+				CaseGUI.HeldItem.InvID,
+				CaseGUI.HoveredWindow:Inv(),
+				mx,
+				my,
+				CaseGUI.HeldItem.Rotated,
+				true
+			)]]
+		end
+
+		-- surface.SetDrawColor(Color(128, 128, 128, 128))
+		if canMove and not willSwap then
+			surface.SetDrawColor(Color(0, 128, 0, 128))
+		elseif canMove and willSwap then
+			surface.SetDrawColor(Color(0, 128, 128, 128))
+		else
+			surface.SetDrawColor(Color(128, 0, 0, 128))
+		end
+		
+	elseif CaseGUI.HeldItem.InvID == -1 and invId == self:GetMouseItem() and not contextHover then
+		surface.SetDrawColor(Color(128, 128, 128, 128))
+	else
+		surface.SetDrawColor(Color(25,25,25, 200))
+	end
+	
+	surface.DrawRect(
+		baseX + (__CASE_UI_CELL_SIZE * (gridX-1) * scaleW) + (5 * scaleW),
+		baseY + (__CASE_UI_CELL_SIZE * (gridY-1) * scaleH) + (5 * scaleH),
+		_w - (7.5 * scaleW),
+		_h - (7.5 * scaleH)
+	 )
+	 surface.SetDrawColor(Color(0,0,0, 255))
+	 
+
+
+	-- Actually draw the damn thing
+	if not renderInfo.UseSprite then
+		self:DrawModel(itemID, invId, gridX, gridY, gridW, gridH, isRotated)
+	else
+		self:DrawSprite(itemID, invId, gridX, gridY, gridW, gridH, isRotated)
 	end
 	
 	-- Draw either item count or ammo loaded into the weapon

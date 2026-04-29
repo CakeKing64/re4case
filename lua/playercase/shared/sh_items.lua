@@ -86,7 +86,8 @@ function CaseRenderInfo(model, scale, rotVec, offset, skin)
 		Scale = scale or 1, -- Ok to be nil
 		Rotations = rotVec or {0, 0, 0},
 		Offset = offset or Vector(0, 0),
-		Skin = skin or 0
+		Skin = skin or 0,
+		UseSprite = false
 	}
 
 

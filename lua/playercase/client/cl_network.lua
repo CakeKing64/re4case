@@ -211,12 +211,10 @@ net.Receive("CaseSync", function ()
 			end
 
 			if fakeInv.Items[invID] ~= nil then
-				print("Using fakeInv")
 				usedInvInfo = fakeInv.Items[invID]
 			end
 
 			if sortingInv.Items[invID] ~= nil then
-				print("Using sortingInv")
 				usedInvInfo = sortingInv.Items[invID]
 			end
 

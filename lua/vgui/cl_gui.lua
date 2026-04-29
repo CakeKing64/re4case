@@ -43,6 +43,7 @@ CaseGUI = {
 		surface.PlaySound(sound)
 	end,
 	ModelCache={},
+	SpriteCache={},
 	CaseFPS = CreateClientConVar("case_cl_menu_fps", "40", true, false, "Framerate at which the case menu should be drawn", 0, 999),
 
 	-- Me when i lie
@@ -113,6 +114,7 @@ function CaseGUI:Close()
 	end
 
 	self.ModelCache = {}
+	self.SpriteCache = {}
 end
 
 function CaseGUI:CloseContext()
@@ -395,6 +397,12 @@ local function _createWindow(name, inv, parent, isMain, rtName)
 		inventory.RT = GetRenderTarget("re4case_RT_" .. rtName, ScrW(), ScrH())
 		inventory.RTMat = CreateMaterial("re4case_MAT_" .. rtName, "UnlitGeneric", {
 			["$basetexture"] = inventory.RT:GetName()
+		})
+
+		inventory.ItemRT = GetRenderTarget("re4case_ItemRT_" .. rtName, ScrW(), ScrH())
+		inventory.ItemRTMat = CreateMaterial("re4case_ItemMAT_" .. rtName, "UnlitGeneric", {
+			["$basetexture"] = inventory.ItemRT:GetName(),
+			["$translucent"] = 1
 		})
 	end
 
