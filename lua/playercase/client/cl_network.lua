@@ -75,6 +75,9 @@ CaseInventory.ClientNet = {
 			-- Write model skin
 			net.WriteUInt(info.RenderInfo.Skin, 8)
 
+			-- Write Sprite thingy
+			net.WriteBool(info.RenderInfo.UseSprite)
+
 		net.SendToServer()
 	end,
 	RequestOverrides = function ()
@@ -302,12 +305,13 @@ net.Receive("CaseSyncOverride", function ()
 	local maxCount = net.ReadUInt(16)
 	local blacklist = net.ReadBool()
 	local skin = net.ReadUInt(8)
+	local useSprite = net.ReadBool()
 
 	CaseInventory:SetOverride(itemID, {
 		Size=size,
 		MaxCount=maxCount,
 		Blacklist=blacklist,
-		RenderInfo=CaseRenderInfo(model, scale, rotation, offset, skin)
+		RenderInfo=CaseRenderInfo(model, scale, rotation, offset, skin, useSprite)
 	})
 
 end)

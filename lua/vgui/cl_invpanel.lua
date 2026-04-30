@@ -421,7 +421,6 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
 
 
 	-- Actually draw the damn thing
-	print(cvar_prefer_sprites:GetInt())
 	if not renderInfo.UseSprite and cvar_prefer_sprites:GetInt() == 0 then
 		self:DrawModel(itemID, invId, gridX, gridY, gridW, gridH, isRotated)
 	else

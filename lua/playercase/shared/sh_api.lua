@@ -739,7 +739,7 @@ function CaseInventory:LoadOverrides()
 					Size=v.Size,
 					Blacklist=v.Blacklist,
 					MaxCount=v.MaxCount,
-					RenderInfo=CaseRenderInfo(v.Model, v.Scale, v.Rotations, v.Offset, v.Skin)
+					RenderInfo=CaseRenderInfo(v.Model, v.Scale, v.Rotations, v.Offset, v.Skin, v.UseSprite)
 				}
 			)
 
@@ -769,6 +769,7 @@ function CaseInventory:SaveOverrides()
 		saveTable[v.Name].Blacklist = v.ItemType == CASE_ITEM_DO_NOT_HANDLE
 		saveTable[v.Name].MaxCount = v.MaxCount
 		saveTable[v.Name].Skin = v.RenderInfo.Skin
+		saveTable[v.Name].UseSprite = v.RenderInfo.UseSprite
 	end
 
 	-- Also save the stuff that isn't actually used
@@ -828,6 +829,9 @@ function CaseInventory:SendOverride(itemID, ply)
 
 			-- Write Skin
 			net.WriteUInt(DefaultVar(info.RenderInfo.Skin, 0), 8)
+
+			-- Write sprite
+			net.WriteBool(DefaultVar(info.RenderInfo.UseSprite, false))
 		end
 
 

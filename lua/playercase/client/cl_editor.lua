@@ -16,6 +16,7 @@ CaseEditor.Count = nil
 CaseEditor.Blacklist = nil
 CaseEditor.Rotation = nil
 CaseEditor.Skin = nil
+CaseEditor.UseSprite = nil
 
 CaseEditor.WorldModel = nil
 CaseEditor.ViewModel = nil
@@ -29,6 +30,8 @@ local CaseEditSpawnMenu = {
 	CurrentID = 1
 }
 
+local SPRITE_HELP_WEAPON = "Will either use the hud sprite, or the file located at materials/caseinv/%s.png"
+local SPRITE_HELP_OTHER = "Will use the texture at materials/caseinv/%s.png"
 
 function CaseEditor:Populate(panel)
 
@@ -79,6 +82,9 @@ function CaseEditor:Populate(panel)
 
 	self.Blacklist = panel:CheckBox("Blacklisted")
 	self.Count 	= panel:TextEntry("Max Count")
+	self.UseSprite = panel:CheckBox("Use Sprite")
+
+	self.SpriteHelp = panel:ControlHelp("")
 	
 	self.WorldModel = panel:Button("Set To World Model")
 	self.WorldModel.DoClick = function ()
@@ -137,6 +143,7 @@ function CaseEditor:WeaponChanged(itemID, useGetItemInfo)
 		self.ViewModel:SetEnabled(true)
 
 		self.IsWeapon = true
+		self.SpriteHelp:SetText(string.format(SPRITE_HELP_WEAPON, register.Name))
 	else
 		self.Count:SetText("" .. GetValue(register.MaxCount))
 		self.Count:SetEnabled(true)
@@ -144,11 +151,13 @@ function CaseEditor:WeaponChanged(itemID, useGetItemInfo)
 		self.ViewModel:SetEnabled(false)
 
 		self.IsWeapon = false
+		self.SpriteHelp:SetText(string.format(SPRITE_HELP_OTHER, register.Name))
 	end
 
 
 
 	self.Blacklist:SetChecked(register.ItemType == CASE_ITEM_DO_NOT_HANDLE)
+	self.UseSprite:SetChecked(register.RenderInfo.UseSprite)
 end
 
 function CaseEditor:ApplyChanges()
@@ -206,6 +215,7 @@ function CaseEditor:ApplyChanges()
 
 	local maxCount = self.IsWeapon and 1 or tonumber(self.Count:GetText())
 	local blacklist = self.Blacklist:GetChecked()
+	local useSprite = self.UseSprite:GetChecked()
 
 	CaseInventory.ClientNet.UpdateOverride(
 		self.CurrentID,
@@ -213,7 +223,7 @@ function CaseEditor:ApplyChanges()
 			Size=size,
 			MaxCount=maxCount ~= nil and maxCount or 1,
 			Blacklist=blacklist,
-			RenderInfo=CaseRenderInfo(model, scale, rotation, offset, skin)
+			RenderInfo=CaseRenderInfo(model, scale, rotation, offset, skin, useSprite)
 		}
 	)
 end
@@ -272,9 +282,10 @@ function CaseEditor:CopyToClipboard()
 
 	local maxCount = self.IsWeapon and 1 or tonumber(self.Count:GetText())
 	local blacklist = self.Blacklist:GetChecked()
+	local useSprite = self.IsSprite:GetChecked()
 
 	local copyString = "no code for this item type yet :("
-	local renderInfo = string.format("CaseRenderInfo(\"%s\", %g, {%g, %g, %g}, Vector(%g, %g, %g), 0, %g)",
+	local renderInfo = string.format("CaseRenderInfo(\"%s\", %g, {%g, %g, %g}, Vector(%g, %g, %g), 0, %g), ",
 			model,
 			scale,
 			rotation[1],
@@ -283,7 +294,8 @@ function CaseEditor:CopyToClipboard()
 			offset[1],
 			offset[2],
 			offset[3],
-			skin
+			skin,
+			useSprite
 		)
 		
 

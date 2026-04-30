@@ -72,7 +72,7 @@ end
 ---@param offset table? Vector offset
 ---@param skin integer? Skin to use
 ---@return table
-function CaseRenderInfo(model, scale, rotVec, offset, skin)
+function CaseRenderInfo(model, scale, rotVec, offset, skin, useSprite)
 	if type(offset) == "table" then
 		offset = Vector(
 			offset[1] ~= nil and offset[1] or 0,
@@ -81,13 +81,17 @@ function CaseRenderInfo(model, scale, rotVec, offset, skin)
 		)
 	end
 
+	if useSprite == nil then
+		useSprite = false
+	end
+
 	return {
 		Model = model or "",
 		Scale = scale or 1, -- Ok to be nil
 		Rotations = rotVec or {0, 0, 0},
 		Offset = offset or Vector(0, 0),
 		Skin = skin or 0,
-		UseSprite = false
+		UseSprite = useSprite
 	}
 
 

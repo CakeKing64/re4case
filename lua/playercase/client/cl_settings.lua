@@ -39,13 +39,13 @@ function ClientSettings:Populate(panel)
 
 	self.ShowEditButton = panel:CheckBox("Show edit button", "case_cl_show_edit")
 
-	self.PreferSprites = panel:ComboBox("Prefer Sprites", "case_cl_prefer_sprites")
-    self.PreferSprites:AddChoice("Only If Setup", 0)
-    self.PreferSprites:AddChoice("Only sprite files", 1)
+	self.PreferSprites = panel:ComboBox("Show Sprites", "case_cl_prefer_sprites")
+    self.PreferSprites:AddChoice("Mode A", 0)
+    self.PreferSprites:AddChoice("Mode B", 1)
     self.PreferSprites:AddChoice("Always", 2)
-	panel:ControlHelp("If set to no, only items that have specifically be overridden to use a sprite / have been setup that way will use a sprite\n")
-	panel:ControlHelp("If set to Always, the inventory will try to use spawn icons as well")
-
+	panel:ControlHelp("A) If an item is set to use a sprite it'll use either a sprite or hud icon if one exists\n")
+	panel:ControlHelp("B) Items will always use a sprite texture ONLY if one exists regardless of the item's settings\n")
+	panel:ControlHelp("Always) All items will try to use either a sprite if one exists or hud icon\n")
 end
 
 hook.Add("PopulateToolMenu", "CaseAddSettings", function()
