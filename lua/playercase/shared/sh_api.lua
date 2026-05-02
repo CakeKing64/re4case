@@ -507,16 +507,11 @@ function CaseInventory:DropItem(inv, invId, count, player, sync)
 		local clip2 = 0
 		for _, wep in ipairs( player:GetWeapons() ) do
 			if wep:GetClass() == itemInfo.Name then
-				if player:Alive() then
-					player:DropWeapon( wep , player:GetPos(), Vector(0, 0, 0))
-					wep:SetPos(player:GetPos() + GetRandomOffset() + GetEntFloorOffset(wep))
-					wep.MarkedForPickup = 0
-					found = true
-					break
-				else
-					clip1 = wep:Clip1()
-					clip2 = wep:Clip2()
-				end
+				player:DropWeapon( wep , player:GetPos(), Vector(0, 0, 0))
+				wep:SetPos(player:GetPos() + GetRandomOffset() + GetEntFloorOffset(wep))
+				wep.MarkedForPickup = 0
+				found = true
+				break
 			end
 		end
 

@@ -234,18 +234,24 @@ hook.Add("PlayerSpawn", "CASE_PlayerSpawn", function(plr, trans)
 	CaseInventory:Sync(plr)
 end)
 
-
-
-hook.Add("PlayerDeath", "CASE_PlayerDeath", function (victim, inflictor, attacker)
+local function PlayerDeath(player)
 	-- Drop all items if cvar is set
-	if victim:IsPlayer() and cvar_drop_on_death:GetBool() then
-		for k, v in pairs(CaseInventory:Inv(victim).Items) do
-			CaseInventory:DropItem(CaseInventory:Inv(victim), k, -1, victim, false)
+	if player:IsPlayer() and cvar_drop_on_death:GetBool() then
+		for k, v in pairs(CaseInventory:Inv(player).Items) do
+			CaseInventory:DropItem(CaseInventory:Inv(player), k, -1, player, false)
 		end
-		CaseInventory:Sync(victim)
+		CaseInventory:Sync(player)
 	end
+end
 
+hook.Add("DoPlayerDeath", "CASE_PlayerDeath", function (victim, inflictor, attacker)
+	PlayerDeath(victim)
 end)
+
+hook.Add("PlayerSilentDeath", "CASE_PlayerSilentDeath", function (victim)
+	PlayerDeath(victim)
+end)
+
 
 hook.Add("PlayerDroppedWeapon", "CASE_PlayerDroppedWeapon", function (owner, wpn)
 	-- This check is here just so we don't cause any unnecessary syncs
