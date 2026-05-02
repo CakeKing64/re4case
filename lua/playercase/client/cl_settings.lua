@@ -7,6 +7,7 @@ ClientSettings.MenuFPS = nil
 ClientSettings.PlaySounds = nil
 ClientSettings.PreferSprites = nil
 
+local cvar_default_case_size = CreateConVar("case_sh_default_size", "s", {FCVAR_REPLICATED})
 
 function ClientSettings:Populate(panel)
 	self.BlurBG = panel:CheckBox("Blur Case Background", "case_cl_blur_bg")

@@ -3,9 +3,6 @@ AddCSLuaFile()
 CASE_INVENTORY = true
 CASE_INVENTORY_STACK = 32
 CASE_INVENTORY_DEBUG = false
-CASE_INVENTORY_SIZE_DEFAULT = {
-	10, 6
-}
 
 CASE_SIZES = {
 	S = {10, 6},
@@ -14,6 +11,8 @@ CASE_SIZES = {
 	XL = {15, 8},
 	XXL = {15, 10}
 }
+
+CASE_INVENTORY_SIZE_DEFAULT = CASE_SIZES.S
 --[[
 	For each item stored in inventory (in order)
 	uint8 X

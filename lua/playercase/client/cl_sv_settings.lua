@@ -25,29 +25,11 @@ function ClientSettings:Populate(panel)
 	self.DefaultCaseSize:AddChoice("Extra Large")
 	self.DefaultCaseSize:AddChoice("Extra Extra Large")
 	self.DefaultCaseSize:AddChoice("Custom")
-	self.DefaultCaseSize.OnSelect = function( _, index, _ )
-		local sizes = {
-			"s",
-			"m",
-			"l",
-			"xl",
-			"xxl"
-		}
-
-		if index ~= 6 then
-			RunConsoleCommand("case_sh_default_size", sizes[index])
-			ClientSettings.CustomCaseSize:SetEnabled(false)
-		else
-			ClientSettings.CustomCaseSize:SetEnabled(true)
-			RunConsoleCommand("case_sh_default_size", ClientSettings.CustomCaseSize:GetText())
-		end
-	end
-
 
 
 
 	ClientSettings.CustomCaseSize = panel:TextEntry("Custom Case Size")
-	ClientSettings.CustomCaseSize:SetText("5 9")
+	ClientSettings.CustomCaseSize:SetText("10 6")
 	ClientSettings.CustomCaseSize.OnChange = function()
         RunConsoleCommand("case_sh_default_size", ClientSettings.CustomCaseSize:GetText())
     end
@@ -72,6 +54,24 @@ function ClientSettings:Populate(panel)
 		self.CustomCaseSize:SetText(caseSize)
 	end
 	
+
+	self.DefaultCaseSize.OnSelect = function( _, index, _ )
+		local sizes = {
+			"s",
+			"m",
+			"l",
+			"xl",
+			"xxl"
+		}
+
+		if index ~= 6 then
+			RunConsoleCommand("case_sh_default_size", sizes[index])
+			ClientSettings.CustomCaseSize:SetEnabled(false)
+		else
+			ClientSettings.CustomCaseSize:SetEnabled(true)
+			RunConsoleCommand("case_sh_default_size", ClientSettings.CustomCaseSize:GetText())
+		end
+	end
 end
 
 hook.Add("PopulateToolMenu", "CaseAddServerSettings", function()

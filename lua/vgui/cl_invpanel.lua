@@ -249,12 +249,21 @@ function invpanel:DrawSprite(itemID, invId, gridX, gridY, gridW, gridH, isRotate
 		return {Material = mat}
 	end
 
+	-- Load up a sprite :)
 	if CaseGUI.SpriteCache[itemID] == nil then
 		local spritePath = string.format("caseicons/%s.png", itemInfo.Name)
 		local mat = GetMaterial(spritePath)
 
 		-- Try to use spawn icons
-		if mat == nil and CaseInventory:HasTag(itemID, "weapon") and cvar_prefer_sprites:GetInt() == 2 then
+		local useSpawnIcon = mat == nil and CaseInventory:HasTag(itemID, "weapon")
+
+		-- If use sprite mode is set to 1 then only do something
+		-- if the item specifically wants to be rendered with a sprite no matter what
+		if cvar_prefer_sprites:GetInt() == 1 then
+			useSpawnIcon = useSpawnIcon and itemInfo.RenderInfo.UseSprite
+		end
+
+		if useSpawnIcon then
 			local wep = weapons.Get(itemInfo.Name)
 
 			if wep ~= nil then
@@ -421,10 +430,10 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
 
 
 	-- Actually draw the damn thing
-	if not renderInfo.UseSprite and cvar_prefer_sprites:GetInt() == 0 then
-		self:DrawModel(itemID, invId, gridX, gridY, gridW, gridH, isRotated)
-	else
+	if renderInfo.UseSprite or cvar_prefer_sprites:GetInt() >= 1 then
 		self:DrawSprite(itemID, invId, gridX, gridY, gridW, gridH, isRotated)
+	else
+		self:DrawModel(itemID, invId, gridX, gridY, gridW, gridH, isRotated)
 	end
 	
 	-- Draw either item count or ammo loaded into the weapon

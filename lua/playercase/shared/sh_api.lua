@@ -24,7 +24,7 @@ if CLIENT then
 	cvar_inventory_mode = CreateConVar("case_sh_inventory_mode", "0", {FCVAR_REPLICATED})
 	cvar_auto_generate = CreateConVar("case_sh_auto_generate", "1", {FCVAR_REPLICATED})
 	cvar_enable_swap = CreateConVar("case_cl_enable_swapping", "1", {FCVAR_ARCHIVE})
-	cvar_default_case_size = CreateConVar("case_sh_default_size", "1", {FCVAR_REPLICATED})
+	cvar_default_case_size = CreateConVar("case_sh_default_size", "s", {FCVAR_REPLICATED})
 
 end
 
