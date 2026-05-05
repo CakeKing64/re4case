@@ -11,6 +11,9 @@ local case_pickup_mode = CreateConVar("case_cl_pickup_mode", "1", {FCVAR_ARCHIVE
 local cvar_invert_pickup = CreateConVar("case_cl_invert_pickup", "0", {FCVAR_ARCHIVE, FCVAR_USERINFO}, [[0 -> Items will be used unless walk is held,
 1 -> Items will be stored unless walk is held]])
 
+local cvar_quick_drop = CreateClientConVar("case_quick_drop", input.GetKeyCode("q"), true, false, "Button to quickly drop stuff")
+local cvar_quick_use = CreateClientConVar("case_quick_use", input.GetKeyCode("e"), true, false, "Button to quickly use stuff")
+
 local mStatus = {
 	Left = 0,
 	Right = 0,
@@ -139,6 +142,37 @@ hook.Add("CreateMove", "testMouseWheel", function(cmd)
 			end
 		end
 	end
+
+	-- Handle the quick use / quick drop commands / whatever i may add in the future
+	if CaseGUI.IsOpen then
+
+		if input.WasKeyPressed(cvar_quick_use:GetInt()) or input.WasMousePressed(cvar_quick_use:GetInt()) then
+			local invID, item = CaseGUI:GetHoveredItem()
+			if item ~= nil then
+
+				-- Swap to a weapon if it was used instead of an item
+				if CaseInventory:IsWeapon(item.ItemID) then
+					local wep = LocalPlayer():GetWeapon(CaseInventory:GetItemInfo(item.ItemID).Name)
+					if wep ~= nil then
+						input.SelectWeapon(wep)
+					end
+				else
+					CaseInventory.ClientNet.UseItem(invID, true)
+				end
+			end
+		end
+
+		if input.WasKeyPressed(cvar_quick_drop:GetInt()) or input.WasMousePressed(cvar_quick_drop:GetInt()) then
+			local invID, item = CaseGUI:GetHoveredItem()
+			if item ~= nil then
+				local count = 1
+				if input.IsKeyDown(KEY_LSHIFT) then
+					count = item.Count
+				end
+				CaseInventory.ClientNet.DropItem(invID, count, true)
+			end
+		end
+	end
 end)
 
 -- This hook is only really for the GUI
@@ -248,8 +282,20 @@ concommand.Add("case_print_inv", function(ply)
 	PrintTable(CaseInventory:Inv(ply))
 end)
 
-concommand.Add("case_print_registry", function(ply)
-	PrintTable(CaseInventory.ItemRegister)
+concommand.Add("case_print_registry", function(ply, cmd, args, argStr)
+	print(argStr)
+	if argStr ~= "" then
+		local items = {}
+		for k, v in pairs(CaseInventory.ItemRegister) do	
+			if string.find(v.Name, argStr) then
+				items[k] = v
+			end
+		end
+
+		PrintTable(items)
+	else
+		PrintTable(CaseInventory.ItemRegister)
+	end
 end)
 
 concommand.Add("case_print_overrides", function(ply)

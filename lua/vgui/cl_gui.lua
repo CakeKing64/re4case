@@ -142,7 +142,7 @@ function CaseGUI:AddContext(list, text, callback, allowed, sound)
 end
 
 
-local function _Use(info)
+function CaseGUI.ContextUse(info)
 	local itemInfo = info.ItemInfo
 	CaseInventory.ClientNet.UseItem(info.InvID, true) -- Request for the server to use the item
 	
@@ -159,11 +159,11 @@ local function _Use(info)
 	end
 end
 
-local function _UseCheck(info)
+function CaseGUI.ContextUseCheck(info)
 	return CaseInventory:CanUse(LocalPlayer(), info.ItemID)
 end
 
-local function _Equip(info)
+function CaseGUI.ContextEquip(info)
 	local itemInfo = info.ItemInfo
 	for _, wep in ipairs( LocalPlayer():GetWeapons() ) do
 		if wep:GetClass() == itemInfo.Name then
@@ -174,7 +174,7 @@ local function _Equip(info)
 	CaseGUI:CloseContext()
 end
 
-local function _EquipCheck(info)
+function CaseGUI.ContextEquipCheck(info)
 	local itemInfo = info.ItemInfo
 	if not IsValid(LocalPlayer():GetActiveWeapon()) then
 		return true
@@ -182,7 +182,7 @@ local function _EquipCheck(info)
 	return LocalPlayer():GetActiveWeapon():GetClass() ~= itemInfo.Name
 end
 
-local function _Drop1(info)
+function CaseGUI.ContextDrop1(info)
 	local itemInfo = info.ItemInfo
 	CaseInventory.ClientNet.DropItem(info.InvID, 1, false)
 	info.Inv.Items[info.InvID].Count = info.Inv.Items[info.InvID].Count - 1
@@ -193,7 +193,8 @@ local function _Drop1(info)
 	end
 end
 
-local function _Drop(info)
+function CaseGUI.ContextDrop(info)
+	PrintTable(info)
 	CaseInventory.ClientNet.DropItem(info.InvID, -1, false)
 	info.Inv.Items[info.InvID] = nil
 
@@ -201,7 +202,7 @@ local function _Drop(info)
 	CaseGUI:CloseContext()
 end
 
-local function _DropHalf(info)
+function CaseGUI.ContextDropHalf(info)
 	local count = info.Inv.Items[info.InvID].Count
 	count = math.ceil(count / 2)
 	CaseInventory.ClientNet.DropItem(info.InvID, count, false)
@@ -219,20 +220,20 @@ end
 hook.Add("CaseFillContext", "CaseDefaultFillContext", function (list, info)
 	local itemInfo = info.ItemInfo
 	if itemInfo.OnUse ~= nil then
-		CaseGUI:AddContext(list, "Use", _Use, _UseCheck)
+		CaseGUI:AddContext(list, "Use", CaseGUI.ContextUse, CaseGUI.ContextUseCheck)
 	end
 
 	if itemInfo.ItemType == CASE_ITEM_WEAPON or itemInfo.ItemType == CASE_ITEM_GRENADE then
-		CaseGUI:AddContext(list, "Equip", _Equip, _EquipCheck, "ui/re4case/case_equip.wav")
+		CaseGUI:AddContext(list, "Equip", CaseGUI.ContextEquip, CaseGUI.ContextEquipCheck, "ui/re4case/case_equip.wav")
 	end
 	
 	if itemInfo.ItemType == CASE_ITEM_GENERIC or itemInfo.ItemType == CASE_ITEM_GRENADE then
-		CaseGUI:AddContext(list, "Drop 1", _Drop1)
+		CaseGUI:AddContext(list, "Drop 1", CaseGUI.ContextDrop1)
 	end
 
 	if itemInfo.ItemType == CASE_ITEM_AMMO then
-		CaseGUI:AddContext(list, "Drop Half", _DropHalf)
-		CaseGUI:AddContext(list, "Drop 1", _Drop1)
+		CaseGUI:AddContext(list, "Drop Half", CaseGUI.ContextDropHalf)
+		CaseGUI:AddContext(list, "Drop 1", CaseGUI.ContextDrop1)
 	end
 
 end)
@@ -255,7 +256,7 @@ function CaseGUI:FillContext(panel, parent)
 
 
 	-- All items have this :)
-	CaseGUI:AddContext(list,"Drop", _Drop)
+	CaseGUI:AddContext(list,"Drop", CaseGUI.ContextDrop)
 
 	for k, v in pairs(list) do
 		panel:AddOption(v.Text, v.Callback, v.Allowed, v.Sound)
@@ -282,6 +283,11 @@ function CaseGUI:GenerateInfo()
 end
 
 function CaseGUI:OpenEditMenu()
+	if IsValid(self.EditWindow.Window) then
+		self:CloseEditMenu()
+		return
+	end
+
 	local sizeW, sizeH = 400, 700
 
 	self.EditWindow.Window = vgui.Create("DFrame")
@@ -345,22 +351,6 @@ local function _windowOnKeyboardInput(self, keycode)
 
 	local invInfo = window:Inv().Items[invId]
 	local itemInfo = CaseInventory:GetItemInfo(invInfo.ItemID)
-
-	local use = input.LookupBinding("use") == input.GetKeyName(keycode)
-	if use and CaseInventory:CanUse(LocalPlayer(), invId) then
-		CaseInventory.ClientNet.UseItem(invId, true) -- Request for the server to use the item
-		-- Cool line
-		local used, useCount = itemInfo.OnUse(LocalPlayer(), itemInfo, invId)
-		useCount = useCount and math.max(0, useCount) or 1
-		if used then
-			invInfo.Count = invInfo.Count - useCount
-			if invInfo.Count == 0 then
-				window:Inv().Items[invId] = nil
-				CaseInventory:RefreshLoadout(window:Inv())
-				CaseGUI:CloseContext()
-			end
-		end
-	end
 
 	return true
 end
@@ -468,9 +458,20 @@ function CaseGUI.OpenInventory()
 	end
 end
 
--- How kind
-function CaseGUI:OnSyncEvent()
-	
+---Returns the last hovered item in any inventory
+---@return number?
+---@return table?
+function CaseGUI:GetHoveredItem()
+	if self.HoveredWindow == nil then
+		return nil, nil
+	end
+
+	local lastHoveredItem = self.HoveredWindow.LastHoveredItem
+	if lastHoveredItem == 0 then
+		return nil, nil
+	end
+
+	return lastHoveredItem, self.HoveredWindow:Inv().Items[lastHoveredItem]
 end
 
 concommand.Add("case_open", CaseGUI.OpenInventory)

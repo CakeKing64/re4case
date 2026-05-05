@@ -47,6 +47,11 @@ function ClientSettings:Populate(panel)
 	panel:ControlHelp("A) If an item is set to use a sprite it'll use either a sprite or hud icon if one exists\n")
 	panel:ControlHelp("B) Items will always use a sprite texture ONLY if one exists regardless of the item's settings\n")
 	panel:ControlHelp("Always) All items will try to use either a sprite if one exists or hud icon\n")
+
+	panel:KeyBinder("Quick Drop", "case_quick_drop")
+	panel:ControlHelp("Drops 1 at a time, hold shift to drop an entire stack")
+	panel:KeyBinder("Quick Use", "case_quick_use")
+	panel:ControlHelp("Both of these are binds for IN the inventory")
 end
 
 hook.Add("PopulateToolMenu", "CaseAddSettings", function()
