@@ -109,8 +109,8 @@ hook.Add("player_activate", "CASE_PlayerActivate", function (data)
 			Name = net.ReadString(),
 			PrintName = net.ReadString(),
 			Model = net.ReadString(),
-			Scale = net.ReadFloat(),
-			Rotation = {net.ReadFloat(), net.ReadFloat(), net.ReadFloat()},
+			Scale = net.ReadDouble(),
+			Rotation = {net.ReadDouble(), net.ReadDouble(), net.ReadDouble()},
 			Size = {net.ReadInt(8), net.ReadInt(8)},
 			Count = net.ReadUint(16)
 	]]
@@ -126,11 +126,11 @@ hook.Add("player_activate", "CASE_PlayerActivate", function (data)
 			net.WriteString(autoItem.Name)
 			net.WriteString(autoItem.PrintName)
 			net.WriteString(autoItem.Model)
-			net.WriteFloat(autoItem.Scale)
+			net.WriteDouble(autoItem.Scale)
 
-			net.WriteFloat(autoItem.Rotation[1])
-			net.WriteFloat(autoItem.Rotation[2])
-			net.WriteFloat(autoItem.Rotation[3])
+			net.WriteDouble(autoItem.Rotation[1])
+			net.WriteDouble(autoItem.Rotation[2])
+			net.WriteDouble(autoItem.Rotation[3])
 
 			net.WriteInt(autoItem.Size[1], 8)
 			net.WriteInt(autoItem.Size[2], 8)

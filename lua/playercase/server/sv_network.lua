@@ -118,18 +118,18 @@ net.Receive("CaseCommandEvent", function (len, ply)
 				size[2] = 1
 			end
 
-			local scale = net.ReadFloat()
+			local scale = net.ReadDouble()
 
 			local offset = {
-				net.ReadFloat(),
-				net.ReadFloat(),
-				net.ReadFloat()
+				net.ReadDouble(),
+				net.ReadDouble(),
+				net.ReadDouble()
 			}
 			
 			local rotation = {
-				net.ReadFloat(),
-				net.ReadFloat(),
-				net.ReadFloat()
+				net.ReadDouble(),
+				net.ReadDouble(),
+				net.ReadDouble()
 			}
 
 			local maxCount = net.ReadUInt(16)

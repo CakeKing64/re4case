@@ -54,17 +54,17 @@ CaseInventory.ClientNet = {
 			net.WriteUInt(info.Size[2] ~= nil and info.Size[2] or 1, 16)
 
 			-- Write scale
-			net.WriteFloat(info.RenderInfo.Scale)
+			net.WriteDouble(info.RenderInfo.Scale)
 
 			-- Write offset
-			net.WriteFloat(info.RenderInfo.Offset.X)
-			net.WriteFloat(info.RenderInfo.Offset.Y)
-			net.WriteFloat(info.RenderInfo.Offset.Z)
+			net.WriteDouble(info.RenderInfo.Offset.X)
+			net.WriteDouble(info.RenderInfo.Offset.Y)
+			net.WriteDouble(info.RenderInfo.Offset.Z)
 
 			-- Write rotation
-			net.WriteFloat(info.RenderInfo.Rotations[1])
-			net.WriteFloat(info.RenderInfo.Rotations[2])
-			net.WriteFloat(info.RenderInfo.Rotations[3])
+			net.WriteDouble(info.RenderInfo.Rotations[1])
+			net.WriteDouble(info.RenderInfo.Rotations[2])
+			net.WriteDouble(info.RenderInfo.Rotations[3])
 
 			-- Write max count
 			net.WriteUInt(info.MaxCount, 16)
@@ -288,18 +288,18 @@ net.Receive("CaseSyncOverride", function ()
 		net.ReadInt(16)
 	}
 
-	local scale = net.ReadFloat()
+	local scale = net.ReadDouble()
 
 	local offset = {
-		net.ReadFloat(),
-		net.ReadFloat(),
-		net.ReadFloat()
+		net.ReadDouble(),
+		net.ReadDouble(),
+		net.ReadDouble()
 	}
 	
 	local rotation = {
-		net.ReadFloat(),
-		net.ReadFloat(),
-		net.ReadFloat()
+		net.ReadDouble(),
+		net.ReadDouble(),
+		net.ReadDouble()
 	}
 
 	local maxCount = net.ReadUInt(16)
@@ -425,8 +425,8 @@ net.Receive("CaseAutoGenWeapons", function ()
 			Name = net.ReadString(),
 			PrintName = net.ReadString(),
 			Model = net.ReadString(),
-			Scale = net.ReadFloat(),
-			Rotation = {net.ReadFloat(), net.ReadFloat(), net.ReadFloat()},
+			Scale = net.ReadDouble(),
+			Rotation = {net.ReadDouble(), net.ReadDouble(), net.ReadDouble()},
 			Size = {net.ReadInt(8), net.ReadInt(8)},
 			Count = net.ReadUInt(16),
 			AmmoID = net.ReadInt(16)

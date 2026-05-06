@@ -804,17 +804,17 @@ function CaseInventory:SendOverride(itemID, ply)
 			net.WriteInt(DefaultVar(info.Size.H, 1), 16)
 
 			-- Write scale
-			net.WriteFloat(DefaultVar(info.RenderInfo.Scale, 1))
+			net.WriteDouble(DefaultVar(info.RenderInfo.Scale, 1))
 
 			-- Write offset
-			net.WriteFloat(DefaultVar(info.RenderInfo.Offset.X, 0))
-			net.WriteFloat(DefaultVar(info.RenderInfo.Offset.Y, 0))
-			net.WriteFloat(DefaultVar(info.RenderInfo.Offset.Z, 0))
+			net.WriteDouble(DefaultVar(info.RenderInfo.Offset.X, 0))
+			net.WriteDouble(DefaultVar(info.RenderInfo.Offset.Y, 0))
+			net.WriteDouble(DefaultVar(info.RenderInfo.Offset.Z, 0))
 
 			-- Write rotation
-			net.WriteFloat(DefaultVar(info.RenderInfo.Rotations[1], 0))
-			net.WriteFloat(DefaultVar(info.RenderInfo.Rotations[2], 0))
-			net.WriteFloat(DefaultVar(info.RenderInfo.Rotations[3], 0))
+			net.WriteDouble(DefaultVar(info.RenderInfo.Rotations[1], 0))
+			net.WriteDouble(DefaultVar(info.RenderInfo.Rotations[2], 0))
+			net.WriteDouble(DefaultVar(info.RenderInfo.Rotations[3], 0))
 
 			-- Write max count
 			net.WriteUInt(DefaultVar(info.MaxCount, 1), 16)
