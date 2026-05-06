@@ -126,7 +126,6 @@ function CaseEditor:WeaponChanged(itemID, useGetItemInfo)
 	if not register then
 		return
 	end
-
 	self.CurrentID = itemID
 	
 	self.Model:SetText(register.RenderInfo.Model)

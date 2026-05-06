@@ -51,6 +51,7 @@ function ClientSettings:Populate(panel)
 	panel:KeyBinder("Quick Drop", "case_quick_drop")
 	panel:ControlHelp("Drops 1 at a time, hold shift to drop an entire stack")
 	panel:KeyBinder("Quick Use", "case_quick_use")
+	panel:KeyBinder("Quick Edit", "case_quick_edit")
 	panel:ControlHelp("Both of these are binds for IN the inventory")
 end
 

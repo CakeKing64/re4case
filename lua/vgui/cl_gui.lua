@@ -314,7 +314,7 @@ function CaseGUI:OpenEditMenu()
 	panel:SetLabel("The Edit Zone")
 
 
-	CaseEditor:Populate(panel)
+	CaseEditor.Populate(self.EditWindow, panel)
 
 	panel:ControlHelp("\n\nYou can hide the button that opens this menu in the settings :)")
 end

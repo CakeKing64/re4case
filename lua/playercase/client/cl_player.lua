@@ -13,6 +13,7 @@ local cvar_invert_pickup = CreateConVar("case_cl_invert_pickup", "0", {FCVAR_ARC
 
 local cvar_quick_drop = CreateClientConVar("case_quick_drop", input.GetKeyCode("q"), true, false, "Button to quickly drop stuff")
 local cvar_quick_use = CreateClientConVar("case_quick_use", input.GetKeyCode("e"), true, false, "Button to quickly use stuff")
+local cvar_quick_edit = CreateClientConVar("case_quick_edit", input.GetKeyCode("r"), true, false, "Button to quickly edit stuff")
 
 local mStatus = {
 	Left = 0,
@@ -170,6 +171,34 @@ hook.Add("CreateMove", "testMouseWheel", function(cmd)
 					count = item.Count
 				end
 				CaseInventory.ClientNet.DropItem(invID, count, true)
+			end
+		end
+
+		if input.WasKeyPressed(cvar_quick_edit:GetInt()) or input.WasMousePressed(cvar_quick_edit:GetInt()) then
+			local invID, item = CaseGUI:GetHoveredItem()
+			if item ~= nil then
+				if not IsValid(CaseGUI.EditWindow.Window) then
+					CaseGUI:OpenEditMenu()
+				end
+
+				print(item.ItemID)
+				CaseGUI.EditWindow.Filter:SetText("")
+
+				-- gonna be so real these should be sorted but like idc
+				local i = 1
+				while true do
+					local data = CaseGUI.EditWindow.WeaponList:GetOptionData(i)
+					if data == nil then
+						break
+					end
+					if data == item.ItemID then
+						CaseGUI.EditWindow.WeaponList:ChooseOptionID(i)
+						break
+					end
+
+					i = i + 1
+				end
+				
 			end
 		end
 	end
