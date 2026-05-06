@@ -45,7 +45,7 @@ function ClientSettings:Populate(panel)
     self.PreferSprites:AddChoice("Mode B", 1)
     self.PreferSprites:AddChoice("Always", 2)
 	panel:ControlHelp("A) If an item is set to use a sprite it'll use either a sprite or hud icon if one exists\n")
-	panel:ControlHelp("B) Items will always use a sprite texture ONLY if one exists regardless of the item's settings\n")
+	panel:ControlHelp("B) Items will always use a sprite ONLY if one exists regardless of the item's settings\n")
 	panel:ControlHelp("Always) All items will try to use either a sprite if one exists or hud icon\n")
 
 	panel:KeyBinder("Quick Drop", "case_quick_drop")
