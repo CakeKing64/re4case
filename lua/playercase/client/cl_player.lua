@@ -181,7 +181,6 @@ hook.Add("CreateMove", "testMouseWheel", function(cmd)
 					CaseGUI:OpenEditMenu()
 				end
 
-				print(item.ItemID)
 				CaseGUI.EditWindow.Filter:SetText("")
 
 				-- gonna be so real these should be sorted but like idc
@@ -312,7 +311,6 @@ concommand.Add("case_print_inv", function(ply)
 end)
 
 concommand.Add("case_print_registry", function(ply, cmd, args, argStr)
-	print(argStr)
 	if argStr ~= "" then
 		local items = {}
 		for k, v in pairs(CaseInventory.ItemRegister) do	
