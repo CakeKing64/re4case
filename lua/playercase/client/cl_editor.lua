@@ -357,14 +357,13 @@ function CaseEditor:FilterChanged(filter, all)
 
 		if found then
 			foundWeapon = true
-			local wepPrintName = ""
+			local wepPrintName = CaseInventory.ItemRegister[i].PrintName
 			if CaseInventory.ItemRegister[i].PrintName == nil then
-				CaseInventory.ItemRegister[i].PrintName = "!!! < MISSING PRINT NAME > !!!"
-				print(string.format("Item %s is missing PrintName!", CaseInventory.ItemRegister[i].Name))
+				wepPrintName = ""
 			end
 
 			self.WeaponList:AddChoice(
-				CaseInventory.ItemRegister[i].Name .. " (" .. CaseInventory.ItemRegister[i].PrintName .. ")",
+				CaseInventory.ItemRegister[i].Name .. " (" .. wepPrintName .. ")",
 				i -- Store the index just because
 			)
 		end

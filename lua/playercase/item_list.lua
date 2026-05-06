@@ -240,13 +240,13 @@ local itemsHL2 = {
 
 local itemsGMOD = {
 	CaseDoNotHandle("weapon_fists"),
-	CaseWeapon("gmod_tool", CaseRenderInfo("models/weapons/w_toolgun.mdl", 3.5, {0, -90, 0}, Vector(0, 12)), 3, 2),
-	CaseWeapon("gmod_camera", CaseRenderInfo("models/maxofs2d/camera.mdl", 3.5, {0, 210, 0}), 3, 2),
-	CaseWeapon("weapon_physgun", CaseRenderInfo("models/weapons/w_physics.mdl", 4, {0, 0, 0}), 3, 2),
-	CaseWeapon("weapon_medkit",  CaseRenderInfo("models/Items/HealthKit.mdl", 3.2, {90,90,0}, Vector(0,5,8)), 2, 3),
-	CaseWeapon("manhack_welder",CaseRenderInfo("models/weapons/w_pistol.mdl", 4.3), 3, 2),
-	CaseWeapon("weapon_flechettegun",CaseRenderInfo("models/weapons/w_smg1.mdl", 5, {0,180,0}, Vector(0,-8,0)), 3, 2),
-	CaseWeapon("weapon_base", CaseRenderInfo("models/weapons/w_357.mdl"), 3, 2),
+	CaseWeapon("gmod_tool", CaseRenderInfo("models/weapons/w_toolgun.mdl", 3.5, {0, -90, 0}, Vector(0, 12)), 3, 2, "Tool Gun"),
+	CaseWeapon("gmod_camera", CaseRenderInfo("models/maxofs2d/camera.mdl", 3.5, {0, 210, 0}), 3, 2, "Camera"),
+	CaseWeapon("weapon_physgun", CaseRenderInfo("models/weapons/w_physics.mdl", 4, {0, 0, 0}), 3, 2, "Physgun"),
+	CaseWeapon("weapon_medkit",  CaseRenderInfo("models/Items/HealthKit.mdl", 3.2, {90,90,0}, Vector(0,5,8)), 2, 3, "Medkit"),
+	CaseWeapon("manhack_welder",CaseRenderInfo("models/weapons/w_pistol.mdl", 4.3), 3, 2, "Manhack Welder"),
+	CaseWeapon("weapon_flechettegun",CaseRenderInfo("models/weapons/w_smg1.mdl", 5, {0,180,0}, Vector(0,-8,0)), 3, 2, "Flechette Gun"),
+	CaseWeapon("weapon_base", CaseRenderInfo("models/weapons/w_357.mdl"), 3, 2, "Weapon Base"),
 }
 
 -- https://steamcommunity.com/sharedfiles/filedetails/?id=1606822274
