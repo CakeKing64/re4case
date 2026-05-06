@@ -2405,7 +2405,7 @@ end
 function CaseInventory:PopulateNames()
 	for k, v in pairs(CaseInventory.ItemRegister) do
 		if v.PrintName ~= nil then
-			CaseInventory:TryLocalize(v.PrintName)
+			v.PrintName = CaseInventory:TryLocalize(v.PrintName)
 			continue
 		end
 

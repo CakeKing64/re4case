@@ -357,8 +357,9 @@ function CaseEditor:FilterChanged(filter, all)
 
 		if found then
 			foundWeapon = true
+			local wepPrintName = ""
 			if CaseInventory.ItemRegister[i].PrintName == nil then
-				CaseInventory.ItemRegister[i].PrintName = ""
+				CaseInventory.ItemRegister[i].PrintName = "!!! < MISSING PRINT NAME > !!!"
 				print(string.format("Item %s is missing PrintName!", CaseInventory.ItemRegister[i].Name))
 			end
 
