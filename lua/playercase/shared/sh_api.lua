@@ -1677,7 +1677,7 @@ function CaseInventory:GetDefaultCaseSize()
 	end
 
 	local i = 1
-	local size = CASE_INVENTORY_SIZE_DEFAULT
+	local size = table.Copy(CASE_INVENTORY_SIZE_DEFAULT)
 	for word in string.gmatch(type, '([^ ]+)') do
 		if word == "" then
 			continue

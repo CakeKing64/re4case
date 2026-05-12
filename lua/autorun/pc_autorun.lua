@@ -12,7 +12,7 @@ CASE_SIZES = {
 	XXL = {15, 10}
 }
 
-CASE_INVENTORY_SIZE_DEFAULT = CASE_SIZES.S
+CASE_INVENTORY_SIZE_DEFAULT = table.Copy(CASE_SIZES.S)
 --[[
 	For each item stored in inventory (in order)
 	uint8 X
