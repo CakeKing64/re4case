@@ -2401,6 +2401,130 @@ function CaseInventory:LoadCustomItems()
 	end
 end
 
+---Registers a new crafting recipe :)
+---@param resultName string
+---@param resultCount number
+---@param input table
+---@param isCustom boolean?
+function CaseInventory:RegisterCraftingRecipe(resultName, resultCount, input, isCustom)
+	local newID = 1
+
+	if isCustom == nil then
+		isCustom = false
+	end
+
+	-- Find the first valid spot
+	while CaseInventory.CraftingRecipes[newID] ~= nil do
+		newID = newID + 1
+	end
+
+	local resultID = CaseInventory:GetItemID(resultName)
+	if resultID == -1 then
+		return -1
+	end
+
+	local inputFinal = {}
+	for k, v in ipairs(input) do
+		table.insert(inputFinal, CaseInventory:GetItemID(v))
+	end
+
+	CaseInventory.CraftingRecipes[newID] = {
+		Result = resultID,
+		Count = resultCount,
+		Input = inputFinal,
+		IsCustom = isCustom
+	}
+
+	return newID
+end
+
+function CaseInventory:UpdateLookups()
+	CaseInventory.CraftingLookup = {}
+end
+
+function CaseInventory:Craft(ply, recID, usedItems)
+	local recipe = {}
+	if CaseInventory.CraftingRecipes[recID] == nil then
+		return false
+	end
+
+	recipe = CaseInventory.CraftingRecipes[recID]
+
+	-- Count up everything required for the recipe
+	local input = {}
+	for _, item in ipairs(recipe.Input) do
+		if input[item] == nil then
+			input[item] = 1
+			continue
+		end
+		
+		input[item] = input[item] + 1
+	end
+
+	-- Figure out what items in our inventory we're gonna use
+	local usedItems = {}
+	for invID, invInfo in pairs(CaseInv(ply).Items) do
+		if input[invInfo.ItemID] == nil then
+			continue
+		end
+
+		if input[invInfo.ItemID] ~= 0 then
+			local usedCount = math.min(input[invInfo.ItemID], invInfo.Count)
+			usedItems[invID] = usedCount
+			input[invInfo.ItemID] = input[invInfo.ItemID] - usedCount
+		end
+	end
+
+	print("Remaining items:")
+	PrintTable(input)
+	print("Used invIDs")
+	PrintTable(usedItems)
+
+	-- Check if all items were used up
+	for k, v in pairs(input) do
+
+		-- If anything is more than 0 then boo whomp
+		if v > 0 then
+			return false
+		end
+	end
+
+	-- Use up the items
+	for invID, count in pairs(usedItems) do
+		local item = CaseInv(ply).Items[invID]
+		if item.Count == count then
+			local itemID = CaseInv(ply).Items[invID].ItemID
+			local info = CaseInventory:GetItemInfo(itemID)
+
+			if info ~= nil and CaseInventory:IsWeapon(itemID) then
+				ply:StripWeapon(info.Name)
+			end
+			-- Bye bye
+			CaseInv(ply).Items[invID] = nil
+		else
+			item.Count = item.Count - count
+		end
+	end
+
+	-- Just so we can place the item in a good spot
+	CaseInventory:RefreshLoadout(CaseInv(ply))
+
+	-- Oh yeah! Your reward i guess
+	local added, rem = CaseInventory:AddItemToInventory(CaseInv(ply), recipe.Result, 1, false)
+
+	-- Uh....
+	if rem > 0 then
+		
+	end
+
+	-- Sync it all up
+	CaseInventory:Sync(ply)
+end
+
+concommand.Add("case_test_craft", function (ply)
+	CaseInventory:Craft(ply, 1)
+end)
+
 ---Client only
 function CaseInventory:PopulateNames()
 	for k, v in pairs(CaseInventory.ItemRegister) do

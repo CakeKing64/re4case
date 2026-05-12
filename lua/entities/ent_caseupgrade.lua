@@ -33,6 +33,7 @@ end
 
 function ENT:Use(activator)
     if activator:IsPlayer() then
+        print(self.CaseSize[1], self.CaseSize[2], CaseInv(activator).Size[1], CaseInv(activator).Size[2])
         if self.CaseSize[1] > CaseInv(activator).Size[1] or self.CaseSize[2] >  CaseInv(activator).Size[2] then
             CaseInv(activator).Size[1] = math.max(self.CaseSize[1], CaseInv(activator).Size[1])
             CaseInv(activator).Size[2] = math.max(self.CaseSize[2], CaseInv(activator).Size[2])

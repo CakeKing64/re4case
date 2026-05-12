@@ -87,6 +87,11 @@ CaseInventory.ItemRegister = {}
 CaseInventory.RegisterOverrides = {}
 CaseInventory.Inventories = {}
 CaseInventory.PickupQueue = {}
+CaseInventory.CraftingRecipes = {}
+
+if CLIENT then
+	CaseInventory.CraftingLookup = {}
+end
 
 CASE_AUTOGEN_WEAPON = 1
 CASE_AUTOGEN_AMMO = 2
@@ -165,7 +170,8 @@ local shared = {
 	"shared/sh_api.lua",
 	"shared/sh_items.lua",
 	"shared/sh_hooks.lua",
-	"item_list.lua"
+	"item_list.lua",
+	"crafting_list.lua"
 }
 
 local function _client(files)
