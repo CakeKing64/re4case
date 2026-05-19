@@ -688,6 +688,12 @@ function CaseInventory:GetItemInfo(id)
 	return CaseInventory.ItemRegister[id]
 end
 
+---Just incase
+---@return table?
+function CaseInventory:GetRecipe(id)
+	return CaseInventory.CraftingRecipes[id]
+end
+
 ---Loads data from data/caseoverrides.txt
 function CaseInventory:LoadOverrides()
 	if CLIENT then
@@ -2406,7 +2412,7 @@ end
 ---@param resultCount number
 ---@param input table
 ---@param isCustom boolean?
-function CaseInventory:RegisterCraftingRecipe(resultName, resultCount, input, isCustom)
+function CaseInventory:RegisterCraftingRecipe(displayName, resultName, resultCount, input, isCustom)
 	local newID = 1
 
 	if isCustom == nil then
@@ -2424,15 +2430,22 @@ function CaseInventory:RegisterCraftingRecipe(resultName, resultCount, input, is
 	end
 
 	local inputFinal = {}
-	for k, v in ipairs(input) do
-		table.insert(inputFinal, CaseInventory:GetItemID(v))
+	for k, v in pairs(input) do
+		local itemID = CaseInventory:GetItemID(k)
+		if itemID == -1 then
+			return
+		end
+
+		inputFinal[itemID] = v
 	end
+
 
 	CaseInventory.CraftingRecipes[newID] = {
 		Result = resultID,
 		Count = resultCount,
 		Input = inputFinal,
-		IsCustom = isCustom
+		IsCustom = isCustom,
+		DisplayName = displayName
 	}
 
 	return newID
@@ -2440,53 +2453,31 @@ end
 
 function CaseInventory:UpdateLookups()
 	CaseInventory.CraftingLookup = {}
+
+	for rID, recipe in pairs(CaseInventory.CraftingRecipes) do
+		for itemID, _ in pairs(recipe.Input) do
+			if CaseInventory.CraftingLookup[itemID] == nil then
+				CaseInventory.CraftingLookup[itemID] = {}
+			end
+
+			table.insert(CaseInventory.CraftingLookup[itemID], rID)
+		end
+	end
 end
 
-function CaseInventory:Craft(ply, recID, usedItems)
-	local recipe = {}
-	if CaseInventory.CraftingRecipes[recID] == nil then
+---Performs a craft
+---@param ply table
+---@param recID number
+---@return boolean
+function CaseInventory:Craft(ply, recID)
+	local recipe = CaseInventory.CraftingRecipes[recID]
+	if recipe == nil then
 		return false
 	end
 
-	recipe = CaseInventory.CraftingRecipes[recID]
-
-	-- Count up everything required for the recipe
-	local input = {}
-	for _, item in ipairs(recipe.Input) do
-		if input[item] == nil then
-			input[item] = 1
-			continue
-		end
-		
-		input[item] = input[item] + 1
-	end
-
-	-- Figure out what items in our inventory we're gonna use
-	local usedItems = {}
-	for invID, invInfo in pairs(CaseInv(ply).Items) do
-		if input[invInfo.ItemID] == nil then
-			continue
-		end
-
-		if input[invInfo.ItemID] ~= 0 then
-			local usedCount = math.min(input[invInfo.ItemID], invInfo.Count)
-			usedItems[invID] = usedCount
-			input[invInfo.ItemID] = input[invInfo.ItemID] - usedCount
-		end
-	end
-
-	print("Remaining items:")
-	PrintTable(input)
-	print("Used invIDs")
-	PrintTable(usedItems)
-
-	-- Check if all items were used up
-	for k, v in pairs(input) do
-
-		-- If anything is more than 0 then boo whomp
-		if v > 0 then
-			return false
-		end
+	local usedItems = CaseInventory:GetInvIDsForCraft(ply, recID)
+	if usedItems == nil then
+		return false
 	end
 
 	-- Use up the items
@@ -2509,16 +2500,79 @@ function CaseInventory:Craft(ply, recID, usedItems)
 	-- Just so we can place the item in a good spot
 	CaseInventory:RefreshLoadout(CaseInv(ply))
 
+	-- Do unique things depending on what we got as a treat
+	
+	local info = CaseInventory:GetItemInfo(recipe.Result)
+
+	-- Is some form of ammo
+	if info.AmmoID ~= -1 then
+		ply:GiveAmmo(recipe.Count, info.AmmoID)
+	elseif info.Type == CASE_ITEM_WEAPON then
+		
+	else -- Generic ass item
+		CaseInventory:AddItemToInventory(CaseInv(ply), recipe.Result, 1, false)
+	end
+
 	-- Oh yeah! Your reward i guess
+	--[[
 	local added, rem = CaseInventory:AddItemToInventory(CaseInv(ply), recipe.Result, 1, false)
 
 	-- Uh....
 	if rem > 0 then
 		
 	end
+]]
 
 	-- Sync it all up
 	CaseInventory:Sync(ply)
+
+	return true
+end
+
+function CaseInventory:CanCraft(ply, recipeID)
+	return CaseInventory:GetInvIDsForCraft(ply, recipeID) ~= nil
+end
+
+---Builds a list of ids that would be used up if you tried to craft something
+---@param ply table
+---@param recipeID number
+---@return table?
+function CaseInventory:GetInvIDsForCraft(ply, recipeID)
+	local recipe = {}
+	if CaseInventory.CraftingRecipes[recipeID] == nil then
+		return nil
+	end
+
+	recipe = CaseInventory.CraftingRecipes[recipeID]
+
+	-- Count up everything required for the recipe
+	local input = table.Copy(recipe.Input)
+
+
+	-- Figure out what items in our inventory we're gonna use
+	local usedItems = {}
+	for invID, invInfo in pairs(CaseInv(ply).Items) do
+		if input[invInfo.ItemID] == nil then
+			continue
+		end
+
+		if input[invInfo.ItemID] ~= 0 then
+			local usedCount = math.min(input[invInfo.ItemID], invInfo.Count)
+			usedItems[invID] = usedCount
+			input[invInfo.ItemID] = input[invInfo.ItemID] - usedCount
+		end
+	end
+
+	-- Check if all items were used up
+	for k, v in pairs(input) do
+
+		-- If anything is more than 0 then boo whomp
+		if v > 0 then
+			return nil
+		end
+	end
+
+	return usedItems
 end
 
 concommand.Add("case_test_craft", function (ply)

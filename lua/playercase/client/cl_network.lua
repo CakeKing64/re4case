@@ -113,6 +113,17 @@ CaseInventory.ClientNet = {
 			net.WriteUInt(CASE_ITEM_REMOVE, 4)
 		net.SendToServer()
 	end,
+	Craft = function (recipeID, count)
+		if count == nil then
+			count = 1
+		end
+		
+		net.Start("CaseCommandEvent")
+		net.WriteUInt(CASE_COMMAND_CRAFT, 4)
+			net.WriteUInt(recipeID, 16)
+			net.WriteUInt(count, 16)
+		net.SendToServer()
+	end,
 	SyncTemp = nil
 
 }

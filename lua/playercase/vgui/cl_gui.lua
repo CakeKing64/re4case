@@ -1,5 +1,7 @@
 local cvar_blur_bg = CreateClientConVar("case_cl_blur_bg", "1", true, false, "Blur the background for the UI", 0, 1)
 local cvar_show_edit_button = CreateClientConVar("case_cl_show_edit", "1", true, false, "Shows the edit button in the case menu", 0, 1)
+local cvar_prefer_sprites = CreateClientConVar("case_cl_prefer_sprites", "0", true, false, "Try to use sprites always", 0, 2)
+
 local ogWidth, ogHeight = 1920, 1080 -- not my screen size, hopefully that makes it better for testing????
 __CASE_UI_CELL_SIZE = 64 -- #define
 __CASE_UI_BORDER = 32
@@ -66,6 +68,11 @@ function _CaseUIGetScaledDiff()
 	return newW/ ogWidth, newH /ogHeight 
 end
 
+function _CaseUIScale(a, b)
+	local scaleX, scaleY = _CaseUIGetScaledDiff()
+	return a * scaleX, b * scaleY
+end
+
 function _CaseUIGetCell(arguments)
 	
 end
@@ -88,7 +95,10 @@ function CaseGUI:Sync(dropItems)
 end
 
 -- Sick cleanup
-function CaseGUI:Close()
+function CaseGUI:Close(silent)
+	if silent == nil then
+		silent = false
+	end
 	self:Sync(true)
 	self.SortingWindow:Close()
 	self.MainWindow:Close()
@@ -107,7 +117,9 @@ function CaseGUI:Close()
 	self.HeldItem.InvID = -1
 	self.ReadyToClose = false
 
-	CaseGUI.PlaySound("ui/re4case/case_close.wav")
+	if not silent then
+		CaseGUI.PlaySound("ui/re4case/case_close.wav")
+	end
 
 	for k, v in pairs(self.ModelCache) do
 		v:Remove()
@@ -194,7 +206,6 @@ function CaseGUI.ContextDrop1(info)
 end
 
 function CaseGUI.ContextDrop(info)
-	PrintTable(info)
 	CaseInventory.ClientNet.DropItem(info.InvID, -1, false)
 	info.Inv.Items[info.InvID] = nil
 
@@ -225,6 +236,13 @@ hook.Add("CaseFillContext", "CaseDefaultFillContext", function (list, info)
 
 	if itemInfo.ItemType == CASE_ITEM_WEAPON or itemInfo.ItemType == CASE_ITEM_GRENADE then
 		CaseGUI:AddContext(list, "Equip", CaseGUI.ContextEquip, CaseGUI.ContextEquipCheck, "ui/re4case/case_equip.wav")
+	end
+
+	if CaseInventory.CraftingLookup[itemInfo.ItemID] ~= nil then
+		CaseGUI:AddContext(list, "Combine", function ()
+			CaseGUI:Close()
+			CaseCraftGUI:OpenCrafting(itemInfo.ItemID)
+		end)
 	end
 	
 	if itemInfo.ItemType == CASE_ITEM_GENERIC or itemInfo.ItemType == CASE_ITEM_GRENADE then
@@ -404,7 +422,11 @@ local function _createWindow(name, inv, parent, isMain, rtName)
 	return window
 end
 
-function CaseGUI.OpenInventory()
+function CaseGUI.OpenInventory(silent)
+	if silent == nil then
+		silent = false
+	end
+
 	if CaseGUI.IsOpen then
 		return
 	end
@@ -439,6 +461,15 @@ function CaseGUI.OpenInventory()
 		CaseGUI:Close()
 	end
 
+	local craftButton = CaseGUI.MainWindow:Add("CaseButton")
+	craftButton:SetString("C")
+	craftButton:SetSize(_CaseUIScale(25, 25))
+	craftButton:SetPos(mainWindowW - ((35*scaleW) +  (25 * scaleH)), (5*scaleW))
+	craftButton.DoClick = function()
+		CaseGUI:Close(true)
+		CaseCraftGUI:OpenCrafting(-1)
+	end
+
 	if cvar_show_edit_button:GetBool() then
 		local editButton = vgui.Create("CaseInvEditButton", CaseGUI.MainWindow)
 		editButton:SetText("")
@@ -453,7 +484,7 @@ function CaseGUI.OpenInventory()
 		end
 	end
 
-	if CaseGUI.ShouldPlaySounds:GetBool() then
+	if CaseGUI.ShouldPlaySounds:GetBool() and not silent then
 		CaseGUI.PlaySound("ui/re4case/case_open.wav")
 	end
 end
@@ -474,7 +505,215 @@ function CaseGUI:GetHoveredItem()
 	return lastHoveredItem, self.HoveredWindow:Inv().Items[lastHoveredItem]
 end
 
-concommand.Add("case_open", CaseGUI.OpenInventory)
+function CaseGUI:DrawModel(itemID, x, y, w, h, isRotated)
+	local itemInfo = CaseInventory:GetItemInfo(itemID)
+	local renderInfo = itemInfo.RenderInfo
+	local model = CaseGUI.ModelCache[renderInfo.Model]
+
+	if model == nil then
+		model = ClientsideModel(renderInfo.Model)
+		CaseGUI.ModelCache[renderInfo.Model] = model
+	end
+	local _scale = renderInfo.Scale
+
+	if isRotated then
+		local tw = w
+		w = h
+		h = tw
+	end
+
+
+
+
+
+	if IsValid(model) then
+		local min, max = model:GetRenderBounds()
+
+		local function getOffset( val )
+			return math.abs( min[val] )-(max[val]-min[val])/2
+		end
+		
+		--[[ Gotta remind myself :)
+		X -> Forward/Back
+		Y -> Left/Right
+		Z -> Up/Down
+		]]--
+
+		-- If the x width of the model is larger rotate it 90 degrees
+		local xDiff, yDiff = max[1]-min[1], max[2]-min[2]
+		local _renderRotate = false
+		if renderInfo.Rotate then
+			_renderRotate = not _renderRotate
+		end
+		
+		if( xDiff > yDiff or renderInfo.ForceRot == 2) then
+			model:SetPos( Vector( getOffset( 2 ), getOffset( 1 ), getOffset( 3 ) ) )
+			model:SetAngles( Angle( 0, 90, 0 ) )
+		else
+			model:SetPos( Vector( getOffset( 1 ), getOffset( 2 ), getOffset( 3 ) ) )
+			model:SetAngles( Angle( 0, 0, 0 ) )
+		end
+
+		model:SetAngles(model:GetAngles() + Angle(renderInfo.Rotations[1], renderInfo.Rotations[2], renderInfo.Rotations[3]))
+		model:SetPos(model:GetPos() + renderInfo.Offset)
+
+		
+
+		local modelWidth = 0
+		if renderInfo.ForceRot == 0 then
+			modelWidth = math.max( xDiff, yDiff )
+		elseif renderInfo.ForceRot == 0 then
+			modelWidth = yDiff
+		else
+			modelWidth = xDiff
+		end
+
+
+		local square = math.max(w, h)
+
+		local function _offset(a, b)
+			local diff = b-a
+			return diff/2
+		end
+
+		render.SetScissorRect( x, y, x+w, y+h, true )
+		cam.Start({
+			x=x-_offset(w, square),
+			y=y-_offset(h, square),
+			w=square,
+			h=square,
+			type="3D",
+			angles = Angle(0, 0, isRotated and -90 or 0),
+			origin = Vector(-modelWidth*4/(_scale or 1),0,0),
+			fov=70,
+			aspect=1,
+			subrect=true
+		})
+
+		model:SetNoDraw(false)
+		model:SetSkin(renderInfo.Skin)
+		model:DrawModel()
+		model:SetNoDraw(true)
+		cam.End3D()
+
+
+		render.SetScissorRect( 0, 0, 0, 0, false )
+	end
+	
+end
+
+function CaseGUI:DrawSprite(itemID, x, y, w, h, isRotated)
+	local itemInfo = CaseInventory:GetItemInfo(itemID)
+
+	local function GetMaterial(path)
+		local mat = Material(path, "noclamp smooth ignorez")
+		if mat:IsError() then
+			return nil
+		end
+
+		return {Material = mat}
+	end
+
+	-- Load up a sprite :)
+	if CaseGUI.SpriteCache[itemID] == nil then
+		local spritePath = string.format("caseicons/%s.png", itemInfo.Name)
+		local mat = GetMaterial(spritePath)
+
+		-- Try to use spawn icons
+		local useSpawnIcon = mat == nil and CaseInventory:HasTag(itemID, "weapon")
+
+		-- If use sprite mode is set to 1 then only do something
+		-- if the item specifically wants to be rendered with a sprite no matter what
+		if cvar_prefer_sprites:GetInt() == 1 then
+			useSpawnIcon = useSpawnIcon and itemInfo.RenderInfo.UseSprite
+		end
+
+		if useSpawnIcon then
+			local wep = weapons.Get(itemInfo.Name)
+
+			if wep ~= nil then
+				if wep.DrawWeaponSelection ~= nil then
+					mat = {DrawIcon=wep.DrawWeaponSelection}
+				end
+
+				if wep == nil then
+					mat = {}
+				elseif mat == nil then
+					mat = {Texture=wep.WepSelectIcon}
+				end
+				
+			end
+		end
+
+		if mat == nil then
+			mat = {}
+		end
+
+		CaseGUI.SpriteCache[itemID] = mat
+	end
+
+	local mat = CaseGUI.SpriteCache[itemID]
+
+	if mat.DrawIcon ~= nil then
+
+		-- Draw the icon to the top left of the render texture
+		render.PushRenderTarget(self.ItemRT)
+		cam.Start2D()
+		render.SetViewPort( 0, 0, ScrW(), ScrH())
+		render.Clear(0, 0, 0, 0, true, true)
+		LocalPlayer():GetWeapon(itemInfo.Name):DrawWeaponSelection(0, 0, w, h, 255)
+		cam.End2D()
+		render.PopRenderTarget()
+
+
+		
+		--
+
+		surface.SetDrawColor(255, 255, 255)
+		surface.SetMaterial(self.ItemRTMat)
+
+		
+		if not isRotated then
+			render.SetScissorRect( posX + _x, posY + _y,  posX + _x + _w, posY + _y + _h, true)
+			surface.DrawTexturedRect(_x, _y, ScrW(), ScrH())
+		else
+			-- Make sure to swap width and height because we are rotated here!
+			-- But it works no?
+
+			render.SetScissorRect( posX + _x, posY + _y,  posX + _x + _h, posY + _y + _w, true)
+
+			local xOffset = (-ScrH()) + _h
+			surface.DrawTexturedRectRotated(_x + ( ScrH() / 2 ) + xOffset, _y + (ScrW() / 2), ScrW(),ScrH(), 270)
+		end
+		render.SetScissorRect( 0, 0, 0, 0, false)
+		
+	elseif mat.Texture ~= nil then
+		surface.SetTexture(mat.Texture)
+	elseif mat.Material ~= nil then
+		surface.SetMaterial(mat.Material)
+	else
+		return self:DrawModel(itemID, x, y, w, h, isRotated)
+	end
+	
+	surface.SetDrawColor(255, 255, 255)
+	
+	if mat.DrawIcon == nil then
+		if not isRotated then
+			surface.DrawTexturedRectUV( x, y, w, h, 0, 0, 1, 1)
+		else
+			surface.DrawTexturedRectRotated( x + (h/2), y + (w/2), w, h, 270)
+		end
+	end
+end
+
+function CaseGUI:DrawItem(itemID, invId, x, y, w, h, isRotated)
+	
+end
+
+concommand.Add("case_open", function ()
+	CaseGUI.OpenInventory()
+end)
+
 
 -- Do this manually to remove flickering :)
 hook.Add( "PostDrawHUD", "CASE_PostDrawHUD", function()

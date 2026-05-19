@@ -337,6 +337,10 @@ concommand.Add("case_print_recipes", function (ply)
 	PrintTable(CaseInventory.CraftingRecipes)
 end)
 
+concommand.Add("case_print_lookups", function ()
+	PrintTable(CaseInventory.CraftingLookup)
+end)
+
 -- This just kinda has to be here so the client can see it
 concommand.Add( "case_pickup", function(ply, cmd, args, argStr)
 end )

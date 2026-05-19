@@ -76,6 +76,11 @@ CASE_COMMAND_REQUEST_OVERRIDES = 6
 ]]
 CASE_COMMAND_SYNC_ITEM = 7
 
+--[[
+	uint16 recipeID
+]]
+CASE_COMMAND_CRAFT = 8
+
 -- Modes for SYNC_ITEM
 CASE_ITEM_CREATE = 0
 CASE_ITEM_REMOVE = 1
@@ -163,7 +168,22 @@ local client = {
 	"client/cl_editor.lua",
 	"client/cl_settings.lua",
 	"client/cl_sv_settings.lua",
-	"client/cl_itemcreator.lua"
+	"client/cl_itemcreator.lua",
+
+
+	"vgui/cl_gui.lua",
+	"vgui/inventory/cl_invpanel.lua",
+	"vgui/inventory/cl_contextbutton.lua",
+	"vgui/inventory/cl_contextmenu.lua",
+	"vgui/inventory/cl_editbutton.lua",
+	"vgui/inventory/cl_exitbutton.lua",
+	
+	"vgui/cl_gui_crafting.lua",
+	"vgui/crafting/cl_craftpanel.lua",
+	"vgui/crafting/cl_recipebutton.lua",
+	"vgui/crafting/cl_recipelist.lua",
+	"vgui/crafting/cl_craftzone.lua",
+	"vgui/cl_button_generic.lua"
 }
 
 local shared = {

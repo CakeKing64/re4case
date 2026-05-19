@@ -209,6 +209,18 @@ net.Receive("CaseCommandEvent", function (len, ply)
 		end
 	end
 
+	if cmd == CASE_COMMAND_CRAFT then
+		local rID = net.ReadUInt(16)
+		local count = net.ReadUInt(16)
+
+		for i = 1, count do
+			if not CaseInventory:Craft(ply, rID) then
+				break
+			end
+		end
+		
+	end
+
 	--[[
 	if cmd == CASE_COMMAND_REQUEST_OVERRIDES then
 		if ply.HasSyncedOverrides == nil or not ply.HasSyncedOverrides then
