@@ -1,8 +1,8 @@
 CaseCraftGUI = {
     Window = nil,
     Panel = nil,
-    Icons = {}
-
+    Icons = {},
+    ReadyToClose = false
 }
 
 
@@ -19,14 +19,19 @@ function CaseCraftGUI:OpenCrafting(itemID)
     end
     self.Window = vgui.Create("CaseCraftPanel")
     self.Window:Filter(itemID)
+
+    timer.Simple(0.1, function ()
+        self.ReadyToClose = true
+    end)
 end
 
 function CaseCraftGUI:Close()
+    self.ReadyToClose = false
     self.Window:Remove()
 end
 
 function CaseCraftGUI:IsOpen()
-    return IsValid(self.Window)
+    return self.ReadyToClose and IsValid(self.Window)
 end
 
 function CaseCraftGUI:GenerateIcon(itemID)
@@ -76,6 +81,6 @@ function CaseCraftGUI:GetIcon(itemID)
     return self.Icons[itemID]
 end
 
-concommand.Add("case_crafting_open", function ()
+concommand.Add("case_open_crafting", function ()
     CaseCraftGUI:OpenCrafting()
 end)

@@ -1,0 +1,276 @@
+CraftingEditor = {
+	AwaitingUpdate = false,
+	PanelThink = nil,
+	NeedsUpdating = false,
+	UpdateHash = "",
+	UpdateID = 0,
+	CurrentRecipeID = 0,
+	EditPanels = {
+
+	},
+	InputPanels = {
+
+	}
+}
+
+
+function CraftingEditor:Populate(panel)
+	self.Panel = panel
+	self.PanelThink = panel.Think
+	panel.Think = self.Think
+
+	self.RecipeSelector = panel:ComboBox("Recipes")
+	self.RecipeSelector:SetSortItems(false)
+	self:UpdateRecipes()
+
+	self.RecipeSelector.OnSelect = function (this, index, value, data)
+		CraftingEditor:SelectRecipe(data)
+	end
+
+	self.CreateNew = panel:Button("New")
+	self.CreateNew.DoClick = function ()
+		CraftingEditor.Recipe = {
+			Count = 1,
+			DisplayName = "My New Recipe",
+			Input = {},
+			Result = 1,
+			IsCustom = true,
+			Disabled = false
+		}
+		CraftingEditor.CurrentRecipeID = 0
+		CraftingEditor:UpdateFields()
+	end
+end
+
+function CraftingEditor:UpdateRecipes()
+	self.RecipeSelector:Clear()
+	for rID, recipe in pairs(CaseInventory.CraftingRecipes) do
+		local name = ""
+		if recipe.Disabled then
+			name = "(D) " .. recipe.DisplayName
+		else
+			name = recipe.DisplayName
+		end
+
+		self.RecipeSelector:AddChoice(name, rID)
+	end
+end
+
+function CraftingEditor:SelectRecipe(rID)
+	local recipe = CaseInventory:GetRecipe(rID)
+	if recipe == nil then
+		return
+	end
+
+	self.CurrentRecipeID = rID
+	self.Recipe = table.Copy(recipe)
+	self:UpdateFields()
+end
+
+function CraftingEditor:AddEditPanel(name, panel, label)
+	self.EditPanels[name] = panel
+	self.EditPanels[name .. "Label"] = label
+end
+
+function CraftingEditor:UpdateFields()
+	for k, pnl in pairs(self.EditPanels) do
+		pnl:Remove()
+		self.EditPanels[k] = nil
+	end
+
+	if self.Recipe.IsCustom then
+		CraftingEditor:AddEditPanel("Name", self.Panel:TextEntry("Name"))
+		CraftingEditor.EditPanels.Name.OnChange = function (this)
+			self.Recipe.DisplayName = this:GetValue()
+		end
+
+		CraftingEditor.EditPanels.Name:SetValue(self.Recipe.DisplayName)
+		
+		CraftingEditor:AddEditPanel("Result", self.Panel:ComboBox("Result"))
+		self:PopulateItems(self.EditPanels.Result)
+		self.EditPanels.Result.OnSelect = function (this, index, value, data)
+			self.Recipe.Result = data
+		end
+
+
+		CraftingEditor:AddEditPanel("Count", self.Panel:TextEntry("Count"))
+
+		self.EditPanels.Count.OnChange = function (this)
+			local count = tonumber(this:GetValue())
+			if count == nil or count <= 0 then
+				count = 1
+			end
+
+			self.Recipe.Count = count
+		end
+
+		self.EditPanels.Count:SetText(tostring(self.Recipe.Count))
+
+		self.EditPanels.InputPanel = vgui.Create("DForm")
+		self.EditPanels.InputPanel:SetLabel("Inputs")
+		self.Panel:AddItem(self.EditPanels.InputPanel)
+
+		CraftingEditor:AddEditPanel("AddItem", self.Panel:Button("Add Input"))
+		
+		self.EditPanels.AddItem.DoClick = function (this, itemID)
+			if table.Count(CraftingEditor.Recipe.Input) == 8 then
+				return
+			end
+		
+			if itemID == nil then
+				-- Add a new input
+				-- Find the first free ID we can use
+				local freeID = 1
+				while CraftingEditor.Recipe.Input[freeID] ~= nil do
+					freeID = freeID + 1
+				end
+				CraftingEditor.Recipe.Input[freeID] = 1
+				itemID = freeID
+			end
+
+			self:AddInput(self.EditPanels.InputPanel, itemID)
+		end
+
+		for itemID, count in pairs(CraftingEditor.Recipe.Input) do
+			self.EditPanels.AddItem.DoClick(self.EditPanels.AddItem, itemID)
+		end
+
+	end
+
+	CraftingEditor:AddEditPanel("Disabled", self.Panel:CheckBox("Disabled"))
+	self.EditPanels.Disabled.OnChange = function (this)
+		self.Recipe.Disabled = this:GetChecked()
+	end
+	self.EditPanels.Disabled:SetValue(self.Recipe.Disabled)
+
+	self.EditPanels.Save = self.Panel:Button("Save")
+	self.EditPanels.Save.DoClick = function ()
+
+		-- Waiting for a response from the server
+		if self.AwaitingUpdate then
+			return
+		end
+
+		CaseInventory.ClientNet.SubmitRecipe(self.CurrentRecipeID, self.Recipe)
+		self.AwaitingUpdate = true
+	end
+end
+
+function CraftingEditor:AddInput(inputPanel, itemID)
+
+	local inputPanels = {
+		
+	}
+
+	inputPanels.InputItem = vgui.Create("DComboBox")
+	inputPanels.InputItem.ItemID = itemID
+	inputPanel:AddItem(inputPanels.InputItem)
+
+	self:PopulateItems(inputPanels.InputItem, itemID)
+	inputPanels.InputItem.OnSelect = function (this, index, value, data)
+		local oldCount = self.Recipe.Input[this.ItemID]
+		self.Recipe.Input[this.ItemID] = nil
+		self.Recipe.Input[data] = oldCount
+		self.InputPanels[data] = self.InputPanels[this.ItemID]
+		self.InputPanels[data].Button.ItemID = data
+		self.InputPanels[data].Count.ItemID = data
+
+		this.ItemID = data
+	end
+
+	inputPanels.Count, inputPanels.CountLabel = inputPanel:TextEntry("Count")
+	inputPanels.Count:SetText(tostring(self.Recipe.Input[itemID]))
+	inputPanels.Count.ItemID = itemID
+
+	inputPanels.Count.OnChange = function (this)
+		local count = tonumber(this:GetValue())
+		if count == nil or count <= 0 then
+			count = 1
+		end
+
+		self.Recipe.Input[this.ItemID] = count
+	end
+
+	inputPanels.Button = inputPanel:Button("Remove")
+	inputPanels.Button.ItemID = itemID
+	inputPanels.Button.DoClick = function (this)
+		for _, pnl in pairs(self.InputPanels[this.ItemID]) do
+			pnl:Remove()
+		end
+
+		self.InputPanels[this.ItemID] = nil
+		self.Recipe.Input[this.ItemID] = nil
+	end
+
+	inputPanels.Divider = vgui.Create("DHorizontalDivider")
+	inputPanel:AddItem(inputPanels.Divider)
+
+	self.InputPanels[itemID] = inputPanels
+	
+end
+
+function CraftingEditor:PopulateItems(combobox, desiredItemID)
+	if desiredItemID == nil then
+		
+	end
+
+	local setIndex = 1
+	local index = 1
+
+	for itemID, itemInfo in pairs(CaseInventory.ItemRegister) do
+		if itemInfo.Type == CASE_ITEM_DO_NOT_HANDLE or itemInfo.Type == CASE_ITEM_GLOW_ONLY then
+			continue
+		end
+
+		combobox:AddChoice(string.format("%s (%s)", itemInfo.Name, itemInfo.PrintName), itemID)
+
+		if itemID == desiredItemID then
+			setIndex = index
+		end
+
+		index = index + 1
+	end
+
+	combobox:ChooseOptionID(setIndex)
+end
+
+function CraftingEditor.Think(self)
+	if CraftingEditor.NeedsUpdating then
+		CraftingEditor.NeedsUpdating = false
+
+		-- Update the recipe list first off
+		CraftingEditor.UpdateRecipes(CraftingEditor)
+
+		-- Let's see.. is what we are currently editing what was just updated?
+		local curHash = CaseInventory:GenerateRecipeHash(CraftingEditor.Recipe)
+		
+		-- YES! YES! YES! YES!
+		if curHash == CraftingEditor.UpdateHash then
+			local i = 1
+			while true do
+				local rID = CraftingEditor.RecipeSelector:GetOptionData(i)
+				if rID == nil then
+					break
+				end
+
+				-- We've found our man
+				if rID == CraftingEditor.UpdateID then
+					CraftingEditor.AwaitingUpdate = false
+					CraftingEditor.RecipeSelector:ChooseOptionID(i)
+				end
+
+				i = i + 1
+			end
+		end
+
+		
+	end
+	CraftingEditor.PanelThink(self)
+end
+
+hook.Add("PopulateToolMenu", "CaseAddCraftEditor", function()
+	spawnmenu.AddToolMenuOption("Utilities", "RE4 Case", "RE4CaseCraftEditor", "#Crafting Editor", "", "", function(panel)
+		CraftingEditor.Panel = panel
+		CraftingEditor:Populate(panel)
+	end)
+end)

@@ -42,8 +42,8 @@ end
 --[[
 	uint4 command
 ]]--
-net.Receive("CaseCommandEvent", function (len, ply)
-	local cmd = net.ReadUInt(4)
+net.Receive("CaseNetMsg", function (len, ply)
+	local cmd = net.ReadUInt(8)
 
 	if cmd == CASE_COMMAND_DROP then
 		local invID = net.ReadUInt(16)
@@ -219,6 +219,64 @@ net.Receive("CaseCommandEvent", function (len, ply)
 			end
 		end
 		
+	end
+
+	if cmd == CASE_COMMAND_MODIFY_RECIPE then
+		if not ply:IsAdmin() then
+			return
+		end
+
+		local recipe = CaseInventory:Recipe()
+		local recipeID = net.ReadUInt(16)
+
+		-- We're looking to add a new one
+		if recipeID == 0 then
+			local usedID = 1
+			while true do
+				local rec = CaseInventory:GetRecipe(usedID)
+				if rec == nil then
+					break
+				end
+
+				usedID = usedID + 1
+			end
+			recipeID = usedID
+		end
+
+		recipe.Disabled = net.ReadBool()
+
+
+		local _recipe = CaseInventory:GetRecipe(recipeID)
+		-- Quick lookup
+		if _recipe ~= nil and not _recipe.IsCustom then
+			_recipe.Disabled = recipe.Disabled
+
+			CaseInventory:SyncRecipe(recipeID)
+			return
+		end
+
+		recipe.Result = net.ReadUInt(16)
+		recipe.DisplayName = net.ReadString()
+		recipe.Count = net.ReadUInt(16)
+		recipe.Input = {}
+		
+		local inputCount = net.ReadUInt(4)
+
+		for i = 1, math.min(8, inputCount) do
+			local inputID = net.ReadUInt(16)
+			local count = net.ReadUInt(16)
+
+			recipe.Input[inputID] = count
+		end
+
+		recipe.IsCustom = true
+		CaseInventory.CraftingRecipes[recipeID] = recipe
+
+		-- Send this stuff away
+		CaseInventory:SyncRecipe(recipeID)
+
+		-- Finally save it to disk
+		CaseInventory:SaveRecipes()
 	end
 
 	--[[

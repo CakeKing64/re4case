@@ -81,6 +81,24 @@ CASE_COMMAND_SYNC_ITEM = 7
 ]]
 CASE_COMMAND_CRAFT = 8
 
+--[[
+	uint16 recipeID (0 == New Recipe)
+	table recipe
+]]
+CASE_COMMAND_MODIFY_RECIPE = 9
+
+
+
+
+-- Server -> Client commands
+CASE_EVENT_SYNC = 1
+CASE_EVENT_SYNC_IDS = 2
+CASE_EVENT_SYNC_OVERRIDE = 3
+CASE_EVENT_ON_PICKUP = 4
+CASE_EVENT_SYNC_CUSTOM_ITEMS = 5
+CASE_EVENT_AUTO_GEN_WEAPONS = 6
+CASE_EVENT_SYNC_RECIPE = 7
+
 -- Modes for SYNC_ITEM
 CASE_ITEM_CREATE = 0
 CASE_ITEM_REMOVE = 1
@@ -96,6 +114,11 @@ CaseInventory.CraftingRecipes = {}
 
 if CLIENT then
 	CaseInventory.CraftingLookup = {}
+	CaseInventory.CraftEdit = {
+		Panel = nil,
+		NeedsUpdating = false,
+		UpdateHash = ""
+	}
 end
 
 CASE_AUTOGEN_WEAPON = 1
@@ -169,6 +192,7 @@ local client = {
 	"client/cl_settings.lua",
 	"client/cl_sv_settings.lua",
 	"client/cl_itemcreator.lua",
+	"client/cl_crafteditor.lua",
 
 
 	"vgui/cl_gui.lua",
@@ -235,11 +259,5 @@ _client(shared)
 
 if SERVER then
 	-- uh remind me to merge these all into like one string please
-	util.AddNetworkString("CaseSync")         	-- Server -> Client only full inventory sync
-	util.AddNetworkString("CaseCommandEvent") 	-- Bidirectional commands
-	util.AddNetworkString("CaseSyncIDs")      	-- Server -> Client sync item ids
-	util.AddNetworkString("CaseSyncOverride") 	-- Server -> Client
-	util.AddNetworkString("CaseOnPickup") 		-- Server -> Client
-	util.AddNetworkString("CaseSyncCustomItems") -- Server -> Client
-	util.AddNetworkString("CaseAutoGenWeapons")
+	util.AddNetworkString("CaseNetMsg") -- The thing
 end

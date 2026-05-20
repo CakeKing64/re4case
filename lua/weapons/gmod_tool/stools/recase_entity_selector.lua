@@ -20,7 +20,8 @@ function TOOL:LeftClick(tr)
 
 	-- this sucks actually what is this
 	if game.SinglePlayer() and SERVER then
-		net.Start("CaseSyncCustomItems")
+		net.Start("CaseNetMsg")
+		net.WriteUInt(CASE_EVENT_SYNC_CUSTOM_ITEMS, 8)
 			local printName = ent.PrintName
 			if printName == nil then
 				printName = ent:GetClass()

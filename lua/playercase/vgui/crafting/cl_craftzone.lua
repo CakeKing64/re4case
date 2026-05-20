@@ -132,6 +132,29 @@ function craftzone:Think()
 	end
 end
 
+function craftzone:GetMaxCraft(recipeID)
+	-- Find out the max amount we can make
+
+	local recipe = CaseInventory:GetRecipe(recipeID)
+	local ids = CaseInventory:GetInvIDsForCraft(LocalPlayer(), recipeID)
+	if ids == nil then
+		return 0
+	end
+	local inv = CaseInv(LocalPlayer())
+
+	local maxCount = 999999999999
+
+	
+	for invID, count in pairs(ids) do
+		
+		local invCount = CaseInventory:ItemCount(inv, inv.Items[invID].ItemID)
+		local recCount = recipe.Input[inv.Items[invID].ItemID]
+
+		maxCount = math.min(maxCount, math.floor(invCount / recCount))
+	end
+	return maxCount
+end
+
 function craftzone:SetRecipe(recipeID)
 	local scaleW, scaleH = _CaseUIGetScaledDiff()
 	self.RecipeInfo = CaseInventory:GetRecipe(recipeID)
@@ -165,7 +188,14 @@ function craftzone:SetRecipe(recipeID)
 
 
 	self.CraftMaxButton = self:Add("CaseButton")
-	self.CraftMaxButton:SetString("Craft Max")
+
+	local maxCraft =  self:GetMaxCraft(recipeID)
+	if maxCraft <= 99 then
+		self.CraftMaxButton:SetString(string.format("Craft %i", maxCraft))
+	else
+		self.CraftMaxButton:SetString("Craft 99+")
+	end
+	
 	self.CraftMaxButton:SetSize(_CaseUIScale(125, 75))
 	self.CraftMaxButton:SetFontSize(28)
 
@@ -183,24 +213,10 @@ function craftzone:SetRecipe(recipeID)
 	self.CraftMaxButton.RecipeID = recipeID
 	
 	self.CraftMaxButton.DoClick = function (this)
-		-- Find out the max amount we can make
+		CaseInventory.ClientNet.Craft(this.RecipeID, self:GetMaxCraft(this.RecipeID))
 
-		local recipe = CaseInventory:GetRecipe(this.RecipeID)
-		local ids = CaseInventory:GetInvIDsForCraft(LocalPlayer(), this.RecipeID)
-		local inv = CaseInv(LocalPlayer())
-
-		local maxCount = 999999999999
-
-		
-		for invID, count in pairs(ids) do
-			
-			local invCount = CaseInventory:ItemCount(inv, inv.Items[invID].ItemID)
-			local recCount = recipe.Input[inv.Items[invID].ItemID]
-
-			maxCount = math.min(maxCount, math.floor(invCount / recCount))
-		end
-
-		CaseInventory.ClientNet.Craft(this.RecipeID, maxCount)
+		-- Just assume it's 0 ig
+		self.CraftMaxButton:SetString(string.format("Craft 0"))
 	end
 end
 

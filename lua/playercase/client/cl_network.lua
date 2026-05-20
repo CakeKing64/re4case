@@ -1,30 +1,30 @@
 CaseInventory.ClientNet = {
 	DropItem = function (invId, count, sync)
-		net.Start("CaseCommandEvent")
-		net.WriteUInt(CASE_COMMAND_DROP, 4)
+		net.Start("CaseNetMsg")
+		net.WriteUInt(CASE_COMMAND_DROP, 8)
 		net.WriteUInt(invId, 16)
 		net.WriteInt(count, 16)
 		net.WriteBool(sync)
 		net.SendToServer()
 	end,
 	UseItem = function (invId, sync)
-		net.Start("CaseCommandEvent")
-		net.WriteUInt(CASE_COMMAND_USE, 4)
+		net.Start("CaseNetMsg")
+		net.WriteUInt(CASE_COMMAND_USE, 8)
 		net.WriteUInt(invId, 16)
 		net.WriteBool(sync)
 		net.SendToServer()
 	end,
 	MergeItems = function (srcID, destID, sync)
-		net.Start("CaseCommandEvent")
-		net.WriteUInt(CASE_COMMAND_MERGE, 4)
+		net.Start("CaseNetMsg")
+		net.WriteUInt(CASE_COMMAND_MERGE, 8)
 		net.WriteUInt(srcID, 16)
 		net.WriteUInt(destID, 16)
 		net.WriteBool(sync)
 		net.SendToServer()
 	end,
 	SyncItems = function ()
-		net.Start("CaseCommandEvent")
-		net.WriteUInt(CASE_COMMAND_SYNC, 4)
+		net.Start("CaseNetMsg")
+		net.WriteUInt(CASE_COMMAND_SYNC, 8)
 		net.WriteUInt(table.Count(CaseInventory:Inv().Items), 16)
 		for k, v in pairs(CaseInventory:Inv().Items) do
 			net.WriteUInt(k, 16)
@@ -35,8 +35,8 @@ CaseInventory.ClientNet = {
 		net.SendToServer()
 	end,
 	UpdateOverride = function (itemID, info)
-		net.Start("CaseCommandEvent")
-		net.WriteUInt(CASE_COMMAND_SYNC_OVERRIDES, 4)
+		net.Start("CaseNetMsg")
+		net.WriteUInt(CASE_COMMAND_SYNC_OVERRIDES, 8)
 			net.WriteUInt(itemID, 16)
 			net.WriteBool(info == nil)
 
@@ -81,12 +81,12 @@ CaseInventory.ClientNet = {
 		net.SendToServer()
 	end,
 	RequestOverrides = function ()
-		net.Start("CaseCommandEvent")
-		net.WriteUInt(CASE_COMMAND_REQUEST_OVERRIDES, 4)
+		net.Start("CaseNetMsg")
+		net.WriteUInt(CASE_COMMAND_REQUEST_OVERRIDES, 8)
 		net.SendToServer()
 	end,
 	CreateItem = function (name, model, printName)
-		net.Start("CaseCommandEvent")
+		net.Start("CaseNetMsg")
 		net.WriteUInt(CASE_COMMAND_SYNC_ITEM, 4)
 			net.WriteString(name)
 			net.WriteUInt(CASE_ITEM_CREATE, 4)
@@ -97,8 +97,8 @@ CaseInventory.ClientNet = {
 		net.SendToServer()
 	end,
 	UpdateItem = function (name, printName, itemType, useCondition)
-		net.Start("CaseCommandEvent")
-		net.WriteUInt(CASE_COMMAND_SYNC_ITEM, 4)
+		net.Start("CaseNetMsg")
+		net.WriteUInt(CASE_COMMAND_SYNC_ITEM, 8)
 			net.WriteString(name)
 			net.WriteUInt(CASE_ITEM_EDIT, 4)
 			net.WriteString(printName)
@@ -107,8 +107,8 @@ CaseInventory.ClientNet = {
 		net.SendToServer()
 	end,
 	RemoveItem = function (name)
-		net.Start("CaseCommandEvent")
-		net.WriteUInt(CASE_COMMAND_SYNC_ITEM, 4)
+		net.Start("CaseNetMsg")
+		net.WriteUInt(CASE_COMMAND_SYNC_ITEM, 8)
 			net.WriteString(name)
 			net.WriteUInt(CASE_ITEM_REMOVE, 4)
 		net.SendToServer()
@@ -118,15 +118,39 @@ CaseInventory.ClientNet = {
 			count = 1
 		end
 		
-		net.Start("CaseCommandEvent")
-		net.WriteUInt(CASE_COMMAND_CRAFT, 4)
+		net.Start("CaseNetMsg")
+		net.WriteUInt(CASE_COMMAND_CRAFT, 8)
 			net.WriteUInt(recipeID, 16)
 			net.WriteUInt(count, 16)
+		net.SendToServer()
+	end,
+	-- Set recipeID to 0 to indicate a new recipe
+	SubmitRecipe = function (recipeID, recipe)
+		net.Start("CaseNetMsg")
+			net.WriteUInt(CASE_COMMAND_MODIFY_RECIPE, 8)
+			net.WriteUInt(recipeID, 16)
+			net.WriteBool(recipe.Disabled)
+
+			-- Disabled is the only thing that non-custom recipes will take
+			if not recipe.IsCustom then
+				net.SendToServer()
+				return
+			end
+
+			net.WriteUInt(recipe.Result, 16)
+			net.WriteString(recipe.DisplayName)
+			net.WriteUInt(recipe.Count, 16)
+			net.WriteUInt(table.Count(recipe.Input), 4)
+			for itemID, count in pairs(recipe.Input) do
+				net.WriteUInt(itemID, 16)
+				net.WriteUInt(count, 16)
+			end
 		net.SendToServer()
 	end,
 	SyncTemp = nil
 
 }
+
 
 
 -- Packet structure :)
@@ -142,7 +166,7 @@ CaseInventory.ClientNet = {
 		uint8    X
 		uint8    Y
 ]]--
-net.Receive("CaseSync", function ()
+local function CaseSync()
 	local ply = LocalPlayer()
 	local ready = IsValid(ply) -- uh oh
 
@@ -267,9 +291,9 @@ net.Receive("CaseSync", function ()
 		CaseInventory:RefreshLoadout(sortingInv)
 	end
 
-end)
+end
 
-net.Receive("CaseSyncIDs", function ()
+local function CaseSyncIDs()
 	local count = net.ReadUInt(8)
 	if count == 0 then
 		CaseInventory.ItemRegisterApply = true
@@ -281,9 +305,9 @@ net.Receive("CaseSyncIDs", function ()
 		local name = net.ReadString()
 		CaseInventory.ItemRegisterLayout[id] = name
 	end
-end)
+end
 
-net.Receive("CaseSyncOverride", function ()
+local function CaseSyncOverride()
 	local itemID = net.ReadUInt(16)
 	local delete = net.ReadBool()
 
@@ -325,9 +349,9 @@ net.Receive("CaseSyncOverride", function ()
 		RenderInfo=CaseRenderInfo(model, scale, rotation, offset, skin, useSprite)
 	})
 
-end)
+end
 
-net.Receive("CaseOnPickup", function ()
+local function CaseOnPickup()
 	local itemID = net.ReadUInt(16)
 	local info = CaseInventory:GetItemInfo(itemID)
 
@@ -337,7 +361,7 @@ net.Receive("CaseOnPickup", function ()
 			CaseGUI.PlaySound("ui/re4case/case_pickup_item.wav")
 		end
 	end
-end)
+end
 
 --[[
 	bool isToolSelect
@@ -353,7 +377,7 @@ end)
 		uint8 type
 		uint8 canUseCondition
 ]]
-net.Receive("CaseSyncCustomItems", function ()
+local function CaseSyncCustomItems()
 	local isToolSelect = net.ReadBool()
 	if isToolSelect then
 		local class = net.ReadString()
@@ -419,9 +443,9 @@ net.Receive("CaseSyncCustomItems", function ()
 		end
 
 	end
-end)
+end
 
-net.Receive("CaseAutoGenWeapons", function ()
+local function CaseAutoGenWeapons()
 	local done = net.ReadBool()
 	if done then
 		CaseInventory.ObtainedAutoGenerate = true
@@ -445,4 +469,68 @@ net.Receive("CaseAutoGenWeapons", function ()
 		table.insert(CaseInventory.AutoGenerateInfo, autoGen)
 	end
 	
+end
+
+local function CaseSyncRecipe()
+	local recipe = CaseInventory:Recipe()
+	local recipeID = net.ReadUInt(16)
+
+	recipe.IsCustom = net.ReadBool()
+	recipe.Disabled = net.ReadBool()
+	recipe.Result = net.ReadUInt(16)
+	recipe.DisplayName = net.ReadString()
+	recipe.Count = net.ReadUInt(16)
+	recipe.Input = {}
+	recipe.IsCustom = true
+	
+	local inputCount = net.ReadUInt(4)
+
+	for i = 1, math.min(8, inputCount) do
+		local inputID = net.ReadUInt(16)
+		local count = net.ReadUInt(16)
+
+		recipe.Input[inputID] = count
+	end
+
+	CaseInventory.CraftingRecipes[recipeID] = recipe
+	CaseInventory:UpdateLookups()
+
+	-- Editor doesn't need to be updated so why bother :)
+	if IsValid(CraftingEditor.Panel) then
+		CraftingEditor.NeedsUpdating = true
+		CraftingEditor.UpdateHash = CaseInventory:GenerateRecipeHash(recipe)
+		CraftingEditor.UpdateID = recipeID
+	end
+end
+
+
+net.Receive("CaseNetMsg", function ()
+	local msg = net.ReadUInt(8)
+	if msg == CASE_EVENT_SYNC then
+		return CaseSync()
+	end
+
+	if msg == CASE_EVENT_SYNC_IDS then
+		return CaseSyncIDs()
+	end
+
+	if msg == CASE_EVENT_SYNC_CUSTOM_ITEMS then
+		return CaseSyncCustomItems()
+	end
+
+	if msg == CASE_EVENT_AUTO_GEN_WEAPONS then
+		return CaseAutoGenWeapons()
+	end
+
+	if msg == CASE_EVENT_SYNC_OVERRIDE then
+		return CaseSyncOverride()
+	end
+
+	if msg == CASE_EVENT_ON_PICKUP then
+		return CaseOnPickup()
+	end
+
+	if msg == CASE_EVENT_SYNC_RECIPE then
+		return CaseSyncRecipe()
+	end
 end)

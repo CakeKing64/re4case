@@ -39,6 +39,10 @@ function recipelist:Filter(itemID)
 	if itemID == -1 then
 		-- Load up the recipes
 		for rID, rInfo in pairs(CaseInventory.CraftingRecipes) do
+			if rInfo.Disabled then
+				continue
+			end
+			
 			local button = self:AddRecipe(rID)
 			if first then
 				button:DoClick()
