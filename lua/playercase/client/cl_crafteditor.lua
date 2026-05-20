@@ -131,6 +131,15 @@ function CraftingEditor:UpdateFields()
 			self:AddInput(self.EditPanels.InputPanel, itemID)
 		end
 
+		if CaseInventory:GetRecipe(self.CurrentRecipeID) ~= nil then
+			CraftingEditor:AddEditPanel("Delete", self.Panel:Button("Delete"))
+			self.EditPanels.Delete.DoClick = function (this)
+				CaseInventory.ClientNet.SubmitRecipe(self.CurrentRecipeID, nil)
+				self:UpdateRecipes()
+				self.RecipeSelector:ChooseOptionID(1)
+			end
+		end
+
 		for itemID, count in pairs(CraftingEditor.Recipe.Input) do
 			self.EditPanels.AddItem.DoClick(self.EditPanels.AddItem, itemID)
 		end

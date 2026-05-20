@@ -142,7 +142,7 @@ function craftzone:GetMaxCraft(recipeID)
 	end
 	local inv = CaseInv(LocalPlayer())
 
-	local maxCount = 999999999999
+	local maxCount = 256
 
 	
 	for invID, count in pairs(ids) do

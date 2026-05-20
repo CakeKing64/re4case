@@ -129,13 +129,22 @@ CaseInventory.ClientNet = {
 		net.Start("CaseNetMsg")
 			net.WriteUInt(CASE_COMMAND_MODIFY_RECIPE, 8)
 			net.WriteUInt(recipeID, 16)
-			net.WriteBool(recipe.Disabled)
+			local delete = recipe == nil
+			net.WriteBool(delete) -- Delete?
 
+			if delete then
+				net.SendToServer()
+				return
+			end
+
+			net.WriteBool(recipe.Disabled)
+			
 			-- Disabled is the only thing that non-custom recipes will take
 			if not recipe.IsCustom then
 				net.SendToServer()
 				return
 			end
+
 
 			net.WriteUInt(recipe.Result, 16)
 			net.WriteString(recipe.DisplayName)
@@ -474,6 +483,14 @@ end
 local function CaseSyncRecipe()
 	local recipe = CaseInventory:Recipe()
 	local recipeID = net.ReadUInt(16)
+	local delete = net.ReadBool()
+
+	if delete then
+		CaseInventory.CraftingRecipes[recipeID] = nil
+		CraftingEditor.NeedsUpdating = true
+		CaseInventory:UpdateLookups()
+		return
+	end
 
 	recipe.IsCustom = net.ReadBool()
 	recipe.Disabled = net.ReadBool()
@@ -481,7 +498,7 @@ local function CaseSyncRecipe()
 	recipe.DisplayName = net.ReadString()
 	recipe.Count = net.ReadUInt(16)
 	recipe.Input = {}
-	recipe.IsCustom = true
+
 	
 	local inputCount = net.ReadUInt(4)
 

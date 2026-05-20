@@ -228,7 +228,7 @@ net.Receive("CaseNetMsg", function (len, ply)
 
 		local recipe = CaseInventory:Recipe()
 		local recipeID = net.ReadUInt(16)
-
+		
 		-- We're looking to add a new one
 		if recipeID == 0 then
 			local usedID = 1
@@ -243,6 +243,13 @@ net.Receive("CaseNetMsg", function (len, ply)
 			recipeID = usedID
 		end
 
+		local delete = net.ReadBool()
+		if delete then
+			CaseInventory:DeleteRecipe(recipeID)
+			CaseInventory:SaveRecipes()
+			return
+		end
+
 		recipe.Disabled = net.ReadBool()
 
 
@@ -254,6 +261,8 @@ net.Receive("CaseNetMsg", function (len, ply)
 			CaseInventory:SyncRecipe(recipeID)
 			return
 		end
+
+
 
 		recipe.Result = net.ReadUInt(16)
 		recipe.DisplayName = net.ReadString()

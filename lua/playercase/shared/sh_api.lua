@@ -2602,6 +2602,7 @@ function CaseInventory:SyncRecipe(recipeID, ply)
 	net.Start("CaseNetMsg")
 		net.WriteUInt(CASE_EVENT_SYNC_RECIPE, 8)
 		net.WriteUInt(recipeID, 16)
+		net.WriteBool(false) -- Delete
 		net.WriteBool(recipe.IsCustom)
 		net.WriteBool(recipe.Disabled)
 		net.WriteUInt(recipe.Result, 16)
@@ -2617,6 +2618,28 @@ function CaseInventory:SyncRecipe(recipeID, ply)
 	else
 		net.Send(ply)
 	end
+end
+
+---Deletes a recipe :(
+---@param recipeID number
+function CaseInventory:DeleteRecipe(recipeID)
+	local recipe = CaseInventory:GetRecipe(recipeID)
+	if recipe == nil then
+		return
+	end
+
+	if not recipe.IsCustom then
+		return
+	end
+
+	CaseInventory.CraftingRecipes[recipeID] = nil
+	
+	net.Start("CaseNetMsg")
+	net.WriteUInt(CASE_EVENT_SYNC_RECIPE, 8)
+		net.WriteUInt(recipeID, 16)
+		net.WriteBool(true) -- Delete
+	net.Broadcast()
+
 end
 
 ---Performs a craft
