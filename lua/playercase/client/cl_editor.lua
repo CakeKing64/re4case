@@ -353,7 +353,7 @@ function CaseEditor:FilterChanged(filter, all)
 		local printName = string.lower(CaseInventory.ItemRegister[i].PrintName ~= nil and CaseInventory.ItemRegister[i].PrintName or "")
 		local fitlerLower = string.lower(filter)
 
-		local found = all or (string.find(name, fitlerLower) or string.find(printName, fitlerLower))
+		local found = all or (string.find(name, fitlerLower, 1, true) or string.find(printName, fitlerLower, 1, true))
 
 		if found then
 			foundWeapon = true

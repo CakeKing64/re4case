@@ -209,7 +209,12 @@ local client = {
 	"vgui/crafting/cl_recipebutton.lua",
 	"vgui/crafting/cl_recipelist.lua",
 	"vgui/crafting/cl_craftzone.lua",
-	"vgui/cl_button_generic.lua"
+	"vgui/cl_button_generic.lua",
+	"vgui/cl_textbox.lua",
+
+
+
+	"vgui/cl_font.lua"
 }
 
 local shared = {
@@ -262,4 +267,6 @@ _client(shared)
 if SERVER then
 	-- uh remind me to merge these all into like one string please
 	util.AddNetworkString("CaseNetMsg") -- The thing
+
+	resource.AddSingleFile( "resource/fonts/RedHatMono-SemiBold.ttf" )
 end

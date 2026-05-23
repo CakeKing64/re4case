@@ -331,7 +331,7 @@ concommand.Add("case_print_registry", function(ply, cmd, args, argStr)
 	if argStr ~= "" then
 		local items = {}
 		for k, v in pairs(CaseInventory.ItemRegister) do	
-			if string.find(v.Name, argStr) then
+			if string.find(v.Name, argStr, 1, true) then
 				items[k] = v
 			end
 		end

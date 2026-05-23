@@ -9,7 +9,7 @@ local CRAFT_ICON_ROW_SEPERATOR = 25
 local CRAFT_ICON_COLUMN_SEPERATOR = 80
 local CRAFT_ROW_MAX = 5
 
-local CRAFT_NAME_SIZE = 13
+local CRAFT_NAME_SIZE = 18
 local CRAFT_COUNT_SIZE = 30
 
 function craftzone:Init()
@@ -118,7 +118,7 @@ function craftzone:Paint(w, h)
 
 		-- Draw item name text
 		local nameWidth, nameHeight = CaseInvBitmapTextSize(itemInfo.PrintName, CRAFT_NAME_SIZE)
-		CaseInvBitmapTextDraw(itemInfo.PrintName, iconX, (iconY - nameHeight),CRAFT_NAME_SIZE)
+		CaseInvBitmapTextDraw(itemInfo.PrintName, iconX + ((CRAFT_ICON_SIZE*scaleW) / 2) - (nameWidth / 2), (iconY - (nameHeight / 2)) - ((30 * scaleH) / 2),CRAFT_NAME_SIZE)
 
 		local invCount = CaseInventory:ItemCount(CaseInv(LocalPlayer()), itemID)
 		local countString = ""

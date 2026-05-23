@@ -42,6 +42,15 @@ function craftpanel:Init()
 		CaseCraftGUI:Close()
 		CaseGUI.OpenInventory(true)
 	end
+
+	self.SearchFilter = self:Add("CaseTextBox")
+	self.SearchFilter:SetPos(_CaseUIScale(1280 - 510, 5))
+	self.SearchFilter:SetSize(_CaseUIScale(425, 25))
+	self.SearchFilter:SetPlaceholderText("Filter...")
+
+	self.SearchFilter.OnChange = function (this)
+		self.RecipeList:Filter(self.RecipeList.ItemID, this:GetValue())
+	end
 end
 
 function craftpanel:Filter(itemID)
@@ -54,4 +63,4 @@ function craftpanel:Paint(w, h)
 	surface.DrawRect(0, 0, w, h)
 end
 
-vgui.Register("CaseCraftPanel", craftpanel, "DPanel")
+vgui.Register("CaseCraftPanel", craftpanel, "EditablePanel")

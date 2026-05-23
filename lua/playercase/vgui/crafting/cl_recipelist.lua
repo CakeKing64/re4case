@@ -1,7 +1,8 @@
 local recipelist = {
 	Buttons = {
 		
-	}
+	},
+	ItemID = -1
 }
 
 function recipelist:Init()
@@ -29,7 +30,9 @@ function recipelist:AddRecipe(rID)
 	return button
 end
 
-function recipelist:Filter(itemID)
+function recipelist:Filter(itemID, filterText)
+	local recipeCollection = {}
+	self.ItemID = itemID
 	local first = true
 
 	for k, v in ipairs(self.Buttons) do
@@ -43,22 +46,89 @@ function recipelist:Filter(itemID)
 				continue
 			end
 			
-			local button = self:AddRecipe(rID)
-			if first then
-				button:DoClick()
-				first = false
-			end
+			table.insert(recipeCollection, rID)
 		end
 	else
 		if CaseInventory.CraftingLookup[itemID] == nil then
-			self:Filter(-1)
+			self:Filter(-1, filterText)
 			return
 		end
 
 		for _, rID in ipairs(CaseInventory.CraftingLookup[itemID]) do
+			table.insert(recipeCollection, rID)
+		end
+	end
+	
+
+	-- Ok time to filter for text!
+
+	-- Or don't...
+	if filterText == "" or filterText == nil then
+		for _, rID in ipairs(recipeCollection) do
 			local button = self:AddRecipe(rID)
 			if first then
-				button:DoClick()
+				button:OnClick()
+				first = false
+			end
+		end
+
+		return
+	end
+
+	for _, rID in ipairs(recipeCollection) do
+		local found = false
+		local recipeInfo = CaseInventory:GetRecipe(rID)
+
+		if recipeInfo == nil then
+			self:Filter(itemID, "")
+		end
+
+		local function GetItemText(itemID)
+			local info = CaseInventory:GetItemInfo(itemID)
+			if info == nil then
+				return nil, nil
+			end
+
+			return info.Name, info.PrintName
+		end
+
+
+		-- Try to find it in the display name
+		if string.find(recipeInfo.DisplayName, filterText, 1, true) then
+			found = true
+		end
+
+		-- Try to find it in the result class + name
+		if not found then
+			local name, printName = GetItemText(recipeInfo.Result)
+			if name == nil or printName == nil then
+				continue
+			end
+
+			if string.find(name, filterText, 1, true) or string.find(printName, filterText, 1, true) then
+				found = true
+			end
+		end
+
+		-- Ok try to find it in an input
+		if not found then
+			for itemID, _ in pairs(recipeInfo.Input) do
+				local name, printName = GetItemText(itemID)
+				if name == nil or printName == nil then
+					continue
+				end
+
+				if string.find(name, filterText, 1, true) or string.find(printName, filterText, 1, true) then
+					found = true
+					break
+				end
+			end
+		end
+
+		if found then
+			local button = self:AddRecipe(rID)
+			if first then
+				button:OnClick()
 				first = false
 			end
 		end

@@ -9,7 +9,7 @@ hook.Add("CaseRegisterRecipes", "CaseDefaultRecipes", function ()
 
 	CaseInventory:RegisterCraftingRecipe("Assault Rifle Ammo x30", "ammo_AR2", 30, {re9_crafting_gunpowder_d = 1, re9_crafting_scrap_rare = 1})
 	CaseInventory:RegisterCraftingRecipe("Rifle Ammo x10", "ammo_SniperPenetratedRound", 10, {re9_crafting_gunpowder_e = 1, re9_crafting_scrap_rare = 1})
-	CaseInventory:RegisterCraftingRecipe("Revolver Ammo x5", "ammo_357", 30, {re9_crafting_gunpowder_f = 1, re9_crafting_scrap_rare = 1})
+	CaseInventory:RegisterCraftingRecipe("Revolver Ammo x5", "ammo_357", 5, {re9_crafting_gunpowder_f = 1, re9_crafting_scrap_rare = 1})
 
 	CaseInventory:RegisterCraftingRecipe("Mixed Herb (G+G+G)", "re9_mixed_herb", 1, {re9_green_herb = 3})
 	CaseInventory:RegisterCraftingRecipe("Mixed Herb (G+R)", "re9_mixed_herb", 1, {re9_green_herb = 1, re9_red_herb = 1})

@@ -1,7 +1,7 @@
 local casebutton = {
-    FontSize = 30,
-    Text = "",
-    TextColor = Color(255, 255, 255),
+	FontSize = 30,
+	Text = "",
+	TextColor = Color(255, 255, 255),
 	ButtonColor = {
 		Enabled = Color(80, 80, 75, 255),
 		Hovered = Color(60, 60, 55, 255),
@@ -15,7 +15,7 @@ local casebutton = {
 }
 
 function casebutton:Init()
-    self:SetText("")
+	self:SetText("")
 end
 
 function casebutton:Think()
@@ -27,13 +27,15 @@ function casebutton:Think()
 end
 
 function casebutton:DoClick()
-    CaseGUI.PlaySound(self.Sound)
+	if self.Sound ~= nil then
+		CaseGUI.PlaySound(self.Sound)
+	end
 
-    self:OnClick()
+	self:OnClick()
 end
 
 function casebutton:Paint(w, h)
-    if self:IsEnabled() then
+	if self:IsEnabled() then
 		if not self:IsHovered() then
 			surface.SetDrawColor(self.ButtonColor.Enabled)
 		else
@@ -50,16 +52,16 @@ function casebutton:Paint(w, h)
 		surface.SetDrawColor(110, 110, 105, 255)
 	end
 
-    local textW, textH = CaseInvBitmapTextSize(self.Text, self.FontSize)
-    CaseInvBitmapTextDraw(self.Text, (w/2) - (textW / 2), (h/2) - (textH / 2), self.FontSize)
+	local textW, textH = CaseInvBitmapTextSize(self.Text, self.FontSize)
+	CaseInvBitmapTextDraw(self.Text, (w/2) - (textW / 2), (h/2) - (textH / 2), self.FontSize)
 end
 
 function casebutton:SetString(text)
-    self.Text = text
+	self.Text = text
 end
 
 function casebutton:SetFontSize(size)
-    self.FontSize = size
+	self.FontSize = size
 end
 
 vgui.Register("CaseButton", casebutton, "DButton")

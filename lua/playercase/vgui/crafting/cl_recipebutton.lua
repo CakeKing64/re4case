@@ -6,7 +6,8 @@ local recipebutton = {
 	OnClick = function ()
 		
 	end,
-	Sound = "ui/re4case/context_open.wav"
+	Sound = "ui/re4case/context_open.wav",
+	PlaySound = true
 }
 
 function recipebutton:Init()
@@ -22,7 +23,9 @@ function recipebutton:Think()
 end
 
 function recipebutton:DoClick()
-    CaseGUI.PlaySound(self.Sound)
+	if self.PlaySound then
+    	CaseGUI.PlaySound(self.Sound)
+	end
 
     self:OnClick()
 end
@@ -38,6 +41,8 @@ function recipebutton:SetRecipeID(rID)
 end
 
 function recipebutton:Paint(w, h)
+	local scaleW = _CaseUIGetScaledDiff()
+
 	if self:IsEnabled() then
 		if not self:IsHovered() then
 			surface.SetDrawColor(60, 60, 55, 255)
@@ -62,7 +67,7 @@ function recipebutton:Paint(w, h)
 
 	local x, y = self:LocalToScreen(0, 0)
 
-	local offsetX = _CaseUIScale(h, 0)
+	local offsetX = h + (5 * scaleW)
 	local oXS, oYS = _CaseUIScale(1, 1)
 
 	local icon = CaseCraftGUI:GetIcon(self.ItemID)
