@@ -1,6 +1,6 @@
 hook.Add("CaseRegisterRecipes", "CaseDefaultRecipes", function ()
 
-	CaseInventory:RegisterCraftingRecipe("Healthkit", "item_healthkit", 1, {item_healthvial = 2})
+	CaseInventory:RegisterCraftingRecipe("Health Kit", "item_healthkit", 1, {item_healthvial = 2})
 
 	CaseInventory:RegisterCraftingRecipe("Pistol Ammo x15", "ammo_Pistol", 15, {re9_crafting_gunpowder_a = 1, re9_crafting_scrap = 1})
 	CaseInventory:RegisterCraftingRecipe("Shotgun Shells x10", "ammo_Buckshot", 10, {re9_crafting_gunpowder_b = 1, re9_crafting_scrap = 1})

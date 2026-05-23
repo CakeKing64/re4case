@@ -87,7 +87,7 @@ CaseInventory.ClientNet = {
 	end,
 	CreateItem = function (name, model, printName)
 		net.Start("CaseNetMsg")
-		net.WriteUInt(CASE_COMMAND_SYNC_ITEM, 4)
+		net.WriteUInt(CASE_COMMAND_SYNC_ITEM, 8)
 			net.WriteString(name)
 			net.WriteUInt(CASE_ITEM_CREATE, 4)
 

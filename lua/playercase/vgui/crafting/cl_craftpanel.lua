@@ -38,7 +38,7 @@ function craftpanel:Init()
 	self.InventoryButton:SetString("I")
 	self.InventoryButton:SetSize(_CaseUIScale(25, 25))
 	self.InventoryButton:SetPos(_CaseUIScale(1280 - 50 - 15, 5))
-	self.InventoryButton.DoClick = function ()
+	self.InventoryButton.OnClick = function ()
 		CaseCraftGUI:Close()
 		CaseGUI.OpenInventory(true)
 	end

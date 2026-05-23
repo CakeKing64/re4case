@@ -1,11 +1,30 @@
 local recipebutton = {
 	ItemID = 0,
 	RecipeID = 0,
-	Text = ""
+	Text = "",
+	Hovered = false,
+	OnClick = function ()
+		
+	end,
+	Sound = "ui/re4case/context_open.wav"
 }
 
 function recipebutton:Init()
 	self:SetText("")
+end
+
+function recipebutton:Think()
+	if self:IsHovered() and not self.Hover then
+		CaseGUI.PlaySound("ui/re4case/case_selection.wav")
+	end
+
+	self.Hover = self:IsHovered()
+end
+
+function recipebutton:DoClick()
+    CaseGUI.PlaySound(self.Sound)
+
+    self:OnClick()
 end
 
 function recipebutton:SetRecipeID(rID)

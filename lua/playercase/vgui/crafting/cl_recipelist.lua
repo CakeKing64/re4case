@@ -21,7 +21,7 @@ function recipelist:AddRecipe(rID)
 	button:SetSize(_CaseUIScale(1, 75))
 	button:Dock(TOP)
 	button:DockMargin(0, 0, 0, 2)
-	button.DoClick = function (this)
+	button.OnClick = function (this)
 		CaseCraftGUI.Window.CraftZone:SetRecipe(this.RecipeID)
 	end
 

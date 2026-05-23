@@ -259,6 +259,7 @@ net.Receive("CaseNetMsg", function (len, ply)
 			_recipe.Disabled = recipe.Disabled
 
 			CaseInventory:SyncRecipe(recipeID)
+			CaseInventory:SaveRecipes()
 			return
 		end
 

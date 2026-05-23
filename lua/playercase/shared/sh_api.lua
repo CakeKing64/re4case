@@ -2253,6 +2253,9 @@ function CaseInventory:CreateCustomItem(name, printName, model)
 
 		CaseInventory:SyncCustomItem(itemID)
 		CaseInventory:SaveCustomItems()
+
+		-- Also take a look at the ghost overides
+		CaseInventory:GhostRecipesAdded(name)
 	end
 
 	return true
@@ -2415,12 +2418,17 @@ function CaseInventory:RemoveCustomItem(name)
 		end
 	end
 
+	-- See if there are any recipes we need to shift around
+	CaseInventory:GhostRecipesRemoved(itemID)
+
 	-- Now that's done, yeet it from the register
 	CaseInventory.ItemRegister[itemID] = nil
 	CaseInventory.RegisterOverrides[itemID] = nil
 
 	CaseInventory:SyncCustomItem(itemID)
 	CaseInventory:SaveCustomItems()
+
+
 end
 
 ---Return a CaseX based on type for custom items
@@ -2531,6 +2539,7 @@ end
 ---@param resultCount number
 ---@param input table
 ---@param isCustom boolean?
+---@return number
 function CaseInventory:RegisterCraftingRecipe(displayName, resultName, resultCount, input, isCustom)
 	local newID = 1
 
@@ -2545,14 +2554,14 @@ function CaseInventory:RegisterCraftingRecipe(displayName, resultName, resultCou
 
 	local resultID = CaseInventory:GetItemID(resultName)
 	if resultID == -1 then
-		return -1
+		return 0
 	end
 
 	local inputFinal = {}
 	for k, v in pairs(input) do
 		local itemID = CaseInventory:GetItemID(k)
 		if itemID == -1 then
-			return
+			return 0
 		end
 
 		inputFinal[itemID] = v
@@ -2649,6 +2658,11 @@ end
 function CaseInventory:Craft(ply, recID)
 	local recipe = CaseInventory.CraftingRecipes[recID]
 	if recipe == nil then
+		return false
+	end
+
+	-- No?
+	if recipe.Disabled then
 		return false
 	end
 
@@ -2759,9 +2773,26 @@ end
 
 -- For reasons...
 function CaseInventory:GenerateRecipeHash(recipe)
+	-- We need to sort the keys or something
+	local function _GetInputOrder(inputs)
+		local keys = {}
+
+		for k in pairs(inputs) do
+			table.insert(keys, k)
+		end
+
+		table.sort(keys)
+
+		return keys
+	end
+
 	local rString = string.format("%s_%i_%i_", recipe.DisplayName, recipe.Result, recipe.Count)
 	local rem = table.Count(recipe.Input)
-	for itemID, count in pairs(recipe.Input) do
+	local inputOrder = _GetInputOrder(recipe.Input)
+
+	for _, itemID in ipairs(inputOrder) do
+		local count = recipe.Input[itemID]
+
 		rString = rString .. string.format("%i_%i", itemID, count)
 		if rem ~= 1 then
 			rString = rString .. "_"
@@ -2771,6 +2802,58 @@ function CaseInventory:GenerateRecipeHash(recipe)
 	end
 
 	return util.SHA256(rString)
+end
+
+---For loading & loading from ghost recipes
+---@param recipe table
+---@return number
+function CaseInventory:SaveToRecipe(recipe)
+	if not recipe.IsCustom then
+		local hash = recipe.Hash
+		local disabled = recipe.Disabled -- This should really only be true but whatever
+		for rID, sRecipe in pairs(CaseInventory.CraftingRecipes) do
+			if sRecipe.IsCustom then
+				continue
+			end
+
+			if CaseInventory:GenerateRecipeHash(sRecipe) == hash then
+				
+				sRecipe.Disabled = disabled
+				return rID
+			end
+		end
+		return 0
+	end
+
+	local id = CaseInventory:RegisterCraftingRecipe(recipe.DisplayName, recipe.Result, recipe.Count, recipe.Input, true)
+	return id
+end
+
+function CaseInventory:RecipeToSave(recipe)
+	local sRecipe = {}
+	if not recipe.IsCustom then
+
+		-- Only save if modified
+		if recipe.Disabled then
+			sRecipe.IsCustom = false
+			sRecipe.Hash = CaseInventory:GenerateRecipeHash(recipe)
+			sRecipe.Disabled = recipe.Disabled
+			return sRecipe
+		end
+		return nil
+	end
+	sRecipe.IsCustom = true
+	sRecipe.DisplayName = recipe.DisplayName
+	sRecipe.Result = CaseInventory:GetItemInfo(recipe.Result).Name
+	sRecipe.Count = recipe.Count
+	sRecipe.Disabled = recipe.Disabled
+	sRecipe.Input = {}
+
+	for itemID, count in pairs(recipe.Input) do
+		sRecipe.Input[CaseInventory:GetItemInfo(itemID).Name] = count
+	end
+	
+	return sRecipe
 end
 
 function CaseInventory:LoadRecipes()
@@ -2786,45 +2869,100 @@ function CaseInventory:LoadRecipes()
 	local recipes = util.JSONToTable(file.Read("caseinv/recipes.json", "DATA"))
 	local recipeHashCache = {} -- fun name
 	for _, recipe in pairs(recipes) do
-		if not recipe.IsCustom then
-			print("!!!!! TODO: not recipe.IsCustom for loading !!!!")
-			continue
-		end
+		local addedID = CaseInventory:SaveToRecipe(recipe)
 
-		CaseInventory:RegisterCraftingRecipe(recipe.DisplayName, recipe.Result, recipe.Count, recipe.Input, true)
+		-- Recipe can't actually be loaded, slap it into the ghost zone
+		if addedID == 0 then
+			table.insert(CaseInventory.GhostRecipes, recipe)
+		end
 	end
 end
 
 function CaseInventory:SaveRecipes()
 	local recipeSave = {}
 	for _, recipe in pairs(CaseInventory.CraftingRecipes) do
-		local sRecipe = {}
-		if not recipe.IsCustom then
-
-			-- Only save if modified
-			if recipe.Disabled then
-				sRecipe.IsCustom = false
-				sRecipe.Hash = CaseInventory:GenerateRecipeHash(recipe)
-				sRecipe.Disabled = recipe.Disabled
-			end
-			continue
+		local sRecipe = CaseInventory:RecipeToSave(recipe)
+		if sRecipe ~= nil then
+			table.insert(recipeSave, sRecipe)
 		end
-		sRecipe.IsCustom = true
-		sRecipe.DisplayName = recipe.DisplayName
-		sRecipe.Result = CaseInventory:GetItemInfo(recipe.Result).Name
-		sRecipe.Count = recipe.Count
-		sRecipe.Disabled = recipe.Disabled
-		sRecipe.Input = {}
+	end
 
-		for itemID, count in pairs(recipe.Input) do
-			sRecipe.Input[CaseInventory:GetItemInfo(itemID).Name] = count
-		end
-		
-		table.insert(recipeSave, sRecipe)
+	-- Make sure to save the ghost stuff!
+	for _, recipe in pairs(CaseInventory.GhostRecipes) do
+		table.insert(recipeSave, recipe)
 	end
 
 	file.Write("caseinv/recipes.json", util.TableToJSON(recipeSave))
 end
+
+---For when a custom item is added
+---@param itemName string
+function CaseInventory:GhostRecipesAdded(itemName)
+	local change = false
+	for index, recipe in pairs(CaseInventory.GhostRecipes) do
+		local tryLoad = false
+		if recipe.Result == itemName then
+			tryLoad = true
+		end
+
+		for inputName, _ in pairs(recipe.Input) do
+			if inputName == itemName then
+				tryLoad = true
+				break
+			end
+		end
+
+		if tryLoad then
+			local addedID = CaseInventory:SaveToRecipe(recipe)
+
+			-- Recipe was added, share with the world!
+			if addedID ~= 0 then
+				CaseInventory:SyncRecipe(addedID)
+				-- Also remove from the list
+				CaseInventory.GhostRecipes[index] = nil
+
+				change = true
+			end
+		end
+	end
+
+	if change then
+		CaseInventory:SaveRecipes()
+	end
+end
+
+---For when a custom item ins removed
+---@param itemID number
+function CaseInventory:GhostRecipesRemoved(itemID)
+	local change = false
+	for rID, recipe in pairs(CaseInventory.CraftingRecipes) do
+		local doRemove = false
+		if recipe.Result == itemID then
+			doRemove = true
+		end
+
+		for inputID, _ in pairs(recipe.Input) do
+			if inputID == itemID then
+				doRemove = true
+				break
+			end
+		end
+
+		-- bye bye :(
+		if doRemove then
+			local save = CaseInventory:RecipeToSave(recipe)
+			table.insert(CaseInventory.GhostRecipes, save)
+
+			CaseInventory:DeleteRecipe(rID)
+			change = true
+		end
+	end
+
+	if change then
+		CaseInventory:SaveRecipes()
+	end
+end
+
 
 ---Client only
 function CaseInventory:PopulateNames()

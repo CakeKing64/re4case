@@ -6,11 +6,30 @@ local casebutton = {
 		Enabled = Color(80, 80, 75, 255),
 		Hovered = Color(60, 60, 55, 255),
 		Disabled = Color(30, 30, 27, 255)
-	}
+	},
+	Hover = false,
+	OnClick = function ()
+		
+	end,
+	Sound = "ui/re4case/context_open.wav"
 }
 
 function casebutton:Init()
     self:SetText("")
+end
+
+function casebutton:Think()
+	if self:IsHovered() and not self.Hover then
+		CaseGUI.PlaySound("ui/re4case/case_selection.wav")
+	end
+
+	self.Hover = self:IsHovered()
+end
+
+function casebutton:DoClick()
+    CaseGUI.PlaySound(self.Sound)
+
+    self:OnClick()
 end
 
 function casebutton:Paint(w, h)

@@ -111,6 +111,8 @@ CaseInventory.RegisterOverrides = {}
 CaseInventory.Inventories = {}
 CaseInventory.PickupQueue = {}
 CaseInventory.CraftingRecipes = {}
+CaseInventory.GhostRecipes = {}
+
 
 if CLIENT then
 	CaseInventory.CraftingLookup = {}

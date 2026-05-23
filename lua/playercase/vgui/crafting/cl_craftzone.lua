@@ -67,7 +67,23 @@ function craftzone:Paint(w, h)
 	local btnW, btnH = self.CraftButton:GetSize()
 
 	-- Draw all the input items
-	for itemID, count in pairs(self.RecipeInfo.Input) do
+	local function _GetInputOrder(inputs)
+		local keys = {}
+
+		for k in pairs(inputs) do
+			table.insert(keys, k)
+		end
+
+		table.sort(keys)
+
+		return keys
+	end
+
+	local inputOrder = _GetInputOrder(self.RecipeInfo.Input)
+
+	for _, itemID in ipairs(inputOrder) do
+		local count = self.RecipeInfo.Input[itemID]
+
 		local itemInfo = CaseInventory:GetItemInfo(itemID)
 
 		if rowCount == 0 then
@@ -182,7 +198,7 @@ function craftzone:SetRecipe(recipeID)
 	self.CraftButton:SetEnabled(CaseInventory:CanCraft(LocalPlayer(), recipeID))
 	self.CraftButton.RecipeID = recipeID
 	
-	self.CraftButton.DoClick = function (this)
+	self.CraftButton.OnClick = function (this)
 		CaseInventory.ClientNet.Craft(this.RecipeID)
 	end
 
@@ -212,7 +228,7 @@ function craftzone:SetRecipe(recipeID)
 	self.CraftMaxButton:SetEnabled(CaseInventory:CanCraft(LocalPlayer(), recipeID))
 	self.CraftMaxButton.RecipeID = recipeID
 	
-	self.CraftMaxButton.DoClick = function (this)
+	self.CraftMaxButton.OnClick = function (this)
 		CaseInventory.ClientNet.Craft(this.RecipeID, self:GetMaxCraft(this.RecipeID))
 
 		-- Just assume it's 0 ig
