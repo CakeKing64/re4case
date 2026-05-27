@@ -57,7 +57,7 @@ function CaseItemCreator:FilterChanged(filter)
 		local printName = v.PrintName
 		local fitlerLower = string.lower(filter)
 
-		local found = (filter == "") or (string.find(name, fitlerLower) or string.find(printName, fitlerLower))
+		local found = (filter == "") or (string.find(name, fitlerLower, 1, true) or string.find(printName, fitlerLower, 1, true))
 		if not found then
 			continue
 		end

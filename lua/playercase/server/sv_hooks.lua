@@ -76,7 +76,8 @@ hook.Add("player_activate", "CASE_PlayerActivate", function (data)
 		remItemCount = remItemCount + 1
 	end
 
-	net.Start("CaseSyncIDs")
+	net.Start("CaseNetMsg")
+	net.WriteUInt(CASE_EVENT_SYNC_IDS, 8)
 	net.WriteUInt(math.min(remItemCount, 64), 8)
 
 	repeat
@@ -91,10 +92,12 @@ hook.Add("player_activate", "CASE_PlayerActivate", function (data)
 			curLimitCheck = 0
 			net.Send(player)
 			if remItemCount ~= 0 then
-				net.Start("CaseSyncIDs")
+				net.Start("CaseNetMsg")
+				net.WriteUInt(CASE_EVENT_SYNC_IDS, 8)
 				net.WriteUInt(math.min(remItemCount, 64), 8)
 			else -- All sent
-				net.Start("CaseSyncIDs")
+				net.Start("CaseNetMsg")
+				net.WriteUInt(CASE_EVENT_SYNC_IDS, 8)
 				net.WriteUInt(0, 8)
 				net.Send(player)
 			end
@@ -117,7 +120,8 @@ hook.Add("player_activate", "CASE_PlayerActivate", function (data)
 
 	for k, autoItem in pairs(CaseInventory.AutoGenerateInfo) do
 		if not unsent then
-			net.Start("CaseAutoGenWeapons")
+			net.Start("CaseNetMsg")
+			net.WriteUInt(CASE_EVENT_AUTO_GEN_WEAPONS, 8)
 			net.WriteBool(false)
 			net.WriteUInt(math.min(64, rem), 8)
 			unsent = true
@@ -153,7 +157,8 @@ hook.Add("player_activate", "CASE_PlayerActivate", function (data)
 		net.Send(player)
 	end
 
-	net.Start("CaseAutoGenWeapons")
+	net.Start("CaseNetMsg")
+	net.WriteUInt(CASE_EVENT_AUTO_GEN_WEAPONS, 8)
 		net.WriteBool(true) -- All done
 	net.Send(player)
 
@@ -163,6 +168,12 @@ hook.Add("player_activate", "CASE_PlayerActivate", function (data)
 
 	for k, v in pairs(CaseInventory.CustomItems) do
 		CaseInventory:SyncCustomItem(k, player)
+	end
+
+
+	-- Throw over all the recipes as well for fun
+	for rID, _ in pairs(CaseInventory.CraftingRecipes) do
+		CaseInventory:SyncRecipe(rID, player)
 	end
 	
 	CaseInventory:Sync(player)

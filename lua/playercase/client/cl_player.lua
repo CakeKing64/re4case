@@ -134,14 +134,31 @@ hook.Add("CreateMove", "testMouseWheel", function(cmd)
 
 
 	-- Allow closing the case with the same button used to open it
-	if CaseGUI.IsOpen and CaseGUI.ReadyToClose then
-		local bind = input.LookupBinding( "case_open")
-		if bind ~= nil then
-			bind = input.GetKeyCode(bind)
-			if input.WasKeyPressed(bind) or input.WasMousePressed(bind) then
-				CaseGUI:Close()
-			end
+	local doClose = false
+
+	local bind = input.LookupBinding("case_open")
+	if bind ~= nil then
+		bind = input.GetKeyCode(bind)
+		if input.WasKeyPressed(bind) or input.WasMousePressed(bind) then
+			doClose = true
 		end
+	end
+
+	bind = input.LookupBinding("case_open_crafting")
+	if not doClose and bind ~= nil then
+		bind = input.GetKeyCode(bind)
+		if input.WasKeyPressed(bind) or input.WasMousePressed(bind) then
+			doClose = true
+		end
+	end
+
+
+	if CaseGUI.IsOpen and CaseGUI.ReadyToClose and doClose then
+		CaseGUI:Close()
+	end
+
+	if CaseCraftGUI:IsOpen() and doClose then
+		CaseCraftGUI:Close()
 	end
 
 	-- Handle the quick use / quick drop commands / whatever i may add in the future
@@ -314,7 +331,7 @@ concommand.Add("case_print_registry", function(ply, cmd, args, argStr)
 	if argStr ~= "" then
 		local items = {}
 		for k, v in pairs(CaseInventory.ItemRegister) do	
-			if string.find(v.Name, argStr) then
+			if string.find(v.Name, argStr, 1, true) then
 				items[k] = v
 			end
 		end
@@ -331,6 +348,14 @@ end)
 
 concommand.Add("case_print_custom", function(ply)
 	PrintTable(CaseInventory.CustomItems)
+end)
+
+concommand.Add("case_print_recipes", function (ply)
+	PrintTable(CaseInventory.CraftingRecipes)
+end)
+
+concommand.Add("case_print_lookups", function ()
+	PrintTable(CaseInventory.CraftingLookup)
 end)
 
 -- This just kinda has to be here so the client can see it

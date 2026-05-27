@@ -27,6 +27,15 @@ hook.Add("InitPostEntity", "CASE_InitPostEntity", function ()
 	-- Serverside stuff
 	CaseInventory:FinalizeItemRegister()
 
+
+
+	if SERVER then
+		hook.Run("CaseRegisterRecipes")
+		CaseInventory:LoadRecipes()
+	end
+	
+	CaseInventory:UpdateLookups()
+
 	if CLIENT then
 		CaseInventory:RefreshLoadout(CaseInv())
 	end

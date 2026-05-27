@@ -76,6 +76,29 @@ CASE_COMMAND_REQUEST_OVERRIDES = 6
 ]]
 CASE_COMMAND_SYNC_ITEM = 7
 
+--[[
+	uint16 recipeID
+]]
+CASE_COMMAND_CRAFT = 8
+
+--[[
+	uint16 recipeID (0 == New Recipe)
+	table recipe
+]]
+CASE_COMMAND_MODIFY_RECIPE = 9
+
+
+
+
+-- Server -> Client commands
+CASE_EVENT_SYNC = 1
+CASE_EVENT_SYNC_IDS = 2
+CASE_EVENT_SYNC_OVERRIDE = 3
+CASE_EVENT_ON_PICKUP = 4
+CASE_EVENT_SYNC_CUSTOM_ITEMS = 5
+CASE_EVENT_AUTO_GEN_WEAPONS = 6
+CASE_EVENT_SYNC_RECIPE = 7
+
 -- Modes for SYNC_ITEM
 CASE_ITEM_CREATE = 0
 CASE_ITEM_REMOVE = 1
@@ -87,6 +110,18 @@ CaseInventory.ItemRegister = {}
 CaseInventory.RegisterOverrides = {}
 CaseInventory.Inventories = {}
 CaseInventory.PickupQueue = {}
+CaseInventory.CraftingRecipes = {}
+CaseInventory.GhostRecipes = {}
+
+
+if CLIENT then
+	CaseInventory.CraftingLookup = {}
+	CaseInventory.CraftEdit = {
+		Panel = nil,
+		NeedsUpdating = false,
+		UpdateHash = ""
+	}
+end
 
 CASE_AUTOGEN_WEAPON = 1
 CASE_AUTOGEN_AMMO = 2
@@ -158,14 +193,36 @@ local client = {
 	"client/cl_editor.lua",
 	"client/cl_settings.lua",
 	"client/cl_sv_settings.lua",
-	"client/cl_itemcreator.lua"
+	"client/cl_itemcreator.lua",
+	"client/cl_crafteditor.lua",
+
+
+	"vgui/cl_gui.lua",
+	"vgui/inventory/cl_invpanel.lua",
+	"vgui/inventory/cl_contextbutton.lua",
+	"vgui/inventory/cl_contextmenu.lua",
+	"vgui/inventory/cl_editbutton.lua",
+	"vgui/inventory/cl_exitbutton.lua",
+	
+	"vgui/cl_gui_crafting.lua",
+	"vgui/crafting/cl_craftpanel.lua",
+	"vgui/crafting/cl_recipebutton.lua",
+	"vgui/crafting/cl_recipelist.lua",
+	"vgui/crafting/cl_craftzone.lua",
+	"vgui/cl_button_generic.lua",
+	"vgui/cl_textbox.lua",
+
+
+
+	"vgui/cl_font.lua"
 }
 
 local shared = {
 	"shared/sh_api.lua",
 	"shared/sh_items.lua",
 	"shared/sh_hooks.lua",
-	"item_list.lua"
+	"item_list.lua",
+	"crafting_list.lua"
 }
 
 local function _client(files)
@@ -209,11 +266,7 @@ _client(shared)
 
 if SERVER then
 	-- uh remind me to merge these all into like one string please
-	util.AddNetworkString("CaseSync")         	-- Server -> Client only full inventory sync
-	util.AddNetworkString("CaseCommandEvent") 	-- Bidirectional commands
-	util.AddNetworkString("CaseSyncIDs")      	-- Server -> Client sync item ids
-	util.AddNetworkString("CaseSyncOverride") 	-- Server -> Client
-	util.AddNetworkString("CaseOnPickup") 		-- Server -> Client
-	util.AddNetworkString("CaseSyncCustomItems") -- Server -> Client
-	util.AddNetworkString("CaseAutoGenWeapons")
+	util.AddNetworkString("CaseNetMsg") -- The thing
+
+	resource.AddSingleFile( "resource/fonts/RedHatMono-SemiBold.ttf" )
 end
