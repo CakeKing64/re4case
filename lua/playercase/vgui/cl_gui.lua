@@ -602,7 +602,11 @@ function CaseGUI:DrawModel(itemID, x, y, w, h, isRotated)
 	
 end
 
-function CaseGUI:DrawSprite(itemID, x, y, w, h, isRotated)
+function CaseGUI:DrawSprite(itemID, x, y, w, h, isRotated, useDrawWeaponSelection)
+	if useDrawWeaponSelection == nil then
+		useDrawWeaponSelection = true
+	end
+
 	local itemInfo = CaseInventory:GetItemInfo(itemID)
 
 	local function GetMaterial(path)
@@ -632,7 +636,7 @@ function CaseGUI:DrawSprite(itemID, x, y, w, h, isRotated)
 			local wep = weapons.Get(itemInfo.Name)
 
 			if wep ~= nil then
-				if wep.DrawWeaponSelection ~= nil then
+				if useDrawWeaponSelection and wep.DrawWeaponSelection ~= nil then
 					mat = {DrawIcon=wep.DrawWeaponSelection}
 				end
 
@@ -656,6 +660,14 @@ function CaseGUI:DrawSprite(itemID, x, y, w, h, isRotated)
 
 	if mat.DrawIcon ~= nil then
 
+		if self.ItemRTMat == nil then
+			self.ItemRT = GetRenderTarget("re4case_ItemSpriteRT", ScrW(), ScrH())
+			self.ItemRTMat = CreateMaterial("re4case_ItemSpriteRTMat", "UnlitGeneric", {
+				["$basetexture"] = self.ItemRT:GetName(),
+				["$translucent"] = 1
+			})
+		end
+
 		-- Draw the icon to the top left of the render texture
 		render.PushRenderTarget(self.ItemRT)
 		cam.Start2D()
@@ -674,16 +686,16 @@ function CaseGUI:DrawSprite(itemID, x, y, w, h, isRotated)
 
 		
 		if not isRotated then
-			render.SetScissorRect( posX + _x, posY + _y,  posX + _x + _w, posY + _y + _h, true)
-			surface.DrawTexturedRect(_x, _y, ScrW(), ScrH())
+			render.SetScissorRect( x, y, w, h, true)
+			surface.DrawTexturedRect(x, y, ScrW(), ScrH())
 		else
 			-- Make sure to swap width and height because we are rotated here!
 			-- But it works no?
 
-			render.SetScissorRect( posX + _x, posY + _y,  posX + _x + _h, posY + _y + _w, true)
+			render.SetScissorRect( x, y,  x + h, y + w, true)
 
-			local xOffset = (-ScrH()) + _h
-			surface.DrawTexturedRectRotated(_x + ( ScrH() / 2 ) + xOffset, _y + (ScrW() / 2), ScrW(),ScrH(), 270)
+			local xOffset = (-ScrH()) + h
+			surface.DrawTexturedRectRotated(x + ( ScrH() / 2 ) + xOffset, y + (ScrW() / 2), ScrW(),ScrH(), 270)
 		end
 		render.SetScissorRect( 0, 0, 0, 0, false)
 		

@@ -171,6 +171,23 @@ function craftzone:GetMaxCraft(recipeID)
 	return maxCount
 end
 
+function craftzone:UpdateMaxCraft(recipeID, takeOne)
+	if takeOne == nil then
+		takeOne = false
+	end
+
+	local maxCraft =  self:GetMaxCraft(recipeID)
+	if takeOne then
+		maxCraft = maxCraft - 1
+	end
+
+	if maxCraft <= 99 then
+		self.CraftMaxButton:SetString(string.format("Craft %i", maxCraft))
+	else
+		self.CraftMaxButton:SetString("Craft 99+")
+	end
+end
+
 function craftzone:SetRecipe(recipeID)
 	local scaleW, scaleH = _CaseUIGetScaledDiff()
 	self.RecipeInfo = CaseInventory:GetRecipe(recipeID)
@@ -200,6 +217,7 @@ function craftzone:SetRecipe(recipeID)
 	
 	self.CraftButton.OnClick = function (this)
 		CaseInventory.ClientNet.Craft(this.RecipeID)
+		self:UpdateMaxCraft(this.RecipeID, true)
 	end
 
 
@@ -232,7 +250,7 @@ function craftzone:SetRecipe(recipeID)
 		CaseInventory.ClientNet.Craft(this.RecipeID, self:GetMaxCraft(this.RecipeID))
 
 		-- Just assume it's 0 ig
-		self.CraftMaxButton:SetString(string.format("Craft 0"))
+		self:UpdateMaxCraft(this.RecipeID)
 	end
 end
 

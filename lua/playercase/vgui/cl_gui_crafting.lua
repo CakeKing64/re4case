@@ -52,7 +52,7 @@ function CaseCraftGUI:GenerateIcon(itemID)
         render.Clear(80, 80, 75, 255, true, true)
         if info.RenderInfo.UseSprite or cvar_prefer_sprites:GetInt() >= 1 then
             cam.Start2D()
-                CaseGUI:DrawSprite(itemID, 0, 0, iconSizeW, iconSizeH, false)
+                CaseGUI:DrawSprite(itemID, 0, 0, iconSizeW, iconSizeH, false, false)
             cam.End2D()
         else
             CaseGUI:DrawModel(itemID, 0, 0, iconSizeW, iconSizeH, false)

@@ -2695,11 +2695,20 @@ function CaseInventory:Craft(ply, recID)
 	
 	local info = CaseInventory:GetItemInfo(recipe.Result)
 
+	PrintTable(info)
 	-- Is some form of ammo
 	if info.AmmoID ~= -1 then
 		ply:GiveAmmo(recipe.Count, info.AmmoID)
-	elseif info.Type == CASE_ITEM_WEAPON then
-		
+	elseif info.ItemType == CASE_ITEM_WEAPON then
+		for i = 1, recipe.Count do
+			local wpn = ents.Create(info.Name)
+			if not IsValid(wpn) then
+				return true
+			end
+
+			wpn:SetPos(ply:GetPos())
+			wpn:Spawn()
+		end
 	else -- Generic ass item
 		local added, rem = CaseInventory:AddItemToInventory(CaseInv(ply), recipe.Result, recipe.Count, false)
 
