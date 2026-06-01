@@ -157,9 +157,7 @@ hook.Add("PlayerCanPickupWeapon", "CASE_PlayerCanPickupWeapon", function( ply, e
 		end
 	end
 
-	if CaseInventory:PickupEntity(ply, ent, true) then
-		return false
-	end
+	return true
 end)
 
 
