@@ -22,6 +22,8 @@ local CVARS = {
     2 -> Items must be +used no matter what]], -1, 2),
     case_weapon_validation = CreateConVar("case_sv_weapon_validation", "1", {FCVAR_ARCHIVE}, [[0 -> Don't do weapon validation checks (might, maybe increase performance)
     1 -> Do weapon validation checks]], 0, 1),
+    case_pickup_compat = CreateConVar("case_sv_pickup_compat", "1", {FCVAR_ARCHIVE}, [[0 -> Don't allow other pickup hooks to be run
+    1 -> Rerun all other pickup hooks]], 0, 1)
 }
 
 

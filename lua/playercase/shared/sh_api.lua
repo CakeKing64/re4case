@@ -38,6 +38,22 @@ function CaseInventory:PickupWeapon(ply, wpn)
 		return false
 	end
 
+	if SERVER then
+		-- We need to see if any other mods would try to deal with the weapon we're about to pickup
+		if CaseInventory:GetCVAR("case_pickup_compat"):GetBool() then
+
+			CASE_PASS_PICKUP_HOOK = true
+			local result = hook.Run("PlayerCanPickupWeapon", ply, wpn)
+			CASE_PASS_PICKUP_HOOK = false
+
+
+			-- We only need to bail on false, nil or true and we can continue
+			if result == false then
+				return false
+			end
+		end
+	end
+
 	local wpnId = CaseInventory:GetItemID(wpn:GetClass())
 	local info = CaseInventory:GetItemInfo(wpnId)
 	local count = CaseInventory:ItemCount(CaseInventory:Inv(ply), wpnId)

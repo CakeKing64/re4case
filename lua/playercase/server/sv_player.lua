@@ -5,6 +5,8 @@ local cvar_frame0 = CaseInventory:GetCVAR("case_frame0_pickup")
 
 local cvar_pick_on_hold = CaseInventory:GetCVAR("case_pickup_on_hold")
 local cvar_pickup_mode = CaseInventory:GetCVAR("case_pickup_mode")
+local cvar_pickup_compat = CaseInventory:GetCVAR("case_pickup_compat")
+CASE_PASS_PICKUP_HOOK = false
 
 local function _canPickup(ply, ent)
 	local lookTarget = ply:GetEyeTrace().Entity
@@ -58,6 +60,8 @@ local function HandleItem(ent)
 end
 
 local function AllowPickup(ply, ent)
+	local pickup_mode = cvar_pickup_mode:GetInt() == -1 and math.Clamp(ply:GetInfoNum("case_cl_pickup_mode", 1), 0, 2) or cvar_pickup_mode:GetInt()
+
 	-- This will always trigger a pickup
 	if ply.CasePickup == ent then
 		return true
@@ -68,12 +72,6 @@ local function AllowPickup(ply, ent)
 	if cvar_frame0:GetBool() and CurTime() - ent:GetCreationTime() < 0.017 and ent:GetPos() == ply:GetPos() then
 		return true
 	end
-
-	return false
-end
-
-local function ShouldAddToInventory(ply, ent)
-	local pickup_mode = cvar_pickup_mode:GetInt() == -1 and math.Clamp(ply:GetInfoNum("case_cl_pickup_mode", 1), 0, 2) or cvar_pickup_mode:GetInt()
 
 	-- Pickup when walked over
 	if pickup_mode == 0 and ply.CasePickupDelay <= 0 then
@@ -87,6 +85,12 @@ local function ShouldAddToInventory(ply, ent)
 	then
 		return true
 	end
+
+	return false
+end
+
+local function ShouldAddToInventory(ply, ent)
+
 
 	-- Must interact with the item, being in a vehicle doesn't count
 	-- pickup_mode == 2 handled by :Use()
@@ -110,9 +114,33 @@ hook.Add( "PlayerCanPickupItem", "CASE_PlayerCanPickupItem", function( ply, ent 
 end )
 
 hook.Add("PlayerCanPickupWeapon", "CASE_PlayerCanPickupWeapon", function( ply, ent)
+	if CASE_PASS_PICKUP_HOOK then
+		return
+	end
+
+	if not AllowPickup(ply, ent) then
+		return false
+	end
+
+
+	-- We need to see if any other mods would try to deal with the weapon we're about to pickup
+	if cvar_pickup_compat:GetBool() then
+
+		CASE_PASS_PICKUP_HOOK = true
+		local result = hook.Run("PlayerCanPickupWeapon", ply, ent)
+		CASE_PASS_PICKUP_HOOK = false
+
+
+		-- We only need to bail on false, nil or true and we can continue
+		if result == false then
+			return false
+		end
+	end
+	
 	if not HandleItem(ent) then
 		return
 	end
+
 
 		
 	local itemId = CaseInventory:GetItemID(ent:GetClass())
@@ -120,22 +148,18 @@ hook.Add("PlayerCanPickupWeapon", "CASE_PlayerCanPickupWeapon", function( ply, e
 		return false
 	end
 
+
+
+
 	if not CaseInventory:HasItem(CaseInventory:Inv(ply), itemId) then
 		if not CaseInventory:FindValidSpot(CaseInventory:Inv(ply), itemId) then
 			return false
 		end
 	end
 
-	if AllowPickup(ply, ent) then
-		return true
-	end
-
-	if ShouldAddToInventory(ply, ent) then
-		CaseInventory:PickupEntity(ply, ent, true)
+	if CaseInventory:PickupEntity(ply, ent, true) then
 		return false
 	end
-
-	return false
 end)
 
 

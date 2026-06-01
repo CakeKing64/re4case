@@ -1,24 +1,27 @@
-local ClientSettings = {}
-ClientSettings.DropExtraAmmo = nil
-ClientSettings.DropOnDeath = nil
-ClientSettings.Frame0Pickup = nil
-ClientSettings.PickupMode = nil
-ClientSettings.DefaultCaseSize = nil
-ClientSettings.CustomCaseSize = nil
-ClientSettings.AutoGenerate = nil
+local ServerSettings = {}
+ServerSettings.DropExtraAmmo = nil
+ServerSettings.DropOnDeath = nil
+ServerSettings.Frame0Pickup = nil
+ServerSettings.PickupMode = nil
+ServerSettings.DefaultCaseSize = nil
+ServerSettings.CustomCaseSize = nil
+ServerSettings.AutoGenerate = nil
 
 
-function ClientSettings:Populate(panel)
-	ClientSettings.DropExtraAmmo = panel:CheckBox("Drop Excess Ammo", "case_sv_drop_excess_ammo")
-	ClientSettings.DropOnDeath = panel:CheckBox("Drop Items On Death", "case_sv_drop_on_death")
-	ClientSettings.Frame0Pickup = panel:CheckBox("Pickup Items Frame 0", "case_sv_frame_0_pickup")
-	ClientSettings.PickupMode = panel:ComboBox("Pickup Mode", "case_sv_pickup_mode")
+function ServerSettings:Populate(panel)
+	ServerSettings.DropExtraAmmo = panel:CheckBox("Drop Excess Ammo", "case_sv_drop_excess_ammo")
+	ServerSettings.DropOnDeath = panel:CheckBox("Drop Items On Death", "case_sv_drop_on_death")
+	ServerSettings.Frame0Pickup = panel:CheckBox("Pickup Items Frame 0", "case_sv_frame_0_pickup")
+	ServerSettings.PickupCompat = panel:CheckBox("Pickup Hook Compatibility", "case_sv_pickup_compat")
+	panel:ControlHelp("This setting will help with weapon replacer mods and maybe some others, but could mess up other stuff")
+
+	ServerSettings.PickupMode = panel:ComboBox("Pickup Mode", "case_sv_pickup_mode")
 	self.PickupMode:AddChoice("Allow the client to decide", -1)
 	self.PickupMode:AddChoice("Walk over to pickup items", 0)
 	self.PickupMode:AddChoice("Use to pickup, unless in vehicle", 1)
 	self.PickupMode:AddChoice("Use to pickup", 2)
 
-	ClientSettings.DefaultCaseSize = panel:ComboBox("Default Case Size")
+	ServerSettings.DefaultCaseSize = panel:ComboBox("Default Case Size")
 	self.DefaultCaseSize:AddChoice("Small")
 	self.DefaultCaseSize:AddChoice("Medium")
 	self.DefaultCaseSize:AddChoice("Large")
@@ -28,13 +31,13 @@ function ClientSettings:Populate(panel)
 
 
 
-	ClientSettings.CustomCaseSize = panel:TextEntry("Custom Case Size")
-	ClientSettings.CustomCaseSize:SetText("10 6")
-	ClientSettings.CustomCaseSize.OnChange = function()
-        RunConsoleCommand("case_sh_default_size", ClientSettings.CustomCaseSize:GetText())
+	ServerSettings.CustomCaseSize = panel:TextEntry("Custom Case Size")
+	ServerSettings.CustomCaseSize:SetText("10 6")
+	ServerSettings.CustomCaseSize.OnChange = function()
+        RunConsoleCommand("case_sh_default_size", ServerSettings.CustomCaseSize:GetText())
     end
 
-	ClientSettings.AutoGenerate = nil
+	ServerSettings.AutoGenerate = nil
 
 
 	
@@ -66,17 +69,17 @@ function ClientSettings:Populate(panel)
 
 		if index ~= 6 then
 			RunConsoleCommand("case_sh_default_size", sizes[index])
-			ClientSettings.CustomCaseSize:SetEnabled(false)
+			ServerSettings.CustomCaseSize:SetEnabled(false)
 		else
-			ClientSettings.CustomCaseSize:SetEnabled(true)
-			RunConsoleCommand("case_sh_default_size", ClientSettings.CustomCaseSize:GetText())
+			ServerSettings.CustomCaseSize:SetEnabled(true)
+			RunConsoleCommand("case_sh_default_size", ServerSettings.CustomCaseSize:GetText())
 		end
 	end
 end
 
 hook.Add("PopulateToolMenu", "CaseAddServerSettings", function()
 	spawnmenu.AddToolMenuOption("Utilities", "RE4 Case", "RE4CaseServerSettings", "#Server Settings", "", "", function(panel)
-		ClientSettings.Panel = panel
-		ClientSettings:Populate(panel)
+		ServerSettings.Panel = panel
+		ServerSettings:Populate(panel)
 	end)
 end)
