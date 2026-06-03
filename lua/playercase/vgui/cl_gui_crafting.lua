@@ -7,6 +7,7 @@ CaseCraftGUI = {
 
 
 local cvar_prefer_sprites = CreateClientConVar("case_cl_prefer_sprites", "0", true, false, "Try to use sprites always", 0, 2)
+local cvar_blur_bg = GetConVar("case_cl_blur_bg")
 
 function CaseCraftGUI:OpenCrafting(itemID)
     if itemID == nil then
@@ -17,8 +18,18 @@ function CaseCraftGUI:OpenCrafting(itemID)
         self:Close()
         return
     end
-    self.Window = vgui.Create("CaseCraftPanel")
-    self.Window:Filter(itemID)
+
+    self.Window = vgui.Create("DFrame")
+    
+    local sizeX, sizeY = _CaseUIScale(1280, 720)
+    self.Window:SetSize(sizeX, sizeY)
+    self.Window:Center()
+	self.Window:MakePopup()
+
+    self.Window:SetBackgroundBlur( cvar_blur_bg:GetBool() )
+
+    self.CraftPanel = self.Window:Add("CaseCraftPanel") 
+    self.CraftPanel:Filter(itemID)
 
     timer.Simple(0.1, function ()
         self.ReadyToClose = true

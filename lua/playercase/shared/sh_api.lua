@@ -2711,7 +2711,7 @@ function CaseInventory:Craft(ply, recID)
 	
 	local info = CaseInventory:GetItemInfo(recipe.Result)
 
-	PrintTable(info)
+	
 	-- Is some form of ammo
 	if info.AmmoID ~= -1 then
 		ply:GiveAmmo(recipe.Count, info.AmmoID)
@@ -2901,6 +2901,12 @@ function CaseInventory:LoadRecipes()
 			table.insert(CaseInventory.GhostRecipes, recipe)
 		end
 	end
+
+	for rID, recipe in pairs(recipes) do
+		if recipe.IsCustom then
+			recipe.DisplayName = CaseInventory:GetValidRecipeName(recipe.DisplayName, rID)
+		end
+	end
 end
 
 function CaseInventory:SaveRecipes()
@@ -2986,6 +2992,58 @@ function CaseInventory:GhostRecipesRemoved(itemID)
 	if change then
 		CaseInventory:SaveRecipes()
 	end
+end
+
+---Try to create a unique name for an item
+---@param name string
+---@param ignoreID number?
+---@return string
+function CaseInventory:GetValidRecipeName(name, ignoreID)
+	if ignoreID == nil then
+		ignoreID = -1 
+	end
+	local nameTable = {}
+
+	for rID, rInfo in pairs(CaseInventory.CraftingRecipes) do
+		if rID == ignoreID then
+			print("hi")
+			continue
+		end
+		table.insert(nameTable, rInfo.DisplayName)
+	end
+
+	for _, rInfo in pairs(CaseInventory.GhostRecipes) do
+		table.insert(nameTable, rInfo.DisplayName)
+	end
+
+	local finalName = ""
+	local badName = false
+	for _, displayName in ipairs(nameTable) do
+		if displayName == name then
+			badName = true
+			break
+		end
+	end
+
+	if not badName then
+		return name
+	end
+
+	local i = 1
+	while badName do
+		badName = false
+		finalName = string.format("%s (%i)", name, i)
+		for _, displayName in ipairs(nameTable) do
+			if displayName == finalName then
+				i = i + 1
+				badName = true
+				break
+			end
+		end
+
+	end
+
+	return finalName
 end
 
 

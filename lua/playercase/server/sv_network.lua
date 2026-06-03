@@ -266,7 +266,7 @@ net.Receive("CaseNetMsg", function (len, ply)
 
 
 		recipe.Result = net.ReadUInt(16)
-		recipe.DisplayName = net.ReadString()
+		recipe.DisplayName = CaseInventory:GetValidRecipeName(net.ReadString(), recipeID)
 		recipe.Count = net.ReadUInt(16)
 		recipe.Input = {}
 		

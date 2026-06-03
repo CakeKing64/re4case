@@ -23,7 +23,7 @@ function recipelist:AddRecipe(rID)
 	button:Dock(TOP)
 	button:DockMargin(0, 0, 0, 2)
 	button.OnClick = function (this)
-		CaseCraftGUI.Window.CraftZone:SetRecipe(this.RecipeID)
+		CaseCraftGUI.CraftPanel.CraftZone:SetRecipe(this.RecipeID)
 	end
 
 	table.insert(self.Buttons, button)

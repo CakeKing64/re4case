@@ -10,8 +10,8 @@ local craftpanel = {
 function craftpanel:Init()
 	local sizeX, sizeY = _CaseUIScale(1280, 720)
     self:SetSize(sizeX, sizeY)
-    self:Center()
-	self:MakePopup()
+    --self:Center()
+	--self:MakePopup()
 	--self:NoClipping(true)
 	--self:SetBackgroundBlur(true)
 

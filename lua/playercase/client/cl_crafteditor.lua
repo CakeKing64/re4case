@@ -31,7 +31,7 @@ function CraftingEditor:Populate(panel)
 	self.CreateNew.DoClick = function ()
 		CraftingEditor.Recipe = {
 			Count = 1,
-			DisplayName = "My New Recipe",
+			DisplayName = CaseInventory:GetValidRecipeName("My New Recipe"),
 			Input = {},
 			Result = 1,
 			IsCustom = true,
@@ -80,8 +80,10 @@ function CraftingEditor:UpdateFields()
 
 	if self.Recipe.IsCustom then
 		CraftingEditor:AddEditPanel("Name", self.Panel:TextEntry("Name"))
-		CraftingEditor.EditPanels.Name.OnChange = function (this)
-			self.Recipe.DisplayName = this:GetValue()
+		CraftingEditor.EditPanels.Name.OnValueChange = function (this, value)
+			local validName = CaseInventory:GetValidRecipeName(value, self.CurrentRecipeID)
+			this:SetText(validName)
+			self.Recipe.DisplayName = validName
 		end
 
 		CraftingEditor.EditPanels.Name:SetValue(self.Recipe.DisplayName)
@@ -90,6 +92,21 @@ function CraftingEditor:UpdateFields()
 		self:PopulateItems(self.EditPanels.Result)
 		self.EditPanels.Result.OnSelect = function (this, index, value, data)
 			self.Recipe.Result = data
+		end
+		
+		local i = 1
+		while true do
+			local itemID = self.EditPanels.Result:GetOptionData(i)
+			if itemID == nil then
+				break
+			end
+
+			if itemID == self.Recipe.Result then
+				self.EditPanels.Result:ChooseOptionID(i)
+				break
+			end
+
+			i = i + 1
 		end
 
 
@@ -159,6 +176,9 @@ function CraftingEditor:UpdateFields()
 		if self.AwaitingUpdate then
 			return
 		end
+		local validName = CaseInventory:GetValidRecipeName(self.EditPanels.Name:GetValue(), self.CurrentRecipeID)
+		self.EditPanels.Name:SetText(validName)
+		self.Recipe.DisplayName = validName
 
 		CaseInventory.ClientNet.SubmitRecipe(self.CurrentRecipeID, self.Recipe)
 		self.AwaitingUpdate = true
