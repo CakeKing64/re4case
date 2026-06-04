@@ -19,6 +19,8 @@ function CraftingEditor:Populate(panel)
 	self.PanelThink = panel.Think
 	panel.Think = self.Think
 
+	self.RecipeFilter = panel:TextEntry("Filter")
+
 	self.RecipeSelector = panel:ComboBox("Recipes")
 	self.RecipeSelector:SetSortItems(false)
 	self:UpdateRecipes()
@@ -54,6 +56,8 @@ function CraftingEditor:UpdateRecipes()
 
 		self.RecipeSelector:AddChoice(name, rID)
 	end
+
+	self:SetupFilter(self.RecipeFilter, self.RecipeSelector)
 end
 
 function CraftingEditor:SelectRecipe(rID)
@@ -88,11 +92,15 @@ function CraftingEditor:UpdateFields()
 
 		CraftingEditor.EditPanels.Name:SetValue(self.Recipe.DisplayName)
 		
+		CraftingEditor:AddEditPanel("ResultFilter", self.Panel:TextEntry("Filter"))
+
 		CraftingEditor:AddEditPanel("Result", self.Panel:ComboBox("Result"))
 		self:PopulateItems(self.EditPanels.Result)
 		self.EditPanels.Result.OnSelect = function (this, index, value, data)
 			self.Recipe.Result = data
 		end
+
+		self:SetupFilter(self.EditPanels.ResultFilter, self.EditPanels.Result)
 		
 		local i = 1
 		while true do
@@ -191,6 +199,8 @@ function CraftingEditor:AddInput(inputPanel, itemID)
 		
 	}
 
+	 inputPanels.Filter, inputPanels.FilterText = inputPanel:TextEntry("Filter")
+
 	inputPanels.InputItem = vgui.Create("DComboBox")
 	inputPanels.InputItem.ItemID = itemID
 	inputPanel:AddItem(inputPanels.InputItem)
@@ -206,6 +216,8 @@ function CraftingEditor:AddInput(inputPanel, itemID)
 
 		this.ItemID = data
 	end
+
+	self:SetupFilter(inputPanels.Filter, inputPanels.InputItem)
 
 	inputPanels.Count, inputPanels.CountLabel = inputPanel:TextEntry("Count")
 	inputPanels.Count:SetText(tostring(self.Recipe.Input[itemID]))
@@ -261,6 +273,62 @@ function CraftingEditor:PopulateItems(combobox, desiredItemID)
 	end
 
 	combobox:ChooseOptionID(setIndex)
+end
+
+function CraftingEditor:SetupFilter(filter, combobox)
+	filter.Items = {}
+
+	local i = 1
+	while true do
+		local text = combobox:GetOptionText(i)
+		local data = combobox:GetOptionData(i)
+
+		if data == nil then
+			break
+		end
+
+		table.insert(filter.Items, {
+			Text=text,
+			Data=data
+		})
+
+		i = i + 1
+	end
+
+	filter.OnChange = function (this)
+
+		local chosenOption = 1
+		local found = false
+		local noFilter = this:GetValue() == "" 
+		local currentData = combobox:GetOptionData(combobox:GetSelectedID())
+
+		combobox:Clear()
+		local index = 1
+		for _, info in ipairs(filter.Items) do
+			if noFilter or string.find(string.lower(info.Text), string.lower(this:GetValue()), 0, true) then
+				combobox:AddChoice(info.Text, info.Data)
+				found = true
+				if currentData == info.Data then
+					chosenOption = index
+				end
+
+				index = index + 1
+			end
+		end
+
+		index = 1
+		if not found then
+			for _, info in ipairs(filter.Items) do
+				combobox:AddChoice(info.Text, info.Data)
+				if currentData == info.Data then
+					chosenOption = index
+				end
+			end
+			index = index + 1
+		end
+
+		combobox:ChooseOptionID(chosenOption)
+	end
 end
 
 function CraftingEditor.Think(self)

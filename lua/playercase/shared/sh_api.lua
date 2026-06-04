@@ -436,6 +436,7 @@ end
 ---@param ply table
 ---@param itemID number
 ---@param count number
+---@return table
 function CaseInventory:SpawnItemAtPlayer(ply, itemID, count)
 
 	-- Set the pickup delay so it's not just absorbed
@@ -451,13 +452,15 @@ function CaseInventory:SpawnItemAtPlayer(ply, itemID, count)
 		return offset
 	end
 
-	self:SpawnItemAtPos(ply:GetPos(), itemID, count, GetRandomOffset)
+	return self:SpawnItemAtPos(ply:GetPos(), itemID, count, GetRandomOffset)
 end
 
 ---Spawns an item based off its type
 ---@param pos table
 ---@param itemID number
+---@return table
 function CaseInventory:SpawnItemAtPos(pos, itemID, count, randomOffsetFunc)
+	local spawnTable = {}
 	local RandomOffset = randomOffsetFunc
 
 	if randomOffsetFunc == nil then
@@ -468,7 +471,7 @@ function CaseInventory:SpawnItemAtPos(pos, itemID, count, randomOffsetFunc)
 	local itemInfo = CaseInventory:GetItemInfo(itemID)
 
 	if itemInfo == nil then
-		return false
+		return {}
 	end
 
 	local function GetEntFloorOffset(ent)
@@ -490,6 +493,7 @@ function CaseInventory:SpawnItemAtPos(pos, itemID, count, randomOffsetFunc)
 			ent:SetPos(pos)
 			ent:Spawn()
 			ent:SetPos( pos + RandomOffset() + GetEntFloorOffset(ent))
+			table.insert(spawnTable, ent)
 		end
 	end
 
@@ -500,11 +504,12 @@ function CaseInventory:SpawnItemAtPos(pos, itemID, count, randomOffsetFunc)
 		for i = 1, count do 
 			local wpn = ents.Create(itemInfo.Name) 
 			if not IsValid(wpn) then
-				return true
+				continue
 			end
 
 			wpn:SetPos(pos + RandomOffset())
 			wpn:Spawn()
+			table.insert(spawnTable, wpn)
 		end
 	end
 
@@ -520,7 +525,11 @@ function CaseInventory:SpawnItemAtPos(pos, itemID, count, randomOffsetFunc)
 		ent:Spawn()
 
 		ent:SetPos(pos + RandomOffset() + GetEntFloorOffset(ent))
+
+		table.insert(spawnTable, ent)
 	end
+
+	return spawnTable
 end
 
 ---Drops a player's item on the ground
@@ -2695,6 +2704,18 @@ function CaseInventory:Craft(ply, recID)
 			local info = CaseInventory:GetItemInfo(itemID)
 
 			if info ~= nil and CaseInventory:IsWeapon(itemID) then
+				-- Ammo refund
+				local wep = ply:GetWeapon(info.Name)
+				if wep:Clip1() > 0 then
+					ply:GiveAmmo(wep:Clip1(), wep:GetPrimaryAmmoType())
+				end
+
+				
+				if wep:Clip2() > 0 then
+					ply:GiveAmmo(wep:Clip2(), wep:GetSecondaryAmmoType())
+				end
+				
+
 				ply:StripWeapon(info.Name)
 			end
 			-- Bye bye
@@ -2715,6 +2736,8 @@ function CaseInventory:Craft(ply, recID)
 	-- Is some form of ammo
 	if info.AmmoID ~= -1 then
 		ply:GiveAmmo(recipe.Count, info.AmmoID)
+
+		-- A weapon perhaps?
 	elseif info.ItemType == CASE_ITEM_WEAPON then
 		for i = 1, recipe.Count do
 			local wpn = ents.Create(info.Name)
@@ -2724,6 +2747,8 @@ function CaseInventory:Craft(ply, recID)
 
 			wpn:SetPos(ply:GetPos())
 			wpn:Spawn()
+			wpn:SetClip1(0)
+			wpn:SetClip2(0)
 		end
 	else -- Generic ass item
 		local added, rem = CaseInventory:AddItemToInventory(CaseInv(ply), recipe.Result, recipe.Count, false)
@@ -3006,7 +3031,6 @@ function CaseInventory:GetValidRecipeName(name, ignoreID)
 
 	for rID, rInfo in pairs(CaseInventory.CraftingRecipes) do
 		if rID == ignoreID then
-			print("hi")
 			continue
 		end
 		table.insert(nameTable, rInfo.DisplayName)

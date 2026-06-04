@@ -13,7 +13,7 @@ local CRAFT_NAME_SIZE = 18
 local CRAFT_COUNT_SIZE = 30
 
 function craftzone:Init()
-
+	
 end
 
 function craftzone:Paint(w, h)
@@ -252,6 +252,11 @@ function craftzone:SetRecipe(recipeID)
 		-- Just assume it's 0 ig
 		self:UpdateMaxCraft(this.RecipeID)
 	end
+
+	--self.EditRecipe = self:Add("CaseButton")
+	--self.EditRecipe:SetString("E")
+	--self.EditRecipe:SetSize(_CaseUIScale(25, 25))
+	--self.EditRecipe:SetPos(_CaseUIScale(5, 5))
 end
 
 vgui.Register("CaseCraftZone", craftzone, "DPanel")
