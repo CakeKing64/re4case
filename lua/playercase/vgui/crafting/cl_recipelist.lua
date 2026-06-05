@@ -42,7 +42,7 @@ function recipelist:Filter(itemID, filterText)
 	if itemID == -1 then
 		-- Load up the recipes
 		for rID, rInfo in pairs(CaseInventory.CraftingRecipes) do
-			if rInfo.Disabled then
+			if rInfo.Disabled or not CaseInventory:ValidateRecipe(rID) then
 				continue
 			end
 			

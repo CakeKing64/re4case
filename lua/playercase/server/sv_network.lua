@@ -280,6 +280,24 @@ net.Receive("CaseNetMsg", function (len, ply)
 		end
 
 		recipe.IsCustom = true
+
+		-- and finally, do a little validation
+		local toValidate = table.Copy(recipe.Input)
+		toValidate[recipe.Result] = 1 -- Also just plonk that in there
+
+		for itemID, _ in pairs(toValidate) do
+			local itemInfo = CaseInventory:GetItemInfo(itemID)
+			if itemInfo == nil then
+				return
+			end
+
+			if itemInfo.ItemType == CASE_ITEM_DO_NOT_HANDLE or itemInfo.ItemType == CASE_ITEM_GLOW_ONLY then
+				return
+			end
+		end
+
+		-- All good!
+
 		CaseInventory.CraftingRecipes[recipeID] = recipe
 
 		-- Send this stuff away

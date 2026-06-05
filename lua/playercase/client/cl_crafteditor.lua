@@ -259,7 +259,7 @@ function CraftingEditor:PopulateItems(combobox, desiredItemID)
 	local index = 1
 
 	for itemID, itemInfo in pairs(CaseInventory.ItemRegister) do
-		if itemInfo.Type == CASE_ITEM_DO_NOT_HANDLE or itemInfo.Type == CASE_ITEM_GLOW_ONLY then
+		if itemInfo.ItemType == CASE_ITEM_DO_NOT_HANDLE or itemInfo.ItemType == CASE_ITEM_GLOW_ONLY then
 			continue
 		end
 

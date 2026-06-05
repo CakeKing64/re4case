@@ -502,12 +502,22 @@ function CaseGUI:GetHoveredItem()
 		return nil, nil
 	end
 
+	if self.HoveredWindow.Inv == nil then
+		return nil, nil
+	end
+
 	return lastHoveredItem, self.HoveredWindow:Inv().Items[lastHoveredItem]
 end
 
 function CaseGUI:DrawModel(itemID, x, y, w, h, isRotated)
 	local itemInfo = CaseInventory:GetItemInfo(itemID)
 	local renderInfo = itemInfo.RenderInfo
+
+	-- gulp
+	if renderInfo == nil or renderInfo.Model == nil then
+		return
+	end
+
 	local model = CaseGUI.ModelCache[renderInfo.Model]
 
 	if model == nil then

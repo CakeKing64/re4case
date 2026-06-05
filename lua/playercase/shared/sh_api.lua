@@ -2610,7 +2610,7 @@ function CaseInventory:UpdateLookups()
 	CaseInventory.CraftingLookup = {}
 
 	for rID, recipe in pairs(CaseInventory.CraftingRecipes) do
-		if recipe.Disabled then
+		if recipe.Disabled or not CaseInventory:ValidateRecipe(rID) then
 			continue
 		end
 		
@@ -2681,12 +2681,18 @@ end
 ---@param recID number
 ---@return boolean
 function CaseInventory:Craft(ply, recID)
+	
+	-- No? The first
+	if not CaseInventory:ValidateRecipe(recID) then
+		return false
+	end
+
 	local recipe = CaseInventory.CraftingRecipes[recID]
 	if recipe == nil then
 		return false
 	end
 
-	-- No?
+	-- No? The second
 	if recipe.Disabled then
 		return false
 	end
@@ -2771,6 +2777,37 @@ function CaseInventory:Craft(ply, recID)
 
 	-- Sync it all up
 	CaseInventory:Sync(ply)
+
+	return true
+end
+
+---Do some little validation on everything
+---@param recID number
+---@return boolean
+function CaseInventory:ValidateRecipe(recID)
+	local recipe = CaseInventory:GetRecipe(recID)
+	if recipe == nil then
+		return false
+	end
+
+	local function IsValidItem(itemID)
+		local info = CaseInventory:GetItemInfo(itemID)
+		if info == nil then
+			return false
+		end
+
+		return info.ItemType ~= CASE_ITEM_DO_NOT_HANDLE and info.ItemType ~= CASE_ITEM_GLOW_ONLY
+	end
+
+	if not IsValidItem(recipe.Result) then
+		return false
+	end
+
+	for itemID, _ in pairs(recipe.Input) do
+		if not IsValidItem(itemID) then
+			return false
+		end
+	end
 
 	return true
 end

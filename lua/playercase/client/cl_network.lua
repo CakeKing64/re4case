@@ -358,6 +358,7 @@ local function CaseSyncOverride()
 		RenderInfo=CaseRenderInfo(model, scale, rotation, offset, skin, useSprite)
 	})
 
+	CaseInventory:UpdateLookups()
 end
 
 local function CaseOnPickup()
@@ -413,6 +414,7 @@ local function CaseSyncCustomItems()
 				CaseItemCreator:SelectEntity(CaseItemCreator.Current.Class)
 			end
 
+			CaseInventory:UpdateLookups()
 			return
 		end
 
@@ -450,6 +452,9 @@ local function CaseSyncCustomItems()
 		if CaseItemCreator.Current.Class == name then
 			CaseItemCreator:SelectEntity(name)
 		end
+
+		-- finally after everything, update the lookups
+		CaseInventory:UpdateLookups()
 
 	end
 end

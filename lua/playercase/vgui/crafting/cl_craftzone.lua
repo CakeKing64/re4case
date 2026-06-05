@@ -181,6 +181,7 @@ function craftzone:UpdateMaxCraft(recipeID, takeOne)
 		maxCraft = maxCraft - 1
 	end
 
+
 	if maxCraft <= 99 then
 		self.CraftMaxButton:SetString(string.format("Craft %i", maxCraft))
 	else
@@ -250,7 +251,7 @@ function craftzone:SetRecipe(recipeID)
 		CaseInventory.ClientNet.Craft(this.RecipeID, self:GetMaxCraft(this.RecipeID))
 
 		-- Just assume it's 0 ig
-		self:UpdateMaxCraft(this.RecipeID)
+		this:SetString(string.format("Craft 0", maxCraft))
 	end
 
 	--self.EditRecipe = self:Add("CaseButton")
