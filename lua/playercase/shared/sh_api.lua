@@ -2712,17 +2712,28 @@ function CaseInventory:Craft(ply, recID)
 			if info ~= nil and CaseInventory:IsWeapon(itemID) then
 				-- Ammo refund
 				local wep = ply:GetWeapon(info.Name)
-				if wep:Clip1() > 0 then
-					ply:GiveAmmo(wep:Clip1(), wep:GetPrimaryAmmoType())
-				end
 
-				
-				if wep:Clip2() > 0 then
-					ply:GiveAmmo(wep:Clip2(), wep:GetSecondaryAmmoType())
-				end
-				
+				if wep ~= nil then
+					local _clip1 = wep.Clip1 ~= nil and wep:Clip1() or 0
+					if _clip1 == nil then
+						_clip1 = 0
+					end
 
-				ply:StripWeapon(info.Name)
+					if _clip1 > 0 then
+						ply:GiveAmmo(wep:Clip1(), wep:GetPrimaryAmmoType())
+					end
+
+					local _clip2 = wep.Clip2 ~= nil and wep:Clip2() or 0
+					if _clip2 == nil then
+						_clip2 = 0
+					end
+					if _clip2 > 0 then
+						ply:GiveAmmo(wep:Clip2(), wep:GetSecondaryAmmoType())
+					end
+					
+
+					ply:StripWeapon(info.Name)
+				end
 			end
 			-- Bye bye
 			CaseInv(ply).Items[invID] = nil
