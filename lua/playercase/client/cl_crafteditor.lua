@@ -2,8 +2,7 @@ CraftingEditor = {
 	AwaitingUpdate = false,
 	PanelThink = nil,
 	NeedsUpdating = false,
-	UpdateHash = "",
-	UpdateID = 0,
+	UpdateID = nil,
 	CurrentRecipeID = 0,
 	EditPanels = {
 
@@ -165,7 +164,14 @@ function CraftingEditor:UpdateFields()
 			end
 		end
 
-		for itemID, count in pairs(CraftingEditor.Recipe.Input) do
+		local itemIDS = {}
+		for itemID, _ in pairs(CraftingEditor.Recipe.Input) do
+			table.insert(itemIDS, itemID)	
+		end
+
+		table.sort(itemIDS)
+
+		for _, itemID in ipairs(itemIDS) do
 			self.EditPanels.AddItem.DoClick(self.EditPanels.AddItem, itemID)
 		end
 
@@ -184,12 +190,20 @@ function CraftingEditor:UpdateFields()
 		if self.AwaitingUpdate then
 			return
 		end
-		local validName = CaseInventory:GetValidRecipeName(self.EditPanels.Name:GetValue(), self.CurrentRecipeID)
-		self.EditPanels.Name:SetText(validName)
-		self.Recipe.DisplayName = validName
+
+		if self.EditPanels.Name ~= nil then
+			local validName = CaseInventory:GetValidRecipeName(self.EditPanels.Name:GetValue(), self.CurrentRecipeID)
+			self.EditPanels.Name:SetText(validName)
+			self.Recipe.DisplayName = validName
+		end
 
 		CaseInventory.ClientNet.SubmitRecipe(self.CurrentRecipeID, self.Recipe)
 		self.AwaitingUpdate = true
+
+		-- Give up after 3 seconds
+		timer.Simple(3, function() 
+			self.AwaitingUpdate = false
+		end)
 	end
 end
 
@@ -278,6 +292,9 @@ end
 function CraftingEditor:SetupFilter(filter, combobox)
 	filter.Items = {}
 
+	filter.OnChange = nil
+	filter:SetText("")
+
 	local i = 1
 	while true do
 		local text = combobox:GetOptionText(i)
@@ -338,11 +355,25 @@ function CraftingEditor.Think(self)
 		-- Update the recipe list first off
 		CraftingEditor.UpdateRecipes(CraftingEditor)
 
-		-- Let's see.. is what we are currently editing what was just updated?
-		local curHash = CaseInventory:GenerateRecipeHash(CraftingEditor.Recipe)
+		-- What happened
 		
+		-- -1 = Item was deleted
+		-- 0 = Invalid item or something
+		-- 1+ = Switch to this id
+		
+
+		-- Item was deleted, just pick the first thing
+		if CraftingEditor.UpdateID == -1 then
+			CraftingEditor.RecipeSelector:ChooseOptionID(1)
+		end
+
+		-- Skill issue
+		if CraftingEditor.UpdateID == 0 then
+			CraftingEditor.AwaitingUpdate = false
+		end
+
 		-- YES! YES! YES! YES!
-		if curHash == CraftingEditor.UpdateHash then
+		if CraftingEditor.UpdateID >= 1 then
 			local i = 1
 			while true do
 				local rID = CraftingEditor.RecipeSelector:GetOptionData(i)
@@ -354,6 +385,7 @@ function CraftingEditor.Think(self)
 				if rID == CraftingEditor.UpdateID then
 					CraftingEditor.AwaitingUpdate = false
 					CraftingEditor.RecipeSelector:ChooseOptionID(i)
+					break
 				end
 
 				i = i + 1

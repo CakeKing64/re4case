@@ -222,7 +222,15 @@ net.Receive("CaseNetMsg", function (len, ply)
 	end
 
 	if cmd == CASE_COMMAND_MODIFY_RECIPE then
+		local function NotifyPlayer(player, id)
+			net.Start("CaseNetMsg")
+				net.WriteUInt(CASE_EVENT_FINISH_MODIFY_RECIPE, 8)
+				net.WriteInt(id, 16)
+			net.Send(player)
+		end
+
 		if not ply:IsAdmin() then
+			NotifyPlayer(ply, 0)
 			return
 		end
 
@@ -247,6 +255,7 @@ net.Receive("CaseNetMsg", function (len, ply)
 		if delete then
 			CaseInventory:DeleteRecipe(recipeID)
 			CaseInventory:SaveRecipes()
+			NotifyPlayer(ply, -1)
 			return
 		end
 
@@ -260,6 +269,7 @@ net.Receive("CaseNetMsg", function (len, ply)
 
 			CaseInventory:SyncRecipe(recipeID)
 			CaseInventory:SaveRecipes()
+			NotifyPlayer(ply, recipeID)
 			return
 		end
 
@@ -288,10 +298,12 @@ net.Receive("CaseNetMsg", function (len, ply)
 		for itemID, _ in pairs(toValidate) do
 			local itemInfo = CaseInventory:GetItemInfo(itemID)
 			if itemInfo == nil then
+				NotifyPlayer(ply, 0)
 				return
 			end
 
 			if itemInfo.ItemType == CASE_ITEM_DO_NOT_HANDLE or itemInfo.ItemType == CASE_ITEM_GLOW_ONLY then
+				NotifyPlayer(ply, 0)
 				return
 			end
 		end
@@ -305,6 +317,8 @@ net.Receive("CaseNetMsg", function (len, ply)
 
 		-- Finally save it to disk
 		CaseInventory:SaveRecipes()
+
+		NotifyPlayer(ply, recipeID)
 	end
 
 	--[[

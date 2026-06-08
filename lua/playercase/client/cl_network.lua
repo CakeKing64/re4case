@@ -517,11 +517,16 @@ local function CaseSyncRecipe()
 	CaseInventory.CraftingRecipes[recipeID] = recipe
 	CaseInventory:UpdateLookups()
 
+
+end
+
+local function CaseSyncFinishEdit()
+	local id = net.ReadInt(16)
+
 	-- Editor doesn't need to be updated so why bother :)
 	if IsValid(CraftingEditor.Panel) then
 		CraftingEditor.NeedsUpdating = true
-		CraftingEditor.UpdateHash = CaseInventory:GenerateRecipeHash(recipe)
-		CraftingEditor.UpdateID = recipeID
+		CraftingEditor.UpdateID = id
 	end
 end
 
@@ -554,5 +559,9 @@ net.Receive("CaseNetMsg", function ()
 
 	if msg == CASE_EVENT_SYNC_RECIPE then
 		return CaseSyncRecipe()
+	end
+
+	if msg == CASE_EVENT_FINISH_MODIFY_RECIPE then
+		return CaseSyncFinishEdit()
 	end
 end)
