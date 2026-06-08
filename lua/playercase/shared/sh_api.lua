@@ -91,6 +91,7 @@ function CaseInventory:PickupEntity(ply, ent, doUse)
 		return false
 	end
 
+	
 	if ent.MarkedForPickup ~= nil and ent.MarkedForPickup > 0 then
 		ent.MarkedForPickup = ent.MarkedForPickup - 1
 		return
@@ -102,25 +103,13 @@ function CaseInventory:PickupEntity(ply, ent, doUse)
 		return false
 	end
 
-	-- Weapons are the easiest to deal with
-	if ent:IsWeapon() then
-		-- If we already have the weapon 
-		if CaseInventory:PickupWeapon(ply, ent) then
-			ent.MarkedForPickup = MARKED_FOR_PICKUP_DELAY 
-
-			net.Start("CaseNetMsg")
-			net.WriteUInt(CASE_EVENT_ON_PICKUP, 8)
-				net.WriteUInt(itemID, 16)
-			net.Send(ply)
-		end
-		return
-	end
 
 	-- It's an ammo type, also just absorb it
-	if itemInfo.ItemType == CASE_ITEM_GLOW_ONLY then
+	if itemInfo.ItemType == CASE_ITEM_GLOW_ONLY or itemInfo.ItemType == CASE_ITEM_DO_NOT_HANDLE then
 		ply.CasePickup = ent
 		ent:Use(ply, ply)
 		ent.MarkedForPickup = MARKED_FOR_PICKUP_DELAY 
+		return
 	end
 
 	-- An actual item
@@ -154,6 +143,20 @@ function CaseInventory:PickupEntity(ply, ent, doUse)
 		return
 	end
 	
+	-- Weapons are the easiest to deal with
+	if ent:IsWeapon() then
+		-- If we already have the weapon 
+		if CaseInventory:PickupWeapon(ply, ent) then
+			ent.MarkedForPickup = MARKED_FOR_PICKUP_DELAY 
+
+			net.Start("CaseNetMsg")
+			net.WriteUInt(CASE_EVENT_ON_PICKUP, 8)
+				net.WriteUInt(itemID, 16)
+			net.Send(ply)
+		end
+		return
+	end
+
 end
 
 ---TODO

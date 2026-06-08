@@ -302,10 +302,6 @@ hook.Add("PlayerUse", "CASE_PlayerUse", function(ply, ent)
 	end
 	
 
-	if itemInfo.ItemType == CASE_ITEM_DO_NOT_HANDLE then
-		return -- same as above
-	end
-		
 	if ply.UseCommand ~= 1 then
 		return false
 	end
