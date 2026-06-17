@@ -6,46 +6,51 @@ PANEL.Sound = "ui/re4case/context_open.wav"
 PANEL.OnClick = nil
 
 function PANEL:Init()
-    self:SetText("")
+	self:SetText("")
 end
 
 function PANEL:Think()
-    if self:IsHovered() and not self.Hover then
-        CaseGUI.PlaySound("ui/re4case/case_selection.wav")
-    end
+	if self:IsHovered() and not self.Hover then
+		CaseGUI.PlaySound("ui/re4case/case_selection.wav")
+	end
 
-    self.Hover = self:IsHovered()
+	self.Hover = self:IsHovered()
 end
 
 function PANEL:DoClick()
-    CaseGUI.PlaySound(self.Sound)
-    local info = CaseGUI:GenerateInfo()
-    if info == nil then
-        return
-    end
+	CaseGUI.PlaySound(self.Sound)
+	local info = CaseGUI:GenerateInfo()
+	if info == nil then
+		return
+	end
 
-    self.OnClick(info)
+	self.OnClick(info)
 end
 
 function PANEL:Paint(w, h)
-    if self:IsEnabled() then
-        if not self:IsHovered() then
-            surface.SetDrawColor(60, 60, 55, 255)
-        else
-            surface.SetDrawColor(80, 80, 75, 255)
-        end
-    else
-        surface.SetDrawColor(30, 30, 27, 255)
-    end
-    surface.DrawRect( 0, 0, w, h)
+	if self:IsEnabled() then
+		if not self:IsHovered() then
+			CaseGUITheme:Draw("Inventory.ContextButton", 0, 0, w, h)
+		else
+			CaseGUITheme:Draw("Inventory.ContextButtonHovered", 0, 0, w, h)
+		end
+	else
+		CaseGUITheme:Draw("Inventory.ContextButtonDisabled", 0, 0, w, h)
+	end
 
-    if self:IsEnabled() then
-        surface.SetDrawColor(255,255,255, 255)
-    else
-        surface.SetDrawColor(110, 110, 105, 255)
-    end
 
-    CaseInvBitmapTextDraw(self.Text, 0, 0, 35)
+	local color = Color(255, 255, 255)
+	if self:IsEnabled() then
+		if not self:IsHovered() then
+			surface.SetDrawColor(CaseGUITheme:GetDetailColor("Inventory.ContextButton"))
+		else
+			surface.SetDrawColor(CaseGUITheme:GetDetailColor("Inventory.ContextButtonHovered"))
+		end
+	else
+		surface.SetDrawColor(CaseGUITheme:GetDetailColor("Inventory.ContextButtonDisabled"))
+	end
+
+	CaseInvBitmapTextDraw(self.Text, 0, 0, 35)
 end
 
 vgui.Register("CaseInvContextButton", PANEL, "DButton")

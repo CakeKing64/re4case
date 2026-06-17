@@ -281,10 +281,10 @@ function CaseEditor:CopyToClipboard()
 
 	local maxCount = self.IsWeapon and 1 or tonumber(self.Count:GetText())
 	local blacklist = self.Blacklist:GetChecked()
-	local useSprite = self.IsSprite:GetChecked()
+	local useSprite = self.UseSprite:GetChecked()
 
 	local copyString = "no code for this item type yet :("
-	local renderInfo = string.format("CaseRenderInfo(\"%s\", %g, {%g, %g, %g}, Vector(%g, %g, %g), 0, %g), ",
+	local renderInfo = string.format("CaseRenderInfo(\"%s\", %g, {%g, %g, %g}, Vector(%g, %g, %g), 0, %g)",
 			model,
 			scale,
 			rotation[1],

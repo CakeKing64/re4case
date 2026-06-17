@@ -1,16 +1,18 @@
 local PANEL = {}
 
 function PANEL:Paint(w, h)
-    local scaleW, scaleH = _CaseUIGetScaledDiff()
+	local scaleW, scaleH = _CaseUIGetScaledDiff()
 
-    surface.SetDrawColor(220, 53, 69)
-    --surface.SetDrawColor(120, 120, 120)
-    surface.DrawRect(0, 0, w, h)
+   
+	CaseGUITheme:Draw("Inventory.ExitButton", 0, 0, w, h)
 
-    surface.SetDrawColor(255, 255, 255)
-    --surface.SetDrawColor(255, 0, 0)
-    surface.DrawLine(3 * scaleW, 3 * scaleH, w - (3*scaleW), h - (3*scaleH))
-    surface.DrawLine(3 * scaleW, h - (3*scaleH), w - (3*scaleW), 3 * scaleH)
+	local details = CaseGUITheme:GetDetails("Inventory.ExitButton")
+	if details ~= nil and details.Draw then
+		surface.SetDrawColor(CaseGUITheme:GetDetailColor("Inventory.ExitButton"))
+		--surface.SetDrawColor(255, 0, 0)
+		surface.DrawLine(3 * scaleW, 3 * scaleH, w - (3*scaleW), h - (3*scaleH))
+		surface.DrawLine(3 * scaleW, h - (3*scaleH), w - (3*scaleW), 3 * scaleH)
+	end
 end
 
 

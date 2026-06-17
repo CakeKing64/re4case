@@ -20,6 +20,12 @@ local itemColors = {
 	Color(99, 199, 99, 255) -- Full/Max count
 }
 
+local itemColors = {
+	"Inventory.ItemCountEmpty", -- Empty **SHOULD** only be visible on guns >:(
+	"Inventory.ItemCount", -- Somewhere inbetween
+	"Inventory.ItemCountFull" -- Full/Max count
+}
+
 local ratio = 16/9
 
 function invpanel:InvW()
@@ -74,7 +80,8 @@ function invpanel:DrawGrid(w, h)
 	local scaleW, scaleH = _CaseUIGetScaledDiff()
 	local baseX, baseY = __CASE_UI_BORDER * scaleW, __CASE_UI_BORDER * scaleH
 
-	surface.SetDrawColor(Color(255, 255, 255, 20))
+	
+	surface.SetDrawColor(CaseGUITheme:GetColor("Inventory.Grid"))
 	local _x, _y = 0, 0
 
 	-- Vert Lines
@@ -379,6 +386,11 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
 	-- Draw the background
 	local contextHover = CaseGUI.Context.Panel ~= nil and (CaseGUI.Context.Panel:IsHovered() or CaseGUI.Context.Panel:IsChildHovered())
 
+	local itemBGX = baseX + (__CASE_UI_CELL_SIZE * (gridX-1) * scaleW) + (5 * scaleW)
+	local itemBGY = baseY + (__CASE_UI_CELL_SIZE * (gridY-1) * scaleH) + (5 * scaleH)
+	local itemBGW = _w - (7.5 * scaleW)
+	local itemBGH = _h - (7.5 * scaleH)
+
 	if invId == CaseGUI.HeldItem.InvID  then
 		local canMove, willSwap = CaseInventory:MoveItem(
 			CaseGUI.HeldItem.SourceWindow:Inv(),
@@ -406,25 +418,27 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
 
 		-- surface.SetDrawColor(Color(128, 128, 128, 128))
 		if canMove and not willSwap then
-			surface.SetDrawColor(Color(0, 128, 0, 128))
+			CaseGUITheme:Draw("Inventory.ItemCanPlace", itemBGX, itemBGY, itemBGW, itemBGH)
 		elseif canMove and willSwap then
-			surface.SetDrawColor(Color(0, 128, 128, 128))
+			CaseGUITheme:Draw("Inventory.ItemWillSwap", itemBGX, itemBGY, itemBGW, itemBGH)
 		else
-			surface.SetDrawColor(Color(128, 0, 0, 128))
+			CaseGUITheme:Draw("Inventory.ItemCantPlace", itemBGX, itemBGY, itemBGW, itemBGH)
 		end
 		
 	elseif CaseGUI.HeldItem.InvID == -1 and invId == self:GetMouseItem() and not contextHover then
-		surface.SetDrawColor(Color(128, 128, 128, 128))
+		CaseGUITheme:Draw("Inventory.ItemHovered", itemBGX, itemBGY, itemBGW, itemBGH)
 	else
-		surface.SetDrawColor(Color(25,25,25, 200))
+		CaseGUITheme:Draw("Inventory.Item", itemBGX, itemBGY, itemBGW, itemBGH)
 	end
 	
+	--[[
 	surface.DrawRect(
 		baseX + (__CASE_UI_CELL_SIZE * (gridX-1) * scaleW) + (5 * scaleW),
 		baseY + (__CASE_UI_CELL_SIZE * (gridY-1) * scaleH) + (5 * scaleH),
 		_w - (7.5 * scaleW),
 		_h - (7.5 * scaleH)
 	 )
+	]]
 	 surface.SetDrawColor(Color(0,0,0, 255))
 	 
 
@@ -479,7 +493,7 @@ function invpanel:DrawItem(itemID, invId, gridX, gridY, gridW, gridH, isRotated,
 	end
 
 	if _countStatus ~= 4 then
-		surface.SetDrawColor(itemColors[_countStatus])
+		surface.SetDrawColor(CaseGUITheme:GetColor(itemColors[_countStatus]))
 		local sizeW, sizeH = CaseInvBitmapTextSize(tostring(_count), 25)
 		CaseInvBitmapTextDraw(tostring(_count), 
 			(baseX + (__CASE_UI_CELL_SIZE * (gridX-1) * scaleW) + _w) - sizeW - (5*scaleW),
@@ -728,8 +742,7 @@ function invpanel:PaintLimited(w, h)
 		render.ClearDepth()
 	end
 
-	surface.SetDrawColor(Color(42, 41, 37))
-	surface.DrawRect(0, 0, w, h)
+	CaseGUITheme:Draw("Inventory.Background", 0, 0, w, h)
 	self:DrawGrid(w, h)
 
 	render.SetAmbientLight(255, 255, 255)

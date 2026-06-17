@@ -187,6 +187,7 @@ local server = {
 
 local client = {
 	"client/cl_player.lua",
+	"client/cl_themes.lua",
 	--"client/vgui/cl_gui.lua",
 	--"client/vgui/cl_invpanel.lua",
 	"client/cl_network.lua",
@@ -215,7 +216,10 @@ local client = {
 
 
 
-	"vgui/cl_font.lua"
+	"vgui/cl_font.lua",
+
+	-- Send over the themes
+	"themes/default.lua"
 }
 
 local shared = {

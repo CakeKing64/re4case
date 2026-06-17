@@ -1,3 +1,5 @@
+local cvar_theme = GetConVar("case_theme")
+
 local ClientSettings = {}
 ClientSettings.BlurBG = nil
 ClientSettings.DrawWeaponNames = nil
@@ -10,6 +12,25 @@ ClientSettings.PreferSprites = nil
 local cvar_default_case_size = CreateConVar("case_sh_default_size", "s", {FCVAR_REPLICATED})
 
 function ClientSettings:Populate(panel)
+	self.Theme = panel:ComboBox("Theme")
+	local index = 1
+
+	local i = 1
+	for name, _ in pairs(CaseGUITheme.Themes) do
+		if name == cvar_theme:GetString() then
+			index = i
+		end
+		self.Theme:AddChoice(name)
+		i = i + 1
+	end
+	self.Theme:ChooseOptionID(index)
+	
+	self.Theme.OnSelect = function (this, index, value, data)
+		cvar_theme:SetString(value)
+	end
+
+
+
 	self.BlurBG = panel:CheckBox("Blur Case Background", "case_cl_blur_bg")
 	self.DrawWeaponNames = panel:CheckBox("Draw Weapon Names", "case_cl_draw_weapon_names")
 	self.EnableSwapping = panel:CheckBox("Enable Swapping", "case_cl_enable_swapping")

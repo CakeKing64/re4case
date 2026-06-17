@@ -199,6 +199,7 @@ function craftzone:SetRecipe(recipeID)
 		self.CraftMaxButton:Remove()
 	end
 	self.CraftButton = self:Add("CaseButton")
+	self.CraftButton.Name = "CraftButton"
 	self.CraftButton:SetString("Craft")
 	self.CraftButton:SetSize(_CaseUIScale(125, 75))
 	self.CraftButton:SetFontSize(40)
@@ -223,6 +224,7 @@ function craftzone:SetRecipe(recipeID)
 
 
 	self.CraftMaxButton = self:Add("CaseButton")
+	self.CraftMaxButton.Name = "CraftMaxButton"
 
 	local maxCraft =  self:GetMaxCraft(recipeID)
 	if maxCraft <= 99 then

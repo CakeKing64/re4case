@@ -61,12 +61,7 @@ function PANEL:GoBack()
 end
 
 function PANEL:Paint(w, h)
-    --surface.SetDrawColor(60, 60, 55, 255)
-    surface.SetDrawColor(90, 90, 85, 255)
-    surface.DrawRect( 0, 0, w, h)
-
-
-
+    CaseGUITheme:Draw("Inventory.ContextBackground", 0, 0, w, h)
 end
 
 
