@@ -147,6 +147,8 @@ function CaseGUITheme:RegisterThemes()
 	local theme = cvar_theme:GetString()
 	if self.Themes[theme] == nil then
 		cvar_theme:SetString("Default")
+	else
+		self.Current = self.Themes[theme]
 	end
 end
 

@@ -463,6 +463,7 @@ function CaseGUI.OpenInventory(silent)
 
 	local craftButton = CaseGUI.MainWindow:Add("CaseButton")
 	craftButton:SetString("C")
+	craftButton.Name = "ToCraftButton"
 	craftButton:SetSize(_CaseUIScale(25, 25))
 	craftButton:SetPos(mainWindowW - ((35*scaleW) +  (25 * scaleH)), (5*scaleW))
 	craftButton.DoClick = function()
